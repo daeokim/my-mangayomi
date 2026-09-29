@@ -1,0 +1,24 @@
+[
+  {
+    "name": "티비위키",
+    "id": 780920260915001,
+    "baseUrl": "https://tvwiki51.net",
+    "lang": "ko",
+    "typeSource": "single",
+    "iconUrl": "https://dc-toki-mangayomi-media.pages.dev/icon/ko.tvwiki.png",
+    "dateFormat": "",
+    "dateFormatLocale": "",
+    "isNsfw": false,
+    "hasCloudflare": false,
+    "apiUrl": "",
+    "version": "0.1.8",
+    "isManga": false,
+    "itemType": 1,
+    "isFullData": false,
+    "appMinVerReq": "0.9.3",
+    "additionalParams": "",
+    "sourceCodeLanguage": 1,
+    "sourceCodeUrl": "https://daeokim.github.io/my-mangayomi/javascript/anime/tvwiki.js",
+    "notes": ""
+  }
+]
