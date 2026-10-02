@@ -3,12 +3,12 @@ const mangayomiSources = [{
   lang: "ko",
   baseUrl: "https://goodtoon005.com",
   apiUrl: "",
-  iconUrl: "http://127.0.0.1:18774/icon/ko.goodtoon.png",
+  iconUrl: "https://dc-toki-mangayomi-manga.pages.dev/icon/ko.goodtoon.png",
   typeSource: "single",
   itemType: 0,
   isNsfw: true,
   hasCloudflare: false,
-  version: "0.1.9",
+  version: "0.1.10",
   dateFormat: "yy.MM.dd",
   dateFormatLocale: "ko_KR",
   pkgPath: "manga/src/ko/goodtoon.js"
@@ -176,7 +176,7 @@ class DefaultExtension extends MProvider {
     const originalGetDetail = DefaultExtension.prototype.getDetail.bind(this);
     this.getDetail = async (url) => dcApplySiteOrderEpisodeNumbers(await originalGetDetail(url));
     this.signalUrl = "https://wankyo83.github.io/tokki-traffic-light/domains.json";
-    this.fallbackBaseUrl = "https://goodtoon003.com";
+    this.fallbackBaseUrl = "https://goodtoon005.com";
     this.searchUserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36";
     this.userAgent = "Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Mobile Safari/537.36";
     this.imageAccept = "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8";
