@@ -8,7 +8,7 @@ const mangayomiSources = [{
   itemType: 0,
   isNsfw: true,
   hasCloudflare: false,
-  version: "0.1.13",
+  version: "0.1.14",
   dateFormat: "yyyy.MM.dd",
   dateFormatLocale: "ko_KR",
   pkgPath: "manga/src/ko/toon11.js"
@@ -338,6 +338,7 @@ class DefaultExtension extends MProvider {
 
   async _resolveBaseUrl() {
     const manual = this._text(this._preference("toon11_domain_url", "")).trim();
+    if (manual && !this._isAllowedBaseUrl(manual)) throw new Error("11toon 수동 주소 형식이 잘못됐습니다. https://www.11toon144.com 같은 주소를 입력하거나, 자동 주소를 사용하려면 입력란을 비우세요.");
     if (this._isAllowedBaseUrl(manual)) return this._trimSlash(manual);
     try {
       const response = await new Client({ useDartHttpClient: true, persistentConnection: false }).get(this.signalUrl, {
@@ -975,13 +976,14 @@ class DefaultExtension extends MProvider {
 
   async _probeImageIndexes(rows, indexes, chapterUrl, concurrency) {
     const checks = {};
+    const base = this._origin(chapterUrl) || this.fallbackBaseUrl;
     let cursor = 0;
     const limit = Math.max(1, Math.min(Number(concurrency) || 4, indexes.length || 1));
     const worker = async () => {
       while (cursor < indexes.length) {
         const position = cursor++;
         const index = indexes[position];
-        checks[index] = await this._probeImage(this._absoluteUrl(this.fallbackBaseUrl, rows[index] || ""), chapterUrl);
+        checks[index] = await this._probeImage(this._absoluteUrl(base, rows[index] || ""), chapterUrl);
       }
     };
     await Promise.all(Array.from({ length: limit }, worker));
@@ -1010,6 +1012,7 @@ class DefaultExtension extends MProvider {
   }
 
   async _directPages(chapterUrl) {
+    const base = this._origin(chapterUrl) || this.fallbackBaseUrl;
     const html = await this._getText(chapterUrl, { "Referer": chapterUrl }, "viewer");
     const primary = this._extractImageArray(html, "img_list");
     const fallback = this._extractImageArray(html, "img_list_2");
@@ -1019,8 +1022,8 @@ class DefaultExtension extends MProvider {
     const mirror = await this._chooseImageMirror(primary, fallback, chapterUrl);
     const mixedChoices = mirror === "mixed" ? await this._mixedImageChoices(primary, fallback, chapterUrl) : [];
     for (let index = 0; index < count; index++) {
-      const first = this._absoluteUrl(this.fallbackBaseUrl, primary[index] || "");
-      const second = this._absoluteUrl(this.fallbackBaseUrl, fallback[index] || "");
+      const first = this._absoluteUrl(base, primary[index] || "");
+      const second = this._absoluteUrl(base, fallback[index] || "");
       const choice = mirror === "mixed" ? mixedChoices[index] : mirror;
       const imageUrl = choice === "fallback" ? (second || first) : (first || second);
       if (!imageUrl || seen[imageUrl]) continue;

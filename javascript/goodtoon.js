@@ -8,7 +8,7 @@ const mangayomiSources = [{
   itemType: 0,
   isNsfw: true,
   hasCloudflare: false,
-  version: "0.1.10",
+  version: "0.1.11",
   dateFormat: "yy.MM.dd",
   dateFormatLocale: "ko_KR",
   pkgPath: "manga/src/ko/goodtoon.js"
@@ -277,6 +277,7 @@ class DefaultExtension extends MProvider {
 
   async _resolveBaseUrl() {
     const manual = this._text(this._preference("goodtoon_domain_url", "")).trim();
+    if (manual && !this._isAllowedBaseUrl(manual)) throw new Error("굿툰 수동 주소 형식이 잘못됐습니다. https://goodtoon005.com 같은 주소를 입력하거나, 자동 주소를 사용하려면 입력란을 비우세요.");
     if (this._isAllowedBaseUrl(manual)) return this._trimSlash(manual);
     try {
       const response = await new Client({ persistentConnection: false, noProxy: true, timeout: 8, connectTimeout: 5 }).get(this.signalUrl, {
@@ -350,10 +351,14 @@ class DefaultExtension extends MProvider {
     const status = response && response.statusCode ? Number(response.statusCode) : 0;
     if (status) return "HTTP" + status;
     const text = this._text(cause && (cause.message || cause));
-    if (/10054|ECONNRESET|connection reset/i.test(text)) return "RESET";
+    if (/10054|ECONNRESET|ConnectionReset|connection reset/i.test(text)) return "RESET";
     if (/timed?\s*out|timeout/i.test(text)) return "TIMEOUT";
     if (/certificate|handshake|TLS|SSL/i.test(text)) return "TLS";
     return "NETWORK";
+  }
+
+  _isChallenge(body) {
+    return /cdn-cgi\/challenge-platform|cf-chl-|<title>\s*Just a moment/i.test(this._text(body));
   }
 
   async _pause(milliseconds) {
@@ -375,7 +380,11 @@ class DefaultExtension extends MProvider {
         const response = method === "POST"
           ? (body === undefined ? await client.post(url, headers) : await client.post(url, headers, body))
           : await client.get(url, headers);
-        if (response.statusCode >= 200 && response.statusCode < 300) return response.body;
+        if (response.statusCode >= 200 && response.statusCode < 300) {
+          if (!this._isChallenge(response.body)) return response.body;
+          diagnostics.push(transport.name + "=CHALLENGE");
+          continue;
+        }
         diagnostics.push(transport.name + "=" + this._failureCode(response, null));
         if (response.statusCode === 401 || response.statusCode === 403 || response.statusCode === 429) break;
       } catch (error) {
@@ -796,6 +805,7 @@ class DefaultExtension extends MProvider {
     if (!Array.isArray(rows) || !rows.length || Number(manifest.expected) !== rows.length) throw new Error("Rabbit 서버가 불완전한 이미지 목록을 반환했습니다.");
     const referer = this._text(manifest.referer).trim();
     const userAgent = this._text(manifest.userAgent).trim();
+    if (!referer || !userAgent) throw new Error("Rabbit 이미지 헤더가 불완전합니다.");
     const result = [];
     for (let index = 0; index < rows.length; index++) {
       const row = rows[index];
@@ -842,7 +852,7 @@ class DefaultExtension extends MProvider {
       result.push({ url: imageUrl, headers: { "User-Agent": this.userAgent, "Referer": chapterUrl, "Accept": this.imageAccept } });
       seen[imageUrl] = true;
     }
-    if (!result.length) throw new Error("굿툰 뷰어에서 이미지를 찾지 못했습니다. 필요할 때만 Rabbit 외부 인증을 켜세요.");
+    if (!result.length) throw new Error("굿툰 뷰어에서 이미지 주소를 찾지 못했습니다 (NO_IMAGES). 웹뷰에서 같은 회차가 열리는지 확인하세요. 사이트 구조 변경이나 로그인·접속 확인 페이지일 수 있습니다. 외부 인증 서버가 반드시 필요한 것은 아닙니다.");
     return result;
   }
 
