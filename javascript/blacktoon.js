@@ -8,7 +8,7 @@ const mangayomiSources = [{
   itemType: 0,
   isNsfw: true,
   hasCloudflare: false,
-  version: "0.1.15",
+  version: "0.1.16",
   dateFormat: "yyyy-MM-dd",
   dateFormatLocale: "ko_KR",
   pkgPath: "manga/src/ko/blacktoon.js"
@@ -191,8 +191,13 @@ class DefaultExtension extends MProvider {
     this.requestSequence = 0;
     this.cachedBase = "";
     this.cachedConfig = null;
+    this.cachedConfigAt = 0;
+    this.configFreshMs = 24 * 60 * 60 * 1000;
+    this.pendingConfigs = {};
     this.cachedDataBase = "";
     this.cachedData = { ongoing: null, completed: null, top: null };
+    this.cachedDataAt = {};
+    this.pendingData = {};
     this.resolvedBase = "";
     this.resolvedBaseAt = 0;
     this.resolvedBaseMode = "";
@@ -317,8 +322,10 @@ class DefaultExtension extends MProvider {
     if (this.resolvedBase && this.resolvedBase !== resolved) {
       this.cachedBase = "";
       this.cachedConfig = null;
+      this.cachedConfigAt = 0;
       this.cachedDataBase = "";
       this.cachedData = { ongoing: null, completed: null, top: null };
+      this.cachedDataAt = {};
       this.pendingLists = {};
     }
     this.resolvedBase = resolved;
@@ -399,12 +406,26 @@ class DefaultExtension extends MProvider {
   _configValue(text, name) { const match = this._text(text).match(new RegExp("(?:var\\s+)?" + name + "\\s*=\\s*[\\\"']([^\\\"']+)", "i")); return match ? this._trimSlash(match[1]) : ""; }
 
   async _siteConfig(base) {
-    if (this.cachedConfig && this.cachedBase === base) return this.cachedConfig;
-    const stored = this._readSnapshot(this.siteConfigSnapshotPreference, base, 24 * 60 * 60 * 1000);
-    if (stored && stored.value && stored.value.incUrl && stored.value.imageDomain) {
+    const age = Date.now() - this.cachedConfigAt;
+    if (this.cachedConfig && this.cachedBase === base && age >= 0 && age < this.configFreshMs) return this.cachedConfig;
+    if (!this.pendingConfigs[base]) this.pendingConfigs[base] = this._fetchSiteConfig(base).finally(() => { delete this.pendingConfigs[base]; });
+    return await this.pendingConfigs[base];
+  }
+
+  _rememberSiteConfig(base, config, savedAt) {
+    // A request for an old domain may finish after the user has changed domains.
+    if (!this.resolvedBase || this.resolvedBase === base) {
       this.cachedBase = base;
-      this.cachedConfig = stored.value;
-      return stored.value;
+      this.cachedConfig = config;
+      this.cachedConfigAt = savedAt;
+    }
+    return config;
+  }
+
+  async _fetchSiteConfig(base) {
+    const stored = this._readSnapshot(this.siteConfigSnapshotPreference, base, this.configFreshMs - 1);
+    if (stored && stored.value && stored.value.incUrl && stored.value.imageDomain) {
+      return this._rememberSiteConfig(base, stored.value, Date.now() - stored.age);
     }
     let home = "", configText = "";
     try {
@@ -417,9 +438,7 @@ class DefaultExtension extends MProvider {
     } catch (error) {
       const stale = this._readSnapshot(this.siteConfigSnapshotPreference, base, 7 * 24 * 60 * 60 * 1000);
       if (stale && stale.value && stale.value.incUrl && stale.value.imageDomain) {
-        this.cachedBase = base;
-        this.cachedConfig = stale.value;
-        return stale.value;
+        return this._rememberSiteConfig(base, stale.value, Date.now() - stale.age);
       }
       throw error;
     }
@@ -438,11 +457,8 @@ class DefaultExtension extends MProvider {
       if (fallbackMatch) fallback[kind] = this._join(incUrl, fallbackMatch[1]);
     }
     const config = { base: base, home: home, incUrl: incUrl, incUrl1: incUrl1, incUrl2: incUrl2, imageDomain: imageDomain + "/", alternateImageDomain: alternateImageDomain + "/", primary: primary, fallback: fallback, topUrl: this._join(incUrl, "data/top.js?v=" + Date.now()) };
-    if (this.cachedBase !== base) this.cachedData = { ongoing: null, completed: null, top: null };
-    this.cachedBase = base;
-    this.cachedConfig = config;
     this._writeSnapshot(this.siteConfigSnapshotPreference, base, config);
-    return config;
+    return this._rememberSiteConfig(base, config, Date.now());
   }
 
   _parseArrayScript(script, variable) {
@@ -456,43 +472,55 @@ class DefaultExtension extends MProvider {
     return rows;
   }
 
-  async _loadDataset(kind) {
+  async _loadCachedData(kind, loader) {
     const base = await this._resolveBaseUrl();
     if (this.cachedDataBase !== base) {
       this.cachedDataBase = base;
       this.cachedData = { ongoing: null, completed: null, top: null };
+      this.cachedDataAt = {};
     }
-    if (this.cachedData[kind]) return this.cachedData[kind];
-    const config = await this._siteConfig(base);
-    const index = kind === "ongoing" ? "1" : "0";
-    let script = "";
-    if (config.primary[index]) {
-      try { script = await this._getText(config.primary[index], { "Referer": base + "/" }, kind === "ongoing" ? "연재 데이터" : "완결 데이터"); } catch (_) {}
+    const age = Date.now() - this.cachedDataAt[kind];
+    if (this.cachedData[kind] && age >= 0 && age < this.listFreshMs) return this.cachedData[kind];
+    const key = base + "|" + kind;
+    if (!this.pendingData[key]) {
+      this.pendingData[key] = loader(base).then((value) => {
+        if (this.cachedDataBase === base) {
+          this.cachedData[kind] = value;
+          this.cachedDataAt[kind] = Date.now();
+        }
+        return value;
+      }).finally(() => { delete this.pendingData[key]; });
     }
-    if (!script && config.fallback[index]) script = await this._getText(config.fallback[index], { "Referer": base + "/" }, kind === "ongoing" ? "연재 예비 데이터" : "완결 예비 데이터");
-    if (!script) throw new Error("블랙툰 " + (kind === "ongoing" ? "연재" : "완결") + " 데이터 주소를 찾지 못했습니다.");
-    const rows = this._parseArrayScript(script, "data" + index);
-    for (const row of rows) row.__kind = kind;
-    this.cachedData[kind] = rows;
-    return rows;
+    return await this.pendingData[key];
+  }
+
+  async _loadDataset(kind) {
+    return await this._loadCachedData(kind, async (base) => {
+      const config = await this._siteConfig(base);
+      const index = kind === "ongoing" ? "1" : "0";
+      let script = "";
+      if (config.primary[index]) {
+        try { script = await this._getText(config.primary[index], { "Referer": base + "/" }, kind === "ongoing" ? "연재 데이터" : "완결 데이터"); } catch (_) {}
+      }
+      if (!script && config.fallback[index]) script = await this._getText(config.fallback[index], { "Referer": base + "/" }, kind === "ongoing" ? "연재 예비 데이터" : "완결 예비 데이터");
+      if (!script) throw new Error("블랙툰 " + (kind === "ongoing" ? "연재" : "완결") + " 데이터 주소를 찾지 못했습니다.");
+      const rows = this._parseArrayScript(script, "data" + index);
+      for (const row of rows) row.__kind = kind;
+      return rows;
+    });
   }
 
   async _loadTop() {
-    const base = await this._resolveBaseUrl();
-    if (this.cachedDataBase !== base) {
-      this.cachedDataBase = base;
-      this.cachedData = { ongoing: null, completed: null, top: null };
-    }
-    if (this.cachedData.top) return this.cachedData.top;
-    const config = await this._siteConfig(base);
-    const script = await this._getText(config.topUrl, { "Referer": base + "/" }, "인기 순위");
-    const top = {};
-    const pattern = /tophits\[['"]([^'"]+)['"]\]\s*=\s*['"]([^'"]*)['"]/gi;
-    let match;
-    while ((match = pattern.exec(script)) !== null) top[match[1]] = match[2].split(",").filter(Boolean);
-    if (!Object.keys(top).length) throw new Error("블랙툰 인기 순위표를 해석하지 못했습니다.");
-    this.cachedData.top = top;
-    return top;
+    return await this._loadCachedData("top", async (base) => {
+      const config = await this._siteConfig(base);
+      const script = await this._getText(config.topUrl, { "Referer": base + "/" }, "인기 순위");
+      const top = {};
+      const pattern = /tophits\[['"]([^'"]+)['"]\]\s*=\s*['"]([^'"]*)['"]/gi;
+      let match;
+      while ((match = pattern.exec(script)) !== null) top[match[1]] = match[2].split(",").filter(Boolean);
+      if (!Object.keys(top).length) throw new Error("블랙툰 인기 순위표를 해석하지 못했습니다.");
+      return top;
+    });
   }
 
   _defaultPopularRule() { return { section: "top", weekday: "up", genre: "0", platform: "0", contentScope: "all", order: "hot", best: "d", topType: "comm" }; }
