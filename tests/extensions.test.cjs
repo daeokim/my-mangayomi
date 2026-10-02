@@ -345,3 +345,230 @@ test("Goodtoon: Rabbit manifest rejects missing image headers and keeps valid pa
   assert.equal(pages[0].headers.Referer, chapter);
   assert.equal(pages[0].headers["User-Agent"], "test UA");
 });
+
+test("11toon: missing episode container falls back to document buttons", function() {
+  const extension = loadExtension(toon11).extension;
+  const button = {};
+  extension._parseChapterNode = function(node, id) {
+    assert.equal(node, button);
+    assert.equal(id, "34");
+    return { url: "/chapter/12", name: "12" };
+  };
+  const rows = extension._parseChapters({
+    getElementById: function() { return null; },
+    getElementsByTagName: function(tag) { assert.equal(tag, "button"); return [button]; }
+  }, "34");
+  assert.equal(rows.length, 1);
+  assert.equal(rows[0].url, "/chapter/12");
+});
+
+test("11toon: missing container and buttons return an empty result safely", function() {
+  const extension = loadExtension(toon11).extension;
+  assert.equal(extension._parseChapters({
+    getElementById: function() { return null; },
+    getElementsByTagName: function() { return []; }
+  }, "34").length, 0);
+});
+
+function blacktoonCacheFixture() {
+  let now = 1700000000000;
+  class Clock extends Date { static now() { return now; } }
+  const entry = catalogs[0].entries.find(function(value) { return value.name === "블랙툰"; });
+  const loaded = loadExtension(entry, { Date: Clock });
+  const extension = loaded.extension;
+  let base = entry.baseUrl;
+  extension._resolveBaseUrl = async function() { return base; };
+  return { ...loaded, now: function() { return now; }, advance: function(ms) { now += ms; },
+    setBase: function(value) { base = value; } };
+}
+
+function datasetConfig(base) {
+  return { incUrl: "https://data.example.org", imageDomain: "https://img.example.org/",
+    primary: { "1": base + "/ongoing.js", "0": base + "/completed.js" }, fallback: {},
+    topUrl: base + "/top.js" };
+}
+
+test("Blacktoon: datasets reuse fresh cache and refresh at its expiry", async function() {
+  const loaded = blacktoonCacheFixture(), extension = loaded.extension;
+  extension._siteConfig = async function(base) { return datasetConfig(base); };
+  let calls = 0;
+  extension._getText = async function() { return 'var data1 = [{"x":' + (++calls) + ',"t":"fixture"}];'; };
+  const first = await extension._loadDataset("ongoing");
+  assert.equal(await extension._loadDataset("ongoing"), first);
+  assert.equal(calls, 1);
+  loaded.advance(extension.listFreshMs);
+  assert.equal((await extension._loadDataset("ongoing"))[0].x, 2);
+  assert.equal(calls, 2);
+});
+
+test("Blacktoon: simultaneous dataset requests share one fetch", async function() {
+  const loaded = blacktoonCacheFixture(), extension = loaded.extension;
+  extension._siteConfig = async function(base) { return datasetConfig(base); };
+  let calls = 0;
+  extension._getText = async function() { calls++; return 'var data1 = [{"x":1}];'; };
+  const rows = await Promise.all([extension._loadDataset("ongoing"), extension._loadDataset("ongoing")]);
+  assert.equal(calls, 1);
+  assert.equal(rows[0], rows[1]);
+});
+
+test("Blacktoon: failed refresh can retry instead of keeping a rejected request", async function() {
+  const loaded = blacktoonCacheFixture(), extension = loaded.extension;
+  extension._siteConfig = async function(base) { return datasetConfig(base); };
+  let available = true, calls = 0;
+  extension._getText = async function() { calls++; if (!available) throw new Error("offline"); return 'var data1 = [{"x":' + calls + '}];'; };
+  await extension._loadDataset("ongoing");
+  loaded.advance(extension.listFreshMs);
+  available = false;
+  await assert.rejects(extension._loadDataset("ongoing"));
+  available = true;
+  assert.equal((await extension._loadDataset("ongoing"))[0].x, 3);
+});
+
+test("Blacktoon: late old-domain responses do not overwrite new-domain cache", async function() {
+  const loaded = blacktoonCacheFixture(), extension = loaded.extension;
+  extension._siteConfig = async function(base) { return datasetConfig(base); };
+  let release;
+  const oldResponse = new Promise(function(resolve) { release = resolve; });
+  extension._getText = async function(url) {
+    return url.includes("blacktoon423") ? await oldResponse : 'var data1 = [{"x":2}];';
+  };
+  const oldRequest = extension._loadDataset("ongoing");
+  // Let the original request reach its pending network response before switching domains.
+  await new Promise(setImmediate);
+  loaded.setBase("https://blacktoon424.com");
+  const current = await extension._loadDataset("ongoing");
+  release('var data1 = [{"x":1}];');
+  assert.equal((await oldRequest)[0].x, 1);
+  assert.equal(await extension._loadDataset("ongoing"), current);
+  assert.equal(current[0].x, 2);
+});
+
+test("Blacktoon: popularity rankings expire and concurrent refreshes are shared", async function() {
+  const loaded = blacktoonCacheFixture(), extension = loaded.extension;
+  extension._siteConfig = async function(base) { return datasetConfig(base); };
+  let calls = 0;
+  extension._getText = async function() { return "tophits['d_comm'] = '" + (++calls) + "';"; };
+  const first = await extension._loadTop();
+  assert.equal(await extension._loadTop(), first);
+  loaded.advance(extension.listFreshMs);
+  const refreshed = await Promise.all([extension._loadTop(), extension._loadTop()]);
+  assert.equal(calls, 2);
+  assert.equal(refreshed[0], refreshed[1]);
+  assert.equal(refreshed[0].d_comm[0], "2");
+});
+
+test("Blacktoon: stored site configuration keeps its original expiry time", async function() {
+  const loaded = blacktoonCacheFixture(), extension = loaded.extension, base = extension.source.baseUrl;
+  loaded.preferences.set(extension.siteConfigSnapshotPreference, JSON.stringify({
+    base, savedAt: loaded.now() - 23 * 60 * 60 * 1000, value: datasetConfig(base)
+  }));
+  let calls = 0;
+  extension._getText = async function(url) {
+    calls++;
+    return url.includes("config.js") ? 'var inc_url="https://new.example.org"; var img_domain="https://new-img.example.org";' : "home fixture";
+  };
+  assert.equal((await extension._siteConfig(base)).incUrl, "https://data.example.org");
+  assert.equal(calls, 0);
+  loaded.advance(60 * 60 * 1000);
+  assert.equal((await extension._siteConfig(base)).incUrl, "https://new.example.org");
+  assert.equal(calls, 2);
+});
+
+test("Blacktoon: simultaneous site configuration requests share the homepage and script", async function() {
+  const loaded = blacktoonCacheFixture(), extension = loaded.extension, base = extension.source.baseUrl;
+  let calls = 0;
+  extension._getText = async function(url) {
+    calls++;
+    return url.includes("config.js") ? 'var inc_url="https://data.example.org"; var img_domain="https://img.example.org";' : "home fixture";
+  };
+  const configs = await Promise.all([extension._siteConfig(base), extension._siteConfig(base)]);
+  assert.equal(calls, 2);
+  assert.equal(configs[0], configs[1]);
+});
+
+test("Blacktoon: expired list snapshot refreshes from a newly fetched dataset", async function() {
+  const loaded = blacktoonCacheFixture(), extension = loaded.extension;
+  extension._siteConfig = async function(base) { return datasetConfig(base); };
+  extension._rowsForRule = async function() { return await extension._loadDataset("ongoing"); };
+  extension._rememberItems = function() {};
+  extension._imageFor = function() { return "https://img.example.org/fixture.jpg"; };
+  let calls = 0;
+  extension._getText = async function() { return 'var data1 = [{"x":' + (++calls) + ',"t":"title ' + calls + '"}];'; };
+  const rule = extension._defaultLatestRule();
+  assert.equal((await extension._pagedList(1, rule)).list[0].name, "title 1");
+  loaded.advance(extension.listFreshMs + 1);
+  assert.equal((await extension._pagedList(1, rule)).list[0].name, "title 1");
+  await Promise.all(Object.values(extension.pendingLists));
+  assert.equal((await extension._pagedList(1, rule)).list[0].name, "title 2");
+  assert.equal(calls, 2);
+});
+
+const tvroom = catalogs[1].entries.find(function(entry) { return entry.name === "티비룸"; });
+for (const stream of ["/hls/main.m3u8?x=1&amp;y=2", "//cdn.example.org/main.m3u8", "../hls/main.m3u8", "https://cdn.example.org/main.m3u8"]) {
+  test("TVRoom: viewer resolves HLS address " + stream, async function() {
+    const playerUrl = "https://player.example.org/watch/1", calls = [];
+    const extension = loadExtension(tvroom, {
+      Document: class {
+        selectFirst(selector) {
+          if (selector === "iframe#view_iframe[src]") return { attr: function() { return playerUrl; } };
+          if (selector === "#player[data-m3u8]") return { attr: function() { return stream; } };
+          return null;
+        }
+      }
+    }).extension;
+    extension._resolveBaseUrl = async function() { return tvroom.baseUrl; };
+    extension._requestText = async function(url, referer, stage, headers) {
+      calls.push({ url, referer, stage, headers });
+      return stage === "재생목록" ? "#EXTM3U\n#EXTINF:10,\nsegment.ts\n" : "HTML fixture";
+    };
+    const expected = new URL(stream.replace(/&amp;/g, "&"), playerUrl).href;
+    const videos = await extension.getVideoList("/episode/1");
+    assert.equal(calls[2].url, expected);
+    assert.equal(videos[0].url, expected);
+    assert.equal(videos[0].headers.Referer, playerUrl);
+    assert.equal(videos[0].headers.Origin, "https://player.example.org");
+    assert.equal(videos[0].headers["User-Agent"], extension.userAgent);
+    assert.equal(videos[0].quality, "자동 (HLS)");
+  });
+}
+
+test("Blacktoon: stale configuration fallback does not become fresh or extend its lifetime", async function() {
+  const loaded = blacktoonCacheFixture(), extension = loaded.extension, base = extension.source.baseUrl;
+  const savedAt = loaded.now() - 2 * 24 * 60 * 60 * 1000;
+  loaded.preferences.set(extension.siteConfigSnapshotPreference, JSON.stringify({ base, savedAt, value: datasetConfig(base) }));
+  extension._getText = async function() { throw new Error("offline"); };
+  assert.equal((await extension._siteConfig(base)).incUrl, "https://data.example.org");
+  loaded.advance(6 * 24 * 60 * 60 * 1000);
+  await assert.rejects(extension._siteConfig(base), /offline/);
+  extension._getText = async function(url) {
+    return url.includes("config.js") ? 'var inc_url="https://new.example.org"; var img_domain="https://img.example.org";' : "home fixture";
+  };
+  assert.equal((await extension._siteConfig(base)).incUrl, "https://new.example.org");
+});
+
+test("Blacktoon: late old-domain configuration cannot replace current memory configuration", async function() {
+  const loaded = blacktoonCacheFixture(), extension = loaded.extension, oldBase = extension.source.baseUrl;
+  extension._setResolvedBase(oldBase, "manual");
+  let release;
+  const wait = new Promise(function(resolve) { release = resolve; });
+  extension._getText = async function(url) {
+    if (url.startsWith(oldBase)) await wait;
+    return url.includes("config.js") ? 'var inc_url="https://data.example.org"; var img_domain="https://img.example.org";' : "home fixture";
+  };
+  const oldRequest = extension._siteConfig(oldBase);
+  const newBase = "https://blacktoon424.com";
+  extension._setResolvedBase(newBase, "manual");
+  const current = await extension._siteConfig(newBase);
+  release();
+  await oldRequest;
+  assert.equal(extension.cachedBase, newBase);
+  assert.equal(await extension._siteConfig(newBase), current);
+});
+
+test("TVRoom: relative URL normalization handles dot paths, query and fragment references", function() {
+  const extension = loadExtension(tvroom).extension;
+  const base = "https://player.example.org/a/b/watch?old=1#old";
+  for (const value of ["./main.m3u8", "../../main.m3u8", "../../../main.m3u8", "../", ".", "..", "?new=1", "#new", "/hls/./a/../main.m3u8", "/hls//main.m3u8"]) {
+    assert.equal(extension._absoluteUrl(base, value), new URL(value, base).href, value);
+  }
+});

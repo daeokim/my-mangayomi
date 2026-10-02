@@ -8,7 +8,7 @@ const mangayomiSources = [{
   itemType: 0,
   isNsfw: true,
   hasCloudflare: false,
-  version: "0.1.14",
+  version: "0.1.15",
   dateFormat: "yyyy.MM.dd",
   dateFormatLocale: "ko_KR",
   pkgPath: "manga/src/ko/toon11.js"
@@ -732,7 +732,7 @@ class DefaultExtension extends MProvider {
     const result = [];
     const seen = {};
     const chapterList = document.getElementById("comic-episode-list");
-    let nodes = chapterList.getElementsByTagName("button");
+    let nodes = chapterList ? chapterList.getElementsByTagName("button") : [];
     if (!nodes.length) nodes = document.getElementsByTagName("button");
     for (const node of nodes) {
       const chapter = this._parseChapterNode(node, mangaId);

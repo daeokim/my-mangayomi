@@ -8,7 +8,7 @@ const mangayomiSources = [{
   itemType: 1,
   isNsfw: false,
   hasCloudflare: false,
-  version: "0.1.23",
+  version: "0.1.24",
   dateFormat: "",
   dateFormatLocale: "",
   pkgPath: "anime/src/ko/tvroom.js",
@@ -203,7 +203,24 @@ class DefaultExtension extends MProvider {
   _trimSlash(v) { return this._text(v).trim().replace(/\/+$/, ""); }
   _origin(v) { const m = this._text(v).match(/^(https?:\/\/[^/]+)/i); return m ? m[1] : ""; }
   _relativePath(v) { let s = this._text(v).trim(); if (/^https?:\/\//i.test(s)) s = s.replace(/^https?:\/\/[^/]+/i, ""); if (s && !s.startsWith("/")) s = "/" + s; return s; }
-  _absoluteUrl(base, v) { let s = this._text(v).trim().replace(/\\\//g, "/").replace(/&amp;/g, "&"); if (!s) return ""; if (s.startsWith("//")) return "https:" + s; if (/^https?:\/\//i.test(s)) return s; if (s.startsWith("/")) return this._origin(base) + s; return base.replace(/[?#].*$/, "").replace(/[^/]*$/, "") + s; }
+  _absoluteUrl(base, v) {
+    const s = this._text(v).trim().replace(/\\\//g, "/").replace(/&amp;/g, "&");
+    if (!s) return "";
+    if (s.startsWith("//")) return "https:" + s;
+    if (/^https?:\/\//i.test(s)) return s;
+    if (s.startsWith("#")) return base.replace(/#.*$/, "") + s;
+    if (s.startsWith("?")) return base.replace(/[?#].*$/, "") + s;
+    const origin = this._origin(base), cleanBase = base.replace(/[?#].*$/, "");
+    const relative = s.startsWith("/") ? s : (cleanBase.slice(origin.length) || "/").replace(/[^/]*$/, "") + s;
+    const match = relative.match(/^([^?#]*)([\s\S]*)$/), parts = match[1].split("/"), path = [];
+    for (let index = 0; index < parts.length; index++) {
+      const part = parts[index];
+      if (part === "..") { if (path.length > 1) path.pop(); }
+      else if (part !== ".") { path.push(part); continue; }
+      if (index === parts.length - 1) path.push("");
+    }
+    return origin + path.join("/") + match[2];
+  }
   _hlsOriginalUrl(v) { const url = this._text(v).trim().replace(/#.*$/, ""); if (!url) return ""; return /\.(?:m3u8|m3u)$/i.test(url) ? url : url + "#download.m3u8"; }
   _normalize(v) { let s = this._text(v); try { s = s.normalize("NFKC"); } catch (_) {} return s.trim().replace(/\s+/g, " "); }
   _searchKey(v) { return this._normalize(v).toLowerCase().replace(/\s+/g, "").replace(/[.,/#!$%^&*;:{}=\-_`~()'"\[\]<>?·…+|\\]/g, ""); }
@@ -548,6 +565,7 @@ class DefaultExtension extends MProvider {
     const playerDocument = new Document(playerHtml), player = playerDocument.selectFirst("#player[data-m3u8]"); let streamUrl = player ? this._text(player.attr("data-m3u8")).replace(/&amp;/g, "&") : "";
     if (!streamUrl) { const match = playerHtml.match(/https?:\/\/[^"'\s<>]+\.m3u8(?:\?[^"'\s<>]*)?/i); streamUrl = match ? match[0].replace(/&amp;/g, "&") : ""; }
     if (!streamUrl) throw new Error("사이트가 HLS 주소를 제공하지 않았습니다.");
+    streamUrl = this._absoluteUrl(playerUrl, streamUrl);
     const streamHeaders = { "Accept": "*/*", "Referer": playerUrl, "Origin": playerOrigin, "User-Agent": this.userAgent }, playlist = await this._requestText(streamUrl, playerUrl, "재생목록", streamHeaders), keyMatch = playlist.match(/#EXT-X-KEY:[^\r\n]*URI="([^"]+)"/i);
     if (!keyMatch) return [{ url: streamUrl, originalUrl: this._hlsOriginalUrl(streamUrl), quality: "자동 (HLS)", headers: streamHeaders, subtitles: [], audios: [] }];
     const keyUrl = this._absoluteUrl(streamUrl, keyMatch[1]), envelope = await this._requestText(keyUrl, playerUrl, "영상 키", streamHeaders), key = this._decodePlayerKey(envelope), directUrl = this._playlistBridgeUrl(playlist, streamUrl, key, playerUrl, "direct"), proxyUrl = this._playlistBridgeUrl(playlist, streamUrl, key, playerUrl, "proxy");
