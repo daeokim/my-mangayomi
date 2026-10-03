@@ -1,7 +1,7 @@
 const mangayomiSources = [{
   name: "굿툰",
   lang: "ko",
-  baseUrl: "https://goodtoon005.com",
+  baseUrl: "https://goodtoon006.com",
   apiUrl: "",
   iconUrl: "https://dc-toki-mangayomi-manga.pages.dev/icon/ko.goodtoon.png",
   typeSource: "single",
