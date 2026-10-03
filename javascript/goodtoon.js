@@ -8,7 +8,7 @@ const mangayomiSources = [{
   itemType: 0,
   isNsfw: true,
   hasCloudflare: false,
-  version: "0.1.11",
+  version: "0.1.12",
   dateFormat: "yy.MM.dd",
   dateFormatLocale: "ko_KR",
   pkgPath: "manga/src/ko/goodtoon.js"
