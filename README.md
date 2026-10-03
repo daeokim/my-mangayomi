@@ -18,7 +18,7 @@
 | 이름 | 버전 | 주소 | 앱 최소 버전 |
 |---|---|---|---|
 | 11toon 만화 | 0.1.15 | https://11toon.com | 0.9.2 |
-| 굿툰 | 0.1.11 | https://goodtoon005.com | 0.9.2 |
+| 굿툰 | 0.1.12 | https://goodtoon006.com | 0.9.2 |
 | 블랙툰 | 0.1.16 | https://blacktoon423.com | 0.9.2 |
 
 ### 영상 — `anime_index.json`
