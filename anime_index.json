@@ -2,7 +2,7 @@
   {
     "name": "티비룸",
     "id": 780920260911801,
-    "baseUrl": "https://tvroom36.org",
+    "baseUrl": "https://tvroom38.org",
     "lang": "ko",
     "typeSource": "single",
     "iconUrl": "https://dc-toki-mangayomi-media.pages.dev/icon/ko.media.png",
@@ -24,7 +24,7 @@
   {
     "name": "티비위키",
     "id": 780920260915001,
-    "baseUrl": "https://tvwiki51.net",
+    "baseUrl": "https://tvwiki52.net",
     "lang": "ko",
     "typeSource": "single",
     "iconUrl": "https://dc-toki-mangayomi-media.pages.dev/icon/ko.tvwiki.png",
