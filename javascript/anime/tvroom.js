@@ -1,7 +1,7 @@
 const mangayomiSources = [{
   name: "티비룸",
   lang: "ko",
-  baseUrl: "https://tvroom36.org",
+  baseUrl: "https://tvroom38.org",
   apiUrl: "",
   iconUrl: "https://dc-toki-mangayomi-media.pages.dev/icon/ko.media.png",
   typeSource: "single",
