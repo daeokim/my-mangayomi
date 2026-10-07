@@ -1,7 +1,7 @@
 const mangayomiSources = [{
   name: "티비위키",
   lang: "ko",
-  baseUrl: "https://tvwiki51.net",
+  baseUrl: "https://tvwiki52.net",
   apiUrl: "",
   iconUrl: "https://dc-toki-mangayomi-media.pages.dev/icon/ko.tvwiki.png",
   typeSource: "single",
