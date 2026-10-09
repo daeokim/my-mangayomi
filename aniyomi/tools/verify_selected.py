@@ -78,6 +78,9 @@ for kind,names in EXPECTED.items():
         assert [obj['name'] for obj in objects] == names
         assert 'https://tvroom38.org' in dex.get_strings()
         assert 'https://tvroom31.org' not in dex.get_strings()
+        assert 'eu.kanade.tachiyomi.animeextension.ko.dctvroom' not in dex.get_strings()
+        assert entry['pkg'] in dex.get_strings()
+        assert apk.get_android_resources().get_packages_names() == [entry['pkg']]
     assert (directory/'icon'/f"{entry['pkg']}.png").is_file()
     print(kind+': catalogue, APK metadata, factory, IDs/defaults and certificate PASS')
 print('Device installation and live reading/playback have not been tested.')

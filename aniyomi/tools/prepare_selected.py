@@ -28,9 +28,9 @@ CONFIG = {
     'media': {
         'sha256': 'f4ac3b0a266def23ead51dcdd39eb9e4f372fa13a1116ea3665b3ccad06c70b1',
         'factory': 'Leu/kanade/tachiyomi/animeextension/ko/dctvroom/DcTvRoomFactory;',
-        'keep': [0, 1, 2, 4], 'pkg': 'eu.kanade.tachiyomi.animeextension.ko.daeomedia',
-        'name': 'Daeo Media', 'label': 'Aniyomi: Daeo Media', 'version': '14.1001',
-        'code': 1001, 'filename': 'daeomedia-v14.1001.apk',
+        'keep': [0, 1, 2, 4], 'pkg': 'eu.kanade.tachiyomi.animeextension.ko.daemedia',
+        'name': 'Daeo Media', 'label': 'Aniyomi: Daeo Media', 'version': '14.1002',
+        'code': 1002, 'filename': 'daeomedia-v14.1002.apk',
     },
 }
 
@@ -99,6 +99,17 @@ def patch_factory(raw, cfg, kind):
         old, new = b'https://tvroom31.org', b'https://tvroom38.org'
         assert data.count(old) == 1 and len(old) == len(new)
         data = data.replace(old, new)
+        # Resource/package-manager lookups must follow the new manifest package.
+        old_package = b'eu.kanade.tachiyomi.animeextension.ko.dctvroom'
+        new_package = cfg['pkg'].encode('ascii')
+        assert len(old_package) == len(new_package)
+        string_index = list(dex.get_strings()).index(old_package.decode())
+        string_table = struct.unpack_from('<I', data, 60)[0]
+        string_offset = struct.unpack_from('<I', data, string_table + string_index * 4)[0]
+        while data[string_offset] & 0x80:string_offset += 1
+        string_offset += 1
+        assert data[string_offset:string_offset + len(old_package)] == old_package
+        data[string_offset:string_offset + len(old_package)] = new_package
     data[12:32] = hashlib.sha1(data[32:]).digest()
     struct.pack_into('<I', data, 8, zlib.adler32(data[12:]) & 0xffffffff)
     return bytes(data)
@@ -201,6 +212,11 @@ def prepare(kind):
             payload = src.read(info.filename)
             if info.filename == 'classes.dex':payload = dex
             elif info.filename == 'AndroidManifest.xml':payload = manifest
+            elif kind == 'media' and info.filename == 'resources.arsc':
+                old_name = apk.get_package().encode('utf-16le') + b'\0\0'
+                new_name = cfg['pkg'].encode('utf-16le') + b'\0\0'
+                assert len(old_name) == len(new_name) and payload.count(old_name) == 1
+                payload = payload.replace(old_name,new_name)
             info.extra = b''
             if info.filename == 'resources.arsc':info.compress_type = zipfile.ZIP_STORED
             if info.compress_type == zipfile.ZIP_STORED:
