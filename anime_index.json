@@ -1,27 +1,5 @@
 [
   {
-    "name": "티비룸",
-    "id": 780920260911801,
-    "baseUrl": "https://tvroom38.org",
-    "lang": "ko",
-    "typeSource": "single",
-    "iconUrl": "https://dc-toki-mangayomi-media.pages.dev/icon/ko.media.png",
-    "dateFormat": "",
-    "dateFormatLocale": "",
-    "isNsfw": false,
-    "hasCloudflare": false,
-    "apiUrl": "",
-    "version": "0.1.25",
-    "isManga": false,
-    "itemType": 1,
-    "isFullData": false,
-    "appMinVerReq": "0.9.2",
-    "additionalParams": "",
-    "sourceCodeLanguage": 1,
-    "sourceCodeUrl": "https://daeokim.github.io/my-mangayomi/javascript/anime/tvroom.js",
-    "notes": ""
-  },
-  {
     "name": "티비위키",
     "id": 780920260915001,
     "baseUrl": "https://tvwiki52.net",
