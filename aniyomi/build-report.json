@@ -11,7 +11,8 @@
     "TVRoom fallback string is 38",
     "DEX SHA-1 and Adler-32 checksums valid",
     "Google apksig 8.9.0 verifies v2 and v3 signatures",
-    "Catalogue repo fingerprint matches APK certificate"
+    "Catalogue repo fingerprint matches APK certificate",
+    "Video PackageManager lookup and resource package match new manifest package"
   ],
   "outputs": [
     {
@@ -29,11 +30,11 @@
     },
     {
       "kind": "media",
-      "file": "daeomedia-v14.1001.apk",
-      "package": "eu.kanade.tachiyomi.animeextension.ko.daeomedia",
-      "version": "14.1001",
-      "size_bytes": 25775620,
-      "sha256": "39056740f9a6c8552aa0149a2a02b7d0199f391b98ef2d38d2ca27f76c92a39a",
+      "file": "daeomedia-v14.1002.apk",
+      "package": "eu.kanade.tachiyomi.animeextension.ko.daemedia",
+      "version": "14.1002",
+      "size_bytes": 25791998,
+      "sha256": "e0bf943391d57ca9144730f362a67ba3e21aea1ac87ecffd1c425c3760b0ac06",
       "source_names": [
         "DC 영화",
         "DC 드라마",
