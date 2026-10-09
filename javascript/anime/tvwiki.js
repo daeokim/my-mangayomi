@@ -8,7 +8,7 @@ const mangayomiSources = [{
   itemType: 1,
   isNsfw: false,
   hasCloudflare: false,
-  version: "0.1.9",
+  version: "0.1.10",
   dateFormat: "",
   dateFormatLocale: "",
   pkgPath: "anime/src/ko/tvwiki.js",
@@ -122,13 +122,13 @@ async function dcTvwikiEventCard() {
 class DefaultExtension extends MProvider {
   constructor() {
     super();
-    this.fallbackBaseUrl = "https://tvwiki51.net";
+    this.fallbackBaseUrl = "https://tvwiki52.net";
     this.bridgeBaseUrl = "https://dc-toki-mangayomi-media.pages.dev";
     this.cardBaseUrl = this.bridgeBaseUrl + "/card/tvwiki-section";
     this.cardRevision = "20260915-2";
     this.signalUrl = "https://wankyo83.github.io/tokki-traffic-light/domains.json";
-    this.cachedBaseKey = "tvwiki_last_base_url";
-    this.cachedBaseTimeKey = "tvwiki_last_base_time";
+    this.cachedBaseKey = "tvwiki_last_base_url_v2";
+    this.cachedBaseTimeKey = "tvwiki_last_base_time_v2";
     this.posterCachePrefix = "tvwiki_series_poster_v1_";
     this.titleCachePrefix = "tvwiki_series_title_v1_";
     this.descriptionCachePrefix = "tvwiki_series_description_v1_";
@@ -265,7 +265,7 @@ class DefaultExtension extends MProvider {
     try {
       const body = await this._get(this.signalUrl, "https://wankyo83.github.io/", "중앙신호등", { "Accept": "application/json" });
       const data = JSON.parse(body), resolved = this._trimSlash(data && data.domains && data.domains.tvwiki && data.domains.tvwiki.baseUrl);
-      if (this._isAllowedBase(resolved)) {
+      if (this._isAllowedBase(resolved) && !/^https:\/\/tvwiki51\.net$/i.test(resolved)) {
         this._setPreference(this.cachedBaseKey, resolved);
         this._setPreference(this.cachedBaseTimeKey, String(Date.now()));
         return resolved;
@@ -282,13 +282,15 @@ class DefaultExtension extends MProvider {
       try {
         const response = await client.get(url, headers);
         if (!response || response.statusCode < 200 || response.statusCode >= 300) throw new Error("HTTP " + (response && response.statusCode));
+        const body = this._text(response.body);
+        if (/cdn-cgi\/challenge-platform|cf-chl-|<title>\s*Just a moment/i.test(body)) throw new Error("CHALLENGE: 목록 대신 접속 확인 페이지를 받았습니다");
         this._setPreference(this.httpClientKey, kind);
-        return this._text(response.body);
+        return body;
       } catch (error) {
         failures.push(kind.toUpperCase() + " " + this._text(error && error.message || error));
       }
     }
-    throw new Error("티비위키 " + stage + " 요청 실패: " + (failures.join(" | ") || "응답 없음"));
+    throw new Error("티비위키 " + (stage || "HTTP") + " 요청 실패 (" + url + "): " + (failures.join(" | ") || "응답 없음") + ". 웹뷰와 확장 설정의 주소가 같은지 확인하세요.");
   }
   _image(base, node) {
     if (!node) return "";
@@ -369,11 +371,18 @@ class DefaultExtension extends MProvider {
     for (const link of links) if (this._normalize(link.text) === wanted) return true;
     return false;
   }
+  _assertListPage(html, list, url, stage, page) {
+    if (list.length || Number(page) > 1) return;
+    const text = this._stripHtml(html);
+    if (/게시물(?:이|은)?\s*없(?:습니다|음)|(?:검색\s*결과|등록된\s*(?:게시물|자료|영상))(?:가|이|는)?\s*없(?:습니다|음)/i.test(text)) return;
+    throw new Error("티비위키 " + stage + " NO_CARDS (" + url + "): 응답에서 작품 목록을 찾지 못했습니다. 확장 설정의 주소를 웹뷰의 최종 주소와 맞추세요. 주소가 같으면 접속 확인 페이지 또는 사이트 구조 변경 여부를 확인해야 합니다.");
+  }
   async _listing(path, page) {
     const base = await this._resolveBaseUrl(), join = path.indexOf("?") >= 0 ? "&" : "?", url = base + path + join + "page=" + Math.max(1, Number(page) || 1);
     const html = await this._get(url, base + "/", "목록"), document = new Document(html);
     let list = this._parseCards(document, base);
     if (!list.length) list = this._parseCardsHtml(html, base);
+    this._assertListPage(html, list, url, "목록", page);
     return { list, hasNextPage: this._hasNext(document, page) };
   }
 
@@ -438,12 +447,16 @@ class DefaultExtension extends MProvider {
     const pendingCard = this._remoteTabCard("popular"), base = await this._resolveBaseUrl();
     const pendingHtml = this._get(base + "/", base + "/", "홈 인기");
     const values = await Promise.all([pendingCard, pendingHtml]), html = values[1], document = new Document(html), list = [values[0]];
+    let itemCount = 0;
     for (const section of this.homeSections) {
       list.push(this._sectionCard(section.key, section.name));
       const domItems = this._parseScopedCards(document.selectFirst(section.selector), base, section.limit);
       const htmlItems = this._parseHomeSectionHtml(html, base, section.selector, section.limit);
-      Array.prototype.push.apply(list, (htmlItems.length > domItems.length ? htmlItems : domItems).slice(0, section.limit));
+      const items = (htmlItems.length > domItems.length ? htmlItems : domItems).slice(0, section.limit);
+      itemCount += items.length;
+      Array.prototype.push.apply(list, items);
     }
+    this._assertListPage(html, itemCount ? [true] : [], base + "/", "홈 인기", 1);
     return { list, hasNextPage: false };
   }
   async _ranking(page, period, category, includeRemote) {
@@ -512,6 +525,7 @@ class DefaultExtension extends MProvider {
       const html = await this._get(url, base + "/", "검색"), document = new Document(html);
       let list = this._parseCards(document, base);
       if (!list.length) list = this._parseCardsHtml(html, base);
+      this._assertListPage(html, list, url, "검색", page);
       if (Number(page) === 1) list.unshift(this._searchCard(category, this._searchCount(document, category)));
       return { list, hasNextPage: this._hasNext(document, page) };
     }
@@ -777,7 +791,7 @@ class DefaultExtension extends MProvider {
   }
   getSourcePreferences() {
     return [
-      { key: "tvwiki_domain_url", editTextPreference: { title: "티비위키 주소 직접 지정 (선택)", summary: "빈 값이면 중앙신호등의 최신 주소를 사용하고, 실패하면 마지막 정상 주소로 복구합니다.", value: "", dialogTitle: "https://tvwiki51.net", dialogMessage: "tvwiki숫자.net 형식의 HTTPS 주소만 허용됩니다." } },
+      { key: "tvwiki_domain_url", editTextPreference: { title: "티비위키 주소 직접 지정 (선택)", summary: "빈 값이면 중앙신호등의 최신 주소를 사용하고, 실패하면 마지막 정상 주소로 복구합니다.", value: "", dialogTitle: "https://tvwiki52.net", dialogMessage: "tvwiki숫자.net 형식의 HTTPS 주소만 허용됩니다." } },
       { key: "tvwiki_custom_card_json_url", editTextPreference: { title: "커스텀 목록 카드 (선택)", summary: "공개 JSON 주소 1개로 요일별 카드 7장을 설정합니다. 360×540 GIF·WebP를 권장하며 용량·프레임 제한은 없습니다.", value: "", dialogTitle: "커스텀 목록 카드 JSON 주소", dialogMessage: "Google Drive 공개 공유 링크 또는 직접 JSON 주소를 넣으세요. 개인 카드를 설정하면 공용 이벤트 카드는 표시되지 않습니다. 빈 값이면 공용 이벤트 또는 기본 원격 카드를 사용합니다." } }
     ];
   }
