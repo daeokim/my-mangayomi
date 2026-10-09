@@ -82,12 +82,15 @@ test("catalogs have unique exact IDs and valid source metadata", function() {
   }
 });
 
+// Archived source stays testable after removal from the active catalogue.
+const tvroom = {"name": "티비룸", "id": 780920260911801, "baseUrl": "https://tvroom38.org", "lang": "ko", "typeSource": "single", "iconUrl": "https://dc-toki-mangayomi-media.pages.dev/icon/ko.media.png", "dateFormat": "", "dateFormatLocale": "", "isNsfw": false, "hasCloudflare": false, "apiUrl": "", "version": "0.1.25", "isManga": false, "itemType": 1, "isFullData": false, "appMinVerReq": "0.9.2", "additionalParams": "", "sourceCodeLanguage": 1, "sourceCodeUrl": "https://daeokim.github.io/my-mangayomi/javascript/anime/tvroom.js", "notes": ""};
+
 const media = [
   { name: "티비룸", key: "tvroom_domain_url", signal: "tvroom", prefix: "tvroom", suffix: "org" },
   { name: "티비위키", key: "tvwiki_domain_url", signal: "tvwiki", prefix: "tvwiki", suffix: "net" }
 ];
 for (const spec of media) {
-  const entry = catalogs[1].entries.find(function(value) { return value.name === spec.name; });
+  const entry = catalogs[1].entries.find(function(value) { return value.name === spec.name; }) || (spec.name === "티비룸" ? tvroom : undefined);
   function domain(number) { return "https://" + spec.prefix + number + "." + spec.suffix; }
 
   test(spec.name + ": configured URL is used when central lookup fails", async function() {
@@ -574,7 +577,6 @@ test("Blacktoon: expired list snapshot refreshes from a newly fetched dataset", 
   assert.equal(calls, 2);
 });
 
-const tvroom = catalogs[1].entries.find(function(entry) { return entry.name === "티비룸"; });
 for (const stream of ["/hls/main.m3u8?x=1&amp;y=2", "//cdn.example.org/main.m3u8", "../hls/main.m3u8", "https://cdn.example.org/main.m3u8"]) {
   test("TVRoom: viewer resolves HLS address " + stream, async function() {
     const playerUrl = "https://player.example.org/watch/1", calls = [];
