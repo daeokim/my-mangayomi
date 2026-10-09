@@ -159,6 +159,77 @@ test("README lists the current catalog versions and URLs", function() {
 
 const toon11 = catalogs[0].entries.find(function(entry) { return entry.name === "11toon 만화"; });
 const goodtoon = catalogs[0].entries.find(function(entry) { return entry.name === "굿툰"; });
+const tvwiki = catalogs[1].entries.find(function(entry) { return entry.name === "티비위키"; });
+
+test("Goodtoon: stale 006 central signal does not undo the 007 migration", async function() {
+  const loaded = loadExtension(goodtoon);
+  loaded.respond({ domains: { goodtoon: { baseUrl: "https://www.goodtoon006.com/" } } });
+  assert.equal(await loaded.extension._resolveBaseUrl(), "https://goodtoon007.com");
+});
+
+test("Goodtoon: future central domain updates remain enabled", async function() {
+  const loaded = loadExtension(goodtoon);
+  loaded.respond({ domains: { goodtoon: { baseUrl: "https://goodtoon008.com" } } });
+  assert.equal(await loaded.extension._resolveBaseUrl(), "https://goodtoon008.com");
+});
+
+test("티비위키: old saved domain cache is ignored after the 52 migration", async function() {
+  const loaded = loadExtension(tvwiki);
+  loaded.preferences.set("tvwiki_last_base_url", "https://tvwiki51.net");
+  loaded.preferences.set("tvwiki_last_base_time", String(Date.now()));
+  assert.equal(await loaded.extension._resolveBaseUrl(), tvwiki.baseUrl);
+  assert.equal(loaded.requests(), 1);
+});
+
+test("티비위키: stale 51 central signal does not undo the 52 migration", async function() {
+  const loaded = loadExtension(tvwiki);
+  loaded.respond({ domains: { tvwiki: { baseUrl: "https://tvwiki51.net" } } });
+  assert.equal(await loaded.extension._resolveBaseUrl(), tvwiki.baseUrl);
+});
+
+test("티비위키: first-page markup mismatch is diagnosed with the actual URL", function() {
+  const extension = loadExtension(tvwiki).extension;
+  assert.throws(function() {
+    extension._assertListPage("<html><h1>Changed layout</h1></html>", [], tvwiki.baseUrl + "/drama?page=1", "목록", 1);
+  }, /NO_CARDS.*tvwiki52\.net\/drama\?page=1/);
+});
+
+test("티비위키: empty search and final pagination pages remain valid", function() {
+  const extension = loadExtension(tvwiki).extension;
+  for (const html of ["<p>게시물이 없습니다.</p>", "<p>검색 결과가 없습니다.</p>", "<p>등록된 영상이 없습니다.</p>"]) {
+    assert.doesNotThrow(function() { extension._assertListPage(html, [], tvwiki.baseUrl, "검색", 1); });
+  }
+  assert.doesNotThrow(function() { extension._assertListPage("<html></html>", [], tvwiki.baseUrl, "목록", 2); });
+});
+
+test("티비위키: homepage guide cards cannot conceal a missing real list", async function() {
+  const loaded = loadExtension(tvwiki, { Document: class { selectFirst() { return null; } } });
+  loaded.extension._resolveBaseUrl = async function() { return tvwiki.baseUrl; };
+  loaded.extension._get = async function() { return "<html>Changed layout</html>"; };
+  loaded.extension._remoteTabCard = async function() { return { name: "Guide", link: "/__tvwiki_card__/remote-test" }; };
+  await assert.rejects(loaded.extension.getPopular(1), /홈 인기 NO_CARDS/);
+});
+
+test("티비위키: HTTP 200 challenge responses are not passed to the list parser", async function() {
+  const loaded = transportExtension(tvwiki, [
+    { statusCode: 200, body: "<title>Just a moment...</title>" },
+    { statusCode: 200, body: '<script src="/cdn-cgi/challenge-platform/test"></script>' }
+  ]);
+  loaded.extension._get = Object.getPrototypeOf(loaded.extension)._get;
+  await assert.rejects(loaded.extension._get(tvwiki.baseUrl + "/drama", tvwiki.baseUrl + "/", "목록"), /DART CHALLENGE.*RHTTP CHALLENGE/);
+  assert.equal(loaded.calls.length, 2);
+});
+
+test("티비위키: second transport can recover from a challenge response", async function() {
+  const loaded = transportExtension(tvwiki, [
+    { statusCode: 200, body: "<title>Just a moment...</title>" },
+    { statusCode: 200, body: "<html>Real list</html>" }
+  ]);
+  loaded.extension._get = Object.getPrototypeOf(loaded.extension)._get;
+  assert.equal(await loaded.extension._get(tvwiki.baseUrl, tvwiki.baseUrl + "/", "목록"), "<html>Real list</html>");
+  assert.equal(loaded.calls.length, 2);
+});
+
 const chapter11 = "https://www.11toon144.com/bbs/board.php?bo_table=toons&wr_id=12&is=34";
 
 for (const spec of [
