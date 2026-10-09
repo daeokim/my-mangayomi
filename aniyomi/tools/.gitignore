@@ -1,0 +1,8 @@
+/dc-*-original.apk
+/output/
+/signing/
+/*.der
+/*.pem
+/*.p12
+/apksig-*.jar
+/__pycache__/
