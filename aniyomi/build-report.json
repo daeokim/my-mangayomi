@@ -1,0 +1,49 @@
+{
+  "date": "2026-10-09",
+  "origin": "Personal source subset of DC maintainer APKs; original engines retained",
+  "device_installation_tested": false,
+  "live_reading_and_playback_tested": false,
+  "checks": [
+    "APK manifest, package and version match catalogue",
+    "Factory interpreted: exactly three manga and four anime sources",
+    "Manga source IDs match original APK getters",
+    "Goodtoon default references both point to 7",
+    "TVRoom fallback string is 38",
+    "DEX SHA-1 and Adler-32 checksums valid",
+    "Google apksig 8.9.0 verifies v2 and v3 signatures",
+    "Catalogue repo fingerprint matches APK certificate"
+  ],
+  "outputs": [
+    {
+      "kind": "manga",
+      "file": "daeomanga-v1.4.1001.apk",
+      "package": "eu.kanade.tachiyomi.extension.ko.daeomanga",
+      "version": "1.4.1001",
+      "size_bytes": 6308877,
+      "sha256": "469c09ec902eed64941542e87824e6c0101c545e3719bb19a8d094b87d31391b",
+      "source_names": [
+        "11toon 만화",
+        "Blacktoon 웹툰",
+        "Goodtoon 웹툰"
+      ]
+    },
+    {
+      "kind": "media",
+      "file": "daeomedia-v14.1001.apk",
+      "package": "eu.kanade.tachiyomi.animeextension.ko.daeomedia",
+      "version": "14.1001",
+      "size_bytes": 25775620,
+      "sha256": "39056740f9a6c8552aa0149a2a02b7d0199f391b98ef2d38d2ca27f76c92a39a",
+      "source_names": [
+        "DC 영화",
+        "DC 드라마",
+        "DC 예능",
+        "DC 애니"
+      ]
+    }
+  ],
+  "upstream_inputs": {
+    "manga": "8caea537ba54845fc80dc72435ee04752ace6109704f0000f4ed0d9343da94cd",
+    "media": "f4ac3b0a266def23ead51dcdd39eb9e4f372fa13a1116ea3665b3ccad06c70b1"
+  }
+}
