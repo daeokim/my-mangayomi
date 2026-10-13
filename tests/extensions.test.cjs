@@ -173,25 +173,63 @@ test("Goodtoon: future central domain updates remain enabled", async function() 
   assert.equal(await loaded.extension._resolveBaseUrl(), "https://goodtoon008.com");
 });
 
-test("티비위키: old saved domain cache is ignored after the 52 migration", async function() {
+test("티비위키: previous 52 domain cache is ignored after the 53 migration", async function() {
   const loaded = loadExtension(tvwiki);
   loaded.preferences.set("tvwiki_last_base_url", "https://tvwiki51.net");
   loaded.preferences.set("tvwiki_last_base_time", String(Date.now()));
+  loaded.preferences.set("tvwiki_last_base_url_v2", "https://tvwiki52.net");
+  loaded.preferences.set("tvwiki_last_base_time_v2", String(Date.now()));
   assert.equal(await loaded.extension._resolveBaseUrl(), tvwiki.baseUrl);
   assert.equal(loaded.requests(), 1);
 });
 
-test("티비위키: stale 51 central signal does not undo the 52 migration", async function() {
+test("티비위키: stale 52 central signal does not undo the 53 migration", async function() {
   const loaded = loadExtension(tvwiki);
-  loaded.respond({ domains: { tvwiki: { baseUrl: "https://tvwiki51.net" } } });
+  loaded.respond({ domains: { tvwiki: { baseUrl: "https://tvwiki52.net" } } });
   assert.equal(await loaded.extension._resolveBaseUrl(), tvwiki.baseUrl);
+});
+
+test("티비위키: old 52 cache and configured URL cannot replace the 53 fallback", async function() {
+  const loaded = loadExtension(tvwiki);
+  loaded.extension.source.baseUrl = "https://tvwiki52.net";
+  loaded.preferences.set(loaded.extension.cachedBaseKey, "https://tvwiki52.net");
+  loaded.preferences.set(loaded.extension.cachedBaseTimeKey, String(Date.now()));
+  assert.equal(await loaded.extension._resolveBaseUrl(), "https://tvwiki53.net");
+});
+
+test("티비위키: next automatic domain and manual override remain supported", async function() {
+  const loaded = loadExtension(tvwiki);
+  loaded.respond({ domains: { tvwiki: { baseUrl: "https://tvwiki54.net" } } });
+  assert.equal(await loaded.extension._resolveBaseUrl(), "https://tvwiki54.net");
+  loaded.preferences.set("tvwiki_domain_url", "https://tvwiki52.net");
+  assert.equal(await loaded.extension._resolveBaseUrl(), "https://tvwiki52.net");
+});
+
+test("Blacktoon: stale 423 signal, cache and metadata cannot undo the 424 migration", async function() {
+  const entry = catalogs[0].entries.find(function(entry) { return entry.name === "블랙툰"; });
+  const loaded = loadExtension(entry), extension = loaded.extension;
+  loaded.respond({ domains: { blacktoon: { baseUrl: "https://www.blacktoon423.com/" } } });
+  loaded.preferences.set("blacktoon_last_known_base_url", "https://blacktoon423.com");
+  loaded.preferences.set(extension.lastKnownBasePreference, "https://blacktoon423.com");
+  extension.source.baseUrl = "https://blacktoon423.com";
+  extension._setResolvedBase("https://blacktoon423.com", "signal");
+  assert.equal(await extension._resolveBaseUrl(), "https://blacktoon424.com");
+});
+
+test("Blacktoon: future automatic domains and explicit manual values remain supported", async function() {
+  const entry = catalogs[0].entries.find(function(entry) { return entry.name === "블랙툰"; });
+  const loaded = loadExtension(entry);
+  loaded.respond({ domains: { blacktoon: { baseUrl: "https://blacktoon425.com" } } });
+  assert.equal(await loaded.extension._resolveBaseUrl(), "https://blacktoon425.com");
+  loaded.preferences.set("blacktoon_domain_url", "423");
+  assert.equal(await loaded.extension._resolveBaseUrl(), "https://blacktoon423.com");
 });
 
 test("티비위키: first-page markup mismatch is diagnosed with the actual URL", function() {
   const extension = loadExtension(tvwiki).extension;
   assert.throws(function() {
     extension._assertListPage("<html><h1>Changed layout</h1></html>", [], tvwiki.baseUrl + "/drama?page=1", "목록", 1);
-  }, /NO_CARDS.*tvwiki52\.net\/drama\?page=1/);
+  }, /NO_CARDS.*tvwiki53\.net\/drama\?page=1/);
 });
 
 test("티비위키: empty search and final pagination pages remain valid", function() {
@@ -497,6 +535,7 @@ test("Blacktoon: failed refresh can retry instead of keeping a rejected request"
 
 test("Blacktoon: late old-domain responses do not overwrite new-domain cache", async function() {
   const loaded = blacktoonCacheFixture(), extension = loaded.extension;
+  loaded.setBase("https://blacktoon423.com");
   extension._siteConfig = async function(base) { return datasetConfig(base); };
   let release;
   const oldResponse = new Promise(function(resolve) { release = resolve; });
@@ -618,7 +657,7 @@ test("Blacktoon: stale configuration fallback does not become fresh or extend it
 });
 
 test("Blacktoon: late old-domain configuration cannot replace current memory configuration", async function() {
-  const loaded = blacktoonCacheFixture(), extension = loaded.extension, oldBase = extension.source.baseUrl;
+  const loaded = blacktoonCacheFixture(), extension = loaded.extension, oldBase = "https://blacktoon423.com";
   extension._setResolvedBase(oldBase, "manual");
   let release;
   const wait = new Promise(function(resolve) { release = resolve; });
