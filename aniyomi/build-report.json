@@ -1,5 +1,5 @@
 {
-  "date": "2026-10-09",
+  "date": "2026-10-13",
   "origin": "Personal source subset of DC maintainer APKs; original engines retained",
   "device_installation_tested": false,
   "live_reading_and_playback_tested": false,
@@ -12,16 +12,19 @@
     "DEX SHA-1 and Adler-32 checksums valid",
     "Google apksig 8.9.0 verifies v2 and v3 signatures",
     "Catalogue repo fingerprint matches APK certificate",
-    "Video PackageManager lookup and resource package match new manifest package"
+    "Video PackageManager lookup and resource package match new manifest package",
+    "Blacktoon default references both point to 424; fallback URL is blacktoon424.com",
+    "Blacktoon address pattern rejects domains below 424 and permits future numbers",
+    "Blacktoon number preference key reset; DEX string region size and UTF-16 string order preserved"
   ],
   "outputs": [
     {
       "kind": "manga",
-      "file": "daeomanga-v1.4.1001.apk",
+      "file": "daeomanga-v1.4.1002.apk",
       "package": "eu.kanade.tachiyomi.extension.ko.daeomanga",
-      "version": "1.4.1001",
-      "size_bytes": 6308877,
-      "sha256": "469c09ec902eed64941542e87824e6c0101c545e3719bb19a8d094b87d31391b",
+      "version": "1.4.1002",
+      "size_bytes": 6308882,
+      "sha256": "e74653da4aa0e5c11372879800cc592bac23d46def18faff0a81617579df1d68",
       "source_names": [
         "11toon 만화",
         "Blacktoon 웹툰",

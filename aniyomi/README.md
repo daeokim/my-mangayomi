@@ -6,7 +6,7 @@ DC 제작자의 기존 배포 APK에서 소스 생성 부분을 수정한 개인
 
 | 구분 | 확장 APK | 포함된 소스 |
 |---|---|---|
-| 만화 | Daeo Manga 1.4.1001 | 11toon 만화, Blacktoon 웹툰, Goodtoon 웹툰 |
+| 만화 | Daeo Manga 1.4.1002 | 11toon 만화, Blacktoon 웹툰, Goodtoon 웹툰 |
 | 영상 | Daeo Media 14.1002 | DC 영화, DC 드라마, DC 예능, DC 애니 |
 
 APK 내부의 생성기가 위 소스만 반환하도록 변경했습니다. 목록 JSON만 숨긴
@@ -31,13 +31,20 @@ Aniyomi 공식 정식 APK에서 `더 보기 → 설정 → 찾아보기`를 엽�
 
 직접 설치 파일:
 
-- [만화 APK](manga/apk/daeomanga-v1.4.1001.apk)
+- [만화 APK](manga/apk/daeomanga-v1.4.1002.apk)
 - [영상 APK](media/apk/daeomedia-v14.1002.apk)
 
 원본 `DC Manga`/`DC Media`와 패키지 이름·서명이 다릅니다. 원본 APK를
 덮어쓰지 않습니다. 원본과 동시에 설치하면 같은 소스 ID가 중복되므로
 보관함 백업 후 사용할 패키지 하나를 선택하세요. 같은 소스 ID를 보존했지만
 Mangayomi의 JS 소스 ID와는 다르므로 앱 간 보관함 자동 이전을 보장하지 않습니다.
+
+## 주소 업데이트 — 2026-10-13
+
+Daeo Manga 1.4.1002는 블랙툰 기본 번호·예비 주소를 424로 변경했습니다.
+블랙툰 도메인 번호 설정은 새 키로 시작하며 424 미만 주소는 선택하지 않습니다.
+기존 소스 ID와 서명 키를 유지했으므로 기존 Daeo Manga 위에 업데이트합니다.
+Daeo Media 14.1002는 티비룸 기반으로 유지합니다. 이 영상 구성에는 티비위키가 없습니다.
 
 ## 주소와 실제 재생
 
@@ -78,7 +85,7 @@ DEX의 소스 생성 부분, 굿툰 기본값, 티비룸 예비 주소와 Androi
 
 ```sh
 python tools/verify_selected.py
-java --class-path apksig-8.9.0.jar tools/SignSelected.java verify manga/apk/daeomanga-v1.4.1001.apk
+java --class-path apksig-8.9.0.jar tools/SignSelected.java verify manga/apk/daeomanga-v1.4.1002.apk
 java --class-path apksig-8.9.0.jar tools/SignSelected.java verify media/apk/daeomedia-v14.1002.apk
 ```
 
