@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "updatedAt": null,
+  "lastRunAt": null,
+  "domains": {
+    "11toon": {
+      "baseUrl": "https://11toon.com",
+      "status": "unverified",
+      "lastConfirmedAt": null,
+      "lastCheckedAt": null,
+      "reason": "초기 설정 주소 · 서버 점검 전",
+      "scanOffset": 1
+    },
+    "blacktoon": {
+      "baseUrl": "https://blacktoon424.com",
+      "status": "unverified",
+      "lastConfirmedAt": null,
+      "lastCheckedAt": null,
+      "reason": "초기 설정 주소 · 서버 점검 전",
+      "scanOffset": 1
+    },
+    "goodtoon": {
+      "baseUrl": "https://goodtoon007.com",
+      "status": "unverified",
+      "lastConfirmedAt": null,
+      "lastCheckedAt": null,
+      "reason": "초기 설정 주소 · 서버 점검 전",
+      "scanOffset": 1
+    },
+    "tvwiki": {
+      "baseUrl": "https://tvwiki53.net",
+      "status": "unverified",
+      "lastConfirmedAt": null,
+      "lastCheckedAt": null,
+      "reason": "초기 설정 주소 · 서버 점검 전",
+      "scanOffset": 1
+    },
+    "tvroom": {
+      "baseUrl": "https://tvroom38.org",
+      "status": "unverified",
+      "lastConfirmedAt": null,
+      "lastCheckedAt": null,
+      "reason": "초기 설정 주소 · 서버 점검 전",
+      "scanOffset": 1
+    }
+  },
+  "control": {
+    "revision": 0,
+    "overrides": {}
+  }
+}
