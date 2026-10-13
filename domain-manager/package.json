@@ -2,6 +2,6 @@
   "name": "daeo-domain-manager",
   "private": true,
   "type": "module",
-  "scripts": { "test": "node --test test.mjs", "deploy": "wrangler deploy" },
+  "scripts": { "test": "node --test test.mjs actions.test.mjs", "check": "node actions.mjs", "deploy": "wrangler deploy" },
   "devDependencies": { "wrangler": "^4" }
 }

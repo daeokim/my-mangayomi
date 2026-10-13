@@ -1,107 +1,83 @@
-# 휴대폰으로 관리하는 공통 자동 주소 목록
+# 공통 주소 자동화 — GitHub Actions
 
-Cloudflare Workers가 다섯 사이트를 매시간 한 번씩 나누어 점검하고,
-기존 GitHub 저장소의 `domains.json`을 갱신합니다. 주소 목록과 상태는
-GitHub에 영구 저장하며 별도 KV/D1 데이터베이스는 사용하지 않습니다.
-휴대폰에서는 Worker의 `/admin` 화면 하나를 즐겨찾기하면 됩니다.
+주 2~3회 확인하는 개인 사용에 맞춰 GitHub Actions를 기본 방식으로 선택했습니다.
+Cloudflare 계정 연결·관리 키·개인 GitHub 토큰을 추가로 설정하지 않아도 됩니다.
+기존 공개 저장소의 표준 Ubuntu 실행 환경을 사용합니다.
 
-[휴대폰 관리 화면 미리보기](preview.html) — 서버를 활성화하지 않은 화면 검토용이며 입력·점검·저장 버튼은 비활성화되어 있습니다.
+- 자동 점검: **매일 오전 9:17 한국 시간** (`17 0 * * *`, UTC).
+- 즉시 점검: [Actions 실행 화면](https://github.com/daeokim/my-mangayomi/actions/workflows/domains.yml).
+- 휴대폰 상태 화면: [자동 주소 상태](https://daeokim.github.io/my-mangayomi/domain-manager/).
+- 앱 공통 주소: `https://daeokim.github.io/my-mangayomi/domains.json`.
+
+예약 실행은 정시를 보장하지 않으며 지연·누락될 수 있습니다. 사이트 차단이나 구조 변경은
+자동화 도구를 바꾸는 것만으로 해결되지 않습니다. 목록 확인은 이미지·영상 재생 확인과 다릅니다.
 
 ## 앱에 적용
 
-| 앱/확장 | 적용할 설정 |
+| 앱/확장 | 설정 |
 |---|---|
-| Mangayomi | 저장소의 확장 업데이트 후 다섯 소스의 `주소 직접 지정` 입력란을 비웁니다. |
-| Aniyomi 만화 | Daeo Manga **1.4.1003**으로 업데이트합니다. 블랙툰의 `주소 갱신 방식`은 **중앙신호등**을 선택합니다. 11툰·굿툰에는 공통 주소 조회를 추가했으며 별도 모드 선택 없이 자동으로 적용됩니다. |
-| Aniyomi 영상 | Daeo Media **14.1003**으로 업데이트합니다. 영화·드라마·예능·애니가 공통 목록에서 티비룸 주소를 읽습니다. 별도 주소 메뉴는 없습니다. |
+| Mangayomi | 저장소 확장을 업데이트한 뒤 다섯 소스의 `주소 직접 지정` 입력란을 비웁니다. |
+| Aniyomi 만화 | Daeo Manga **1.4.1003**으로 업데이트합니다. 블랙툰의 `주소 갱신 방식`은 **중앙신호등**을 선택합니다. 11툰·굿툰은 별도 모드 선택 없이 자동 조회합니다. |
+| Aniyomi 영상 | Daeo Media **14.1003**으로 업데이트합니다. DC 영화·드라마·예능·애니가 공통 목록에서 티비룸 주소를 읽습니다. 별도 주소 메뉴는 없습니다. |
 
-앱이 읽는 고정 주소:
+기존 저장소 주소·보관함·소스 ID는 유지합니다. 주소 번호만 바뀌는 경우 APK를 다시 만들지 않습니다.
+설정과 보관함을 백업한 뒤 업데이트하세요. 앱에 남은 주소 캐시 때문에 반영이 늦어질 수 있습니다.
+Aniyomi 영상은 티비룸 기반이며 티비위키는 Mangayomi에만 포함됩니다.
 
-`https://daeokim.github.io/my-mangayomi/domains.json`
+## 휴대폰에서 수동 점검
 
-Mangayomi 저장소 주소와 Aniyomi 저장소 주소는 기존 값을 유지합니다.
-설정·보관함을 먼저 백업하고, 업데이트 후 목록 새로고침과 앱 재시작을 진행하세요.
-Aniyomi 만화에는 기존 중앙 주소 캐시가 잠시 남을 수 있습니다.
-티비위키는 Mangayomi에만 포함됩니다. Aniyomi 영상은 티비룸 기반입니다.
+1. [실행 화면](https://github.com/daeokim/my-mangayomi/actions/workflows/domains.yml)에 GitHub 계정으로 로그인합니다.
+2. **Run workflow**를 누릅니다.
+3. `site`는 전체 점검이면 `all`, 한 사이트만 점검하려면 해당 이름을 선택합니다.
+4. **Run workflow**를 눌러 실행하고, 새 실행의 완료 여부와 Summary를 확인합니다.
+5. [상태 화면](https://daeokim.github.io/my-mangayomi/domain-manager/)에서 **상태 새로고침**을 누릅니다.
 
-## Cloudflare 최초 설정 — 휴대폰에서도 가능
+GitHub 실행이 성공했어도 개별 사이트는 확인 실패일 수 있습니다.
+Summary와 상태 화면에 사이트별 결과·이유·마지막 정상 확인 시간이 표시됩니다.
+상태 화면은 조회용이며 로그인 비밀 값이나 개인 토큰을 요구하지 않습니다.
 
-이 저장소의 코드는 준비된 상태입니다. 계정 연결·Secret 두 개·Cron 설정을
-마쳐야 자동 점검이 실제로 시작됩니다. 초기 목록의 `unverified`는
-**초기 설정 주소이며 서버에서 확인하지 않았음**을 뜻합니다.
+## 점검과 저장 방식
 
-1. [Cloudflare 대시보드](https://dash.cloudflare.com/)에 로그인합니다.
-2. Workers & Pages에서 새 Worker `daeo-domain-manager`를 만듭니다.
-3. 코드 편집 화면에서 [worker.mjs](worker.mjs)의 전체 내용을 붙여 넣고 배포합니다.
-   이 파일은 외부 패키지·빌드 없이 동작하는 ES module입니다.
-4. Worker의 Settings → Variables and Secrets에서 아래 두 값을 **Secret**으로 추가합니다.
-
-| Secret 이름 | 입력할 값 |
-|---|---|
-| `ADMIN_TOKEN` | 휴대폰 관리 화면에서 사용할 24자 이상의 무작위 관리 키. 공개 GitHub 파일에 넣지 마세요. |
-| `GITHUB_TOKEN` | 아래 절차로 만든 개인용 GitHub 토큰. Cloudflare Secret에만 입력합니다. |
-
-5. Worker Settings → Triggers → Cron Triggers에 **`7,17,27,37,47 * * * *`**를 추가합니다.
-   11툰 7분 · 블랙툰 17분 · 굿툰 27분 · 티비위키 37분 · 티비룸 47분입니다.
-   각 사이트는 매시간 한 번 점검합니다. UTC와 한국 시간의 분은 같습니다.
-   무료 요금제의 CPU 작업량을 줄이기 위해 실행을 나누었습니다.
-   Cron 변경 전파에는 시간이 걸릴 수 있습니다.
-6. 생성된 `https://daeo-domain-manager.<계정 하위도메인>.workers.dev/admin`을 엽니다.
-   실제 하위도메인은 Cloudflare가 표시하는 값을 사용하세요.
-7. 관리 키 입력 → `불러오기` → `지금 점검` 순서로 실행합니다.
-8. 상태와 마지막 점검 시간을 확인하고 이 화면을 휴대폰 즐겨찾기/홈 화면에 추가합니다.
-
-관리 키는 서버 코드·공개 목록에 포함하지 않습니다. 관리 화면은 입력한 키를
-현재 페이지의 메모리에서만 사용합니다. 새로 열면 다시 입력합니다.
-GitHub 토큰은 휴대폰 관리 화면에 입력하지 않습니다.
-
-### GitHub 토큰의 범위
-
-[GitHub Fine-grained personal access token](https://github.com/settings/personal-access-tokens/new)을 만듭니다.
-Resource owner는 `daeokim`, Repository access는 **Only select repositories → my-mangayomi**,
-Repository permissions는 **Contents: Read and write**로 설정합니다.
-다른 저장소·Issues·Actions 관리 권한은 이 서버에 필요하지 않습니다.
-토큰의 만료일을 확인하고 만료 전에 Cloudflare의 `GITHUB_TOKEN` Secret을 교체하세요.
-이 작업은 GitHub의 `domains.json`을 주기적으로 커밋하므로 주소가 바뀌면 Pages 배포도 갱신됩니다.
-
-### GitHub 연결로 코드 업데이트까지 자동화할 때
-
-Cloudflare Workers Builds에서 이 저장소의 `main`을 연결하고 Root directory를
-`domain-manager`, Deploy command를 `npx wrangler deploy`로 지정합니다.
-이때는 Cron을 [wrangler.jsonc](wrangler.jsonc)에서 관리하세요.
-토큰과 관리 키는 **런타임 Secret**이며 Build variable에만 넣으면 동작하지 않습니다.
-직접 붙여 넣기 방식과 Git 연결 방식 중 하나를 선택합니다.
-
-## 실제 동작
-
-- 중앙 신호등의 최신 후보 → 이전 주소 → 다음 숫자 후보 순서로 확인합니다.
-  정상 주소가 있으면 불필요하게 다음 번호를 탐색하지 않습니다.
-- 다음 번호 탐색은 실패 때 한 번호씩 진행하며, +1부터 +10까지 시간별로 순환합니다.
-  따라서 중앙 목록에도 없는 +10 주소는 최악의 경우 여러 시간이 걸립니다.
-- HTTPS·사이트별 도메인 형태·현재 번호 이상·사이트 이름·목록 구조를 확인합니다.
+- 중앙 신호등의 후보 → 기존 주소 → 다음 번호 후보 순서로 확인합니다.
+- 하루 1회 실행에서는 다음 번호 **+1~+10**을 한 번에 확인합니다.
+  기존 주소가 정상이라면 불필요하게 번호 후보를 요청하지 않습니다.
+- HTTPS·사이트별 도메인 형태·현재 번호 이상·사이트 이름·작품 목록 구조를 확인합니다.
   블랙툰은 데이터 서버 설정도 확인합니다. HTTP 200만으로 정상 판정하지 않습니다.
-- 보호 화면, 다른 사이트 이동, 과도한 응답, 연결 실패면 이전 주소와 정상 확인 시간을 보존합니다.
-  상태는 `protected`로 표시합니다. 이는 서버에서 검증하지 못했다는 뜻이며
-  휴대폰에서도 반드시 접속 불가능하다는 뜻은 아닙니다.
-- `검증 후 저장`으로 지정하면 자동 탐색이 그 사이트의 주소를 바꾸지 않습니다.
-  `자동으로 복원`하면 다음 점검부터 자동 선택합니다.
-- 동시에 수정하면 GitHub SHA와 설정 revision으로 충돌을 감지합니다.
-  점검 중 변경된 직접 지정 값을 덮어쓰지 않습니다.
-- 공개 조회로 주소를 바꿀 수 없습니다. 수정·즉시 점검 API에는 관리 키가 필요합니다.
+- 보호 화면·접속 실패·다른 사이트 이동·과도한 응답이면 기존 주소와 마지막 정상 확인 시간을 보존합니다.
+  `protected`는 GitHub 실행 환경에서 확인하지 못했다는 뜻이며 휴대폰 접속 불가를 단정하지 않습니다.
+- 사이트마다 요청 예산과 요청 시간 제한을 적용합니다. TLS 검증과 사이트 보호를 우회하지 않습니다.
+- GitHub SHA와 설정 revision으로 동시 수정 충돌을 확인합니다.
+  직접 지정 설정이 점검 중 바뀌면 이를 덮어쓰지 않습니다.
+- 예약·수동 점검은 결과 시각을 `domains.json`에 저장합니다. 모든 파일 변경은 커밋으로 남습니다.
 
-## 유지 관리와 한계
+## Pages 배포까지 연결
 
-보통은 앱의 확장 업데이트를 한 번 마치고 휴대폰 관리 화면만 사용하면 됩니다.
-마지막 자동 점검이 3시간 이상 오래되면 화면에서 알려 줍니다.
-GitHub 토큰 만료·권한 오류와 Cloudflare Cron/실행 로그를 확인하세요.
-Pages 반영에는 배포 시간, 앱 반영에는 주소 캐시 시간이 추가됩니다.
-무료 Workers는 CPU 및 요청 제한이 있으므로 실제 배포 후 실행 로그를 확인해야 합니다.
-CPU 제한 오류가 반복되면 점검을 나누거나 요금제를 검토합니다.
+기본 인증은 작업 실행마다 GitHub가 발급하는 `GITHUB_TOKEN`입니다.
+토큰으로 주소 파일을 커밋하는 것만으로는 별도 Pages 작업이 자동으로 시작되지 않으므로,
+[domains.yml](../.github/workflows/domains.yml)에서 **점검 → 저장 → 최신 파일 조회 → Pages 배포**를 함께 실행합니다.
+일반적인 `main` 변경도 같은 작업으로 배포합니다.
 
-서버 IP가 차단되거나 사이트 목록 구조가 바뀌면 자동 발견이 실패할 수 있습니다.
-번호가 +10을 넘게 바뀌거나 도메인 접미사가 바뀌는 경우에는 후보/검증 규칙 수정이 필요합니다.
-주소 갱신은 이미지·회차·영상 재생 엔진 오류를 고치지 않습니다.
-이번 APK는 Android 실기기 설치·이미지·영상 재생을 검증하지 않았습니다.
+Pages의 Source는 **GitHub Actions**로 설정합니다. 표준 실행 환경과 공식 Pages 액션을 사용하며,
+Pages 업로드 산출물은 1일 보관합니다. 별도 서버·유료 실행 환경·외부 데이터베이스는 사용하지 않습니다.
+
+## 상태 확인과 유지관리
+
+- 주 2~3회 상태 화면에서 마지막 점검 시각과 사이트별 결과를 확인하면 됩니다.
+- 마지막 점검이 48시간 이상 지나면 상태 화면에서 실행 기록 확인을 안내합니다.
+- GitHub 예약 실행은 지연·누락될 수 있습니다. 필요하면 수동 실행합니다.
+- 공개 저장소에 60일 동안 활동이 없으면 예약 작업이 비활성화될 수 있습니다.
+  정상 동작 중에는 점검 결과 커밋이 남지만, 화면 확인만으로 예약 작업의 유지가 보장되지는 않습니다.
+  장기 미사용 후에는 Actions에서 활성화 상태와 마지막 실행을 확인하세요.
+- 구조가 바뀌거나 번호가 +10을 넘어 이동하면 후보/검증 규칙을 수정해야 할 수 있습니다.
+- 주소 자동화는 티비룸 영상 로딩·재생 엔진·이미지 서버 오류를 고치지 않습니다.
+  Android 실기기에서 이미지·영상 재생을 별도로 확인해야 합니다.
+
+## Cloudflare 파일
+
+`worker.mjs`에는 공통 점검 엔진과 이전 Cloudflare 관리 API가 남아 있습니다.
+기본 자동화는 GitHub Actions이며 `wrangler.jsonc`의 Cron 목록은 비워 두었습니다.
+Cloudflare를 별도로 활성화해 두 점검 서버를 동시에 운영할 필요는 없습니다.
+`preview.html`은 이전 Cloudflare 화면의 비활성 미리보기입니다. 현재 상태는 `index.html`에서 확인합니다.
 
 ## 로컬 검사
 
@@ -110,22 +86,10 @@ cd domain-manager
 npm test
 ```
 
-Wrangler를 사용할 때:
-
-```sh
-npm install
-npx wrangler login
-npx wrangler secret put ADMIN_TOKEN
-npx wrangler secret put GITHUB_TOKEN
-npm run deploy
-```
-
-계정 로그인과 비밀 값 입력은 본인 계정에서 진행합니다. 비밀 값은 공개 파일에 저장하지 않습니다.
-
 공식 문서:
 
-- [Cron Triggers](https://developers.cloudflare.com/workers/configuration/cron-triggers/)
-- [Worker Secrets](https://developers.cloudflare.com/workers/configuration/secrets/)
-- [Workers Limits](https://developers.cloudflare.com/workers/platform/limits/)
-- [Workers Builds 설정](https://developers.cloudflare.com/workers/ci-cd/builds/configuration/)
-- [KV의 일관성 특성](https://developers.cloudflare.com/kv/concepts/how-kv-works/) — 이 구성은 GitHub SHA 충돌 검사로 상태를 관리합니다.
+- [공개 저장소의 Actions 요금](https://docs.github.com/en/billing/concepts/product-billing/github-actions)
+- [예약 실행과 비활성화](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#schedule)
+- [수동 실행](https://docs.github.com/en/actions/how-tos/manage-workflow-runs/manually-run-a-workflow)
+- [자동 인증 토큰](https://docs.github.com/en/actions/concepts/security/github_token)
+- [Pages 배포](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages)

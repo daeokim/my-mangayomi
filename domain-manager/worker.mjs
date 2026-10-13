@@ -108,7 +108,8 @@ export function scanCandidate(key, base, offset) {
   const host = key === "11toon" ? "11toon"+n+".com" : key === "goodtoon" ? "goodtoon"+String(n).padStart(3,"0")+".com" : key+n+(key === "tvwiki" ? ".net" : key === "tvroom" ? ".org" : ".com");
   return "https://"+host;
 }
-export async function scanState(initial, io = fetch, now = new Date().toISOString(), keys = Object.keys(PROFILES)) {
+export async function scanState(initial, io = fetch, now = new Date().toISOString(), keys = Object.keys(PROFILES), lookahead = 1) {
+  if (!Number.isInteger(lookahead) || lookahead < 1 || lookahead > 10 || !keys.every(isProfile)) throw new Error("scan_options");
   const next = copy(initial), budget = {used:0}; let signal = {};
   try { const {response,body} = await timedFetch(SIGNAL,{redirect:"error",headers:{Accept:"application/json"}},io,budget); if (response.ok) signal = JSON.parse(body).domains || {}; } catch { /* A failed upstream never replaces our registry. */ }
   for (const key of keys) {
@@ -116,7 +117,8 @@ export async function scanState(initial, io = fetch, now = new Date().toISOStrin
     const minimum = Math.max(PROFILES[key].floor,domainNumber(key,previous.baseUrl));
     const upstream = normalize(key,signal[key]?.baseUrl,minimum);
     const offset = Number.isInteger(previous.scanOffset) && previous.scanOffset >= 1 && previous.scanOffset <= 10 ? previous.scanOffset : 1;
-    const candidates = pin ? [pin] : [...new Set([upstream,previous.baseUrl,scanCandidate(key,previous.baseUrl,offset)].filter(Boolean))];
+    const future = Array.from({length:lookahead},(_,i) => scanCandidate(key,previous.baseUrl,(offset+i-1)%10+1));
+    const candidates = pin ? [pin] : [...new Set([upstream,previous.baseUrl,...future].filter(Boolean))];
     let found = null, reason = "점검 실패";
     for (const candidate of candidates) {
       const result = await probe(key,candidate,io,budget);
@@ -138,11 +140,17 @@ export function mergeScan(latest, initial, scanned) {
   if (!changed) return latest;
   return {...latest,domains,updatedAt:scanned.updatedAt,lastRunAt:latest.lastRunAt && latest.lastRunAt > scanned.lastRunAt ? latest.lastRunAt : scanned.lastRunAt};
 }
-export async function runCheck(env, io = fetch, keys = Object.keys(PROFILES)) {
+export async function runCheck(env, io = fetch, keys = Object.keys(PROFILES), lookahead = 1) {
+  if (!keys.length || !keys.every(isProfile)) throw new Error("scan_options");
   const initial = await readState(env,io);
   const fresh = keys.every(key => { const age = Date.now() - Date.parse(initial.state.domains[key].lastCheckedAt || 0); return age >= 0 && age < 60000; });
   if (fresh) return {state:initial.state,skipped:true};
-  const scanned = await scanState(initial.state,io,new Date().toISOString(),keys);
+  const now = new Date().toISOString();
+  let scanned = initial.state;
+  // Daily Actions jobs can inspect the full +1..+10 window, with an independent
+  // request budget for each source. Workers retain their one-candidate default.
+  if (lookahead === 1) scanned = await scanState(initial.state,io,now,keys);
+  else for (const key of keys) scanned = await scanState(scanned,io,now,[key],lookahead);
   let loaded = initial;
   for (let attempt = 0; attempt < 3; attempt++) {
     const next = mergeScan(loaded.state,initial.state,scanned);
