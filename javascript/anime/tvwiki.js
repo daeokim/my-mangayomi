@@ -8,11 +8,11 @@ const mangayomiSources = [{
   itemType: 1,
   isNsfw: false,
   hasCloudflare: false,
-  version: "0.1.11",
+  version: "0.1.12",
   dateFormat: "",
   dateFormatLocale: "",
   pkgPath: "anime/src/ko/tvwiki.js",
-  notes: "검색 카드 작품 설명 우선 · 회차형 최신 줄거리 제외 · 인기/최신 탭 규칙 저장 · 커스텀 목록 카드 · WebP 공용 랜덤 카드 · 목록 구분 카드 6종 · 주간 TOP 100 회차 전수 보강 · 작품명/특별편 누락 수정 · 순차 HTTP 요청으로 403 알림 억제 · 중앙신호등 최신 주소 · 빠른 CDN 직접 재생 + 호환 중계 재생"
+  notes: "검색 카드 작품 설명 우선 · 회차형 최신 줄거리 제외 · 인기/최신 탭 규칙 저장 · 커스텀 목록 카드 · WebP 공용 랜덤 카드 · 목록 구분 카드 6종 · 주간 TOP 100 회차 전수 보강 · 작품명/특별편 누락 수정 · 순차 HTTP 요청으로 403 알림 억제 · 공통 주소 목록 최신 주소 · 빠른 CDN 직접 재생 + 호환 중계 재생"
 }];
 
 function dcResolveTvwikiRemoteCards(data, tab) {
@@ -126,7 +126,7 @@ class DefaultExtension extends MProvider {
     this.bridgeBaseUrl = "https://dc-toki-mangayomi-media.pages.dev";
     this.cardBaseUrl = this.bridgeBaseUrl + "/card/tvwiki-section";
     this.cardRevision = "20260915-2";
-    this.signalUrl = "https://wankyo83.github.io/tokki-traffic-light/domains.json";
+    this.signalUrl = "https://daeokim.github.io/my-mangayomi/domains.json";
     this.cachedBaseKey = "tvwiki_last_base_url_v3";
     this.cachedBaseTimeKey = "tvwiki_last_base_time_v3";
     this.posterCachePrefix = "tvwiki_series_poster_v1_";
@@ -264,7 +264,7 @@ class DefaultExtension extends MProvider {
     const cached = this._cachedBaseUrl(), cachedAt = Number(this._preference(this.cachedBaseTimeKey, "0")) || 0;
     if (cached && Date.now() - cachedAt < this.baseCacheMs) return cached;
     try {
-      const body = await this._get(this.signalUrl, "https://wankyo83.github.io/", "중앙신호등", { "Accept": "application/json" });
+      const body = await this._get(this.signalUrl, "https://daeokim.github.io/", "공통 주소 목록", { "Accept": "application/json" });
       const data = JSON.parse(body), resolved = this._trimSlash(data && data.domains && data.domains.tvwiki && data.domains.tvwiki.baseUrl);
       if (this._isCurrentAutomaticBase(resolved)) {
         this._setPreference(this.cachedBaseKey, resolved);
@@ -792,7 +792,7 @@ class DefaultExtension extends MProvider {
   }
   getSourcePreferences() {
     return [
-      { key: "tvwiki_domain_url", editTextPreference: { title: "티비위키 주소 직접 지정 (선택)", summary: "빈 값이면 중앙신호등의 최신 주소를 사용하고, 실패하면 마지막 정상 주소로 복구합니다.", value: "", dialogTitle: "https://tvwiki52.net", dialogMessage: "tvwiki숫자.net 형식의 HTTPS 주소만 허용됩니다." } },
+      { key: "tvwiki_domain_url", editTextPreference: { title: "티비위키 주소 직접 지정 (선택)", summary: "빈 값이면 공통 주소 목록의 최신 주소를 사용하고, 실패하면 마지막 정상 주소로 복구합니다.", value: "", dialogTitle: "https://tvwiki53.net", dialogMessage: "tvwiki숫자.net 형식의 HTTPS 주소만 허용됩니다." } },
       { key: "tvwiki_custom_card_json_url", editTextPreference: { title: "커스텀 목록 카드 (선택)", summary: "공개 JSON 주소 1개로 요일별 카드 7장을 설정합니다. 360×540 GIF·WebP를 권장하며 용량·프레임 제한은 없습니다.", value: "", dialogTitle: "커스텀 목록 카드 JSON 주소", dialogMessage: "Google Drive 공개 공유 링크 또는 직접 JSON 주소를 넣으세요. 개인 카드를 설정하면 공용 이벤트 카드는 표시되지 않습니다. 빈 값이면 공용 이벤트 또는 기본 원격 카드를 사용합니다." } }
     ];
   }
