@@ -24,7 +24,7 @@
   {
     "name": "티비위키",
     "id": 780920260915001,
-    "baseUrl": "https://tvwiki52.net",
+    "baseUrl": "https://tvwiki53.net",
     "lang": "ko",
     "typeSource": "single",
     "iconUrl": "https://dc-toki-mangayomi-media.pages.dev/icon/ko.tvwiki.png",
@@ -33,7 +33,7 @@
     "isNsfw": false,
     "hasCloudflare": false,
     "apiUrl": "",
-    "version": "0.1.10",
+    "version": "0.1.11",
     "isManga": false,
     "itemType": 1,
     "isFullData": false,
