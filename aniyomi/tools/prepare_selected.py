@@ -9,6 +9,8 @@ import json
 import struct
 import zlib
 import zipfile
+import subprocess
+import sys
 from loguru import logger
 logger.remove()
 from androguard.core.apk import APK
@@ -22,19 +24,20 @@ CONFIG = {
         'sha256': '8caea537ba54845fc80dc72435ee04752ace6109704f0000f4ed0d9343da94cd',
         'factory': 'Leu/kanade/tachiyomi/extension/ko/dcmanga/ExtensionGenerated;',
         'keep': [12, 2, 3], 'pkg': 'eu.kanade.tachiyomi.extension.ko.daeomanga',
-        'name': 'Daeo Manga', 'label': 'Tachiyomi: Daeo Manga', 'version': '1.4.1002',
-        'code': 1002, 'filename': 'daeomanga-v1.4.1002.apk',
+        'name': 'Daeo Manga', 'label': 'Tachiyomi: Daeo Manga', 'version': '1.4.1003',
+        'code': 1003, 'filename': 'daeomanga-v1.4.1003.apk',
     },
     'media': {
         'sha256': 'f4ac3b0a266def23ead51dcdd39eb9e4f372fa13a1116ea3665b3ccad06c70b1',
         'factory': 'Leu/kanade/tachiyomi/animeextension/ko/dctvroom/DcTvRoomFactory;',
         'keep': [0, 1, 2, 4], 'pkg': 'eu.kanade.tachiyomi.animeextension.ko.daemedia',
-        'name': 'Daeo Media', 'label': 'Aniyomi: Daeo Media', 'version': '14.1002',
-        'code': 1002, 'filename': 'daeomedia-v14.1002.apk',
+        'name': 'Daeo Media', 'label': 'Aniyomi: Daeo Media', 'version': '14.1003',
+        'code': 1003, 'filename': 'daeomedia-v14.1003.apk',
     },
 }
 
 BLACKTOON_CURRENT_PATTERN = r'blacktoon\B(?:42[4-9]|4[3-9]\d|[5-9]\d{2}|[1-9]\d{3,})\.com'
+REGISTRY_URL = 'https://daeokim.github.io/my-mangayomi/domains.json'
 
 def patch_blacktoon_strings(data, dex):
     """Rewrite only the string-data region without relocating later DEX sections.
@@ -48,6 +51,10 @@ def patch_blacktoon_strings(data, dex):
         '.com\n07처럼 앞의 0을 포함해 입력할 수 있습니다.': '.com\n기본값: 424.',
         'blacktoon_domain_number': 'blacktoon_domain_num_v2',
     }
+    return rewrite_string_region(data, dex, replacements)
+
+def rewrite_string_region(data, dex, replacements):
+    """Preserve indices, UTF-16 ordering and all later section offsets."""
     strings = list(dex.get_strings())
     for old in replacements:assert strings.count(old) == 1
     map_offset = struct.unpack_from('<I',data,52)[0]
@@ -84,6 +91,40 @@ def patch_blacktoon_strings(data, dex):
     data[start:end]=records
     for index,offset in enumerate(offsets):struct.pack_into('<I',data,table+index*4,offset)
     return data
+
+def patch_registry_connection(data, kind):
+    """Redirect only the registered engines' signal calls to our stable registry.
+
+    Reuse an ordered string slot from an unregistered engine. Shorter UI/error
+    strings balance the region, so no DEX section moves or indices change.
+    """
+    data[12:32] = hashlib.sha1(data[32:]).digest()
+    struct.pack_into('<I',data,8,zlib.adler32(data[12:]) & 0xffffffff)
+    dex = DEX(bytes(data))
+    strings = list(dex.get_strings())
+    if kind == 'manga':
+        slot = 'https://comic.naver.com/webtoon'  # Naver engine is not registered.
+        replacements = {slot:REGISTRY_URL,
+            '기존 주소 탐색 모드에서만 사용합니다. 현재: blacktoon':
+            '기존 주소 탐색 모드. 현재: blacktoon' + ' '*5}
+        owner, method, old = 'Lr1;', 'j', 'https://wankyo83.github.io/tokki-traffic-light/domains.json'
+    else:
+        slot = 'https://anilife01.tv'  # AnimeLife source is not registered.
+        replacements = {slot:REGISTRY_URL,
+            '텔레그램에서 숫자 도메인을 찾지 못했습니다':'텔레그램대체목록오류'}
+        owner, method, old = 'Lqb;', 'S', 'https://t.me/s/tvroom8282'
+    source = next(c for c in dex.get_classes() if c.get_name() == owner)
+    caller = next(m for m in source.get_methods() if m.get_name() == method)
+    index = strings.index(slot)
+    offset, changed = caller.get_code_off()+16, 0
+    for ins in caller.get_instructions():
+        if ins.get_name() == 'const-string' and ins.get_operands()[1][2] == old:
+            struct.pack_into('<H',data,offset+2,index);changed += 1
+        offset += ins.get_length()
+    assert changed == 1
+    # Selected engines must never otherwise use the repurposed slot.
+    assert source.get_name() == owner
+    return rewrite_string_region(data,dex,replacements)
 
 def patch_factory(raw, cfg, kind):
     data = bytearray(raw)
@@ -174,6 +215,7 @@ def patch_factory(raw, cfg, kind):
         string_offset += 1
         assert data[string_offset:string_offset + len(old_package)] == old_package
         data[string_offset:string_offset + len(old_package)] = new_package
+    data = patch_registry_connection(data,kind)
     data[12:32] = hashlib.sha1(data[32:]).digest()
     struct.pack_into('<I', data, 8, zlib.adler32(data[12:]) & 0xffffffff)
     return bytes(data)
@@ -289,6 +331,10 @@ def prepare(kind):
                     padding = (-offset - 4) % 4
                     info.extra = struct.pack('<HH',0xd935,padding) + bytes(padding)
             dest.writestr(info,payload)
+    if kind == 'manga':
+        jar = ROOT/'apktool_3.0.3.jar'
+        if not jar.is_file():raise FileNotFoundError('Pinned Apktool 3.0.3 JAR is required beside prepare_selected.py')
+        subprocess.run([sys.executable,str(ROOT/'connect_registry.py'),str(jar),str(unsigned)],check=True)
     print(json.dumps({'kind':kind,'input_sha256':digest,'unsigned':str(unsigned),'package':cfg['pkg']}))
 
 if __name__ == '__main__':

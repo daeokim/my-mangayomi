@@ -55,6 +55,21 @@ for kind,names in EXPECTED.items():
     assert dexbytes[12:32] == hashlib.sha1(dexbytes[32:]).digest()
     assert struct.unpack_from('<I',dexbytes,8)[0] == zlib.adler32(dexbytes[12:]) & 0xffffffff
     dex = DEX(dexbytes)
+    registry = 'https://daeokim.github.io/my-mangayomi/domains.json'
+    strings = list(dex.get_strings())
+    lexical = lambda s: tuple(struct.unpack('<'+'H'*(len(s.encode('utf-16le'))//2),s.encode('utf-16le')))
+    assert all(lexical(a) < lexical(b) for a,b in zip(strings,strings[1:]))
+    assert registry in strings
+    owner,caller,obsolete = ('Lr1;','j','https://wankyo83.github.io/tokki-traffic-light/domains.json') if kind == 'manga' else ('Lqb;','S','https://t.me/s/tvroom8282')
+    source = next(c for c in dex.get_classes() if c.get_name() == owner)
+    method = next(m for m in source.get_methods() if m.get_name() == caller)
+    used = [i.get_operands()[1][2] for i in method.get_instructions() if i.get_name() == 'const-string']
+    assert used.count(registry) == 1 and obsolete not in used
+    if kind == 'media':
+        # The existing media signal reader extracts this URL directly from JSON.
+        for number in [38,39,400]:
+            body = json.dumps({'domains':{'tvroom':{'baseUrl':f'https://tvroom{number}.org'}}})
+            assert re.search(r'https?://(?:www\.)?tvroom\d+\.org/?',body).group(0) == f'https://tvroom{number}.org'
     namespace = '{http://schemas.android.com/apk/res/android}'
     key = 'tachiyomi.extension.class' if kind == 'manga' else 'tachiyomi.animeextension.class'
     factory_name = next(m.get(namespace+'value') for m in apk.get_android_manifest_xml().findall('.//meta-data') if m.get(namespace+'name') == key)
@@ -64,6 +79,23 @@ for kind,names in EXPECTED.items():
     assert len(objects) == len(names)
     if kind == 'manga':
         classes = {c.get_name():c for c in dex.get_classes()}
+        assert 'Ldaeo/Registry;' in classes
+        for descriptor,domain_key in [('Lc2;','11toon'),('Leu/kanade/tachiyomi/extension/ko/goodtoonwebtoontest/d;','goodtoon')]:
+            getter = next(m for m in classes[descriptor].get_methods() if m.get_name() == 'getBaseUrl')
+            ops = list(getter.get_instructions())
+            assert ops[0].get_operands()[1][2] == domain_key
+            assert 'Ldaeo/Registry;->resolve' in ops[1].get_output()
+            assert any(i.get_name() == 'if-eqz' for i in ops)
+            assert len([i for i in ops if i.get_name() == 'return-object']) == 2
+        helper = classes['Ldaeo/Registry;']
+        resolver = next(m for m in helper.get_methods() if m.get_name() == 'resolve')
+        resolver_ops = [i.get_output() for i in resolver.get_instructions()]
+        assert any('Looper;->myLooper' in s for s in resolver_ops)
+        assert any('Matcher;->matches()Z' in s for s in resolver_ops)
+        refresh = next(m for m in helper.get_methods() if m.get_name() == 'refresh')
+        refresh_ops = [i.get_output() for i in refresh.get_instructions()]
+        assert any(registry in s for s in refresh_ops)
+        assert any('setReadTimeout' in s for s in refresh_ops)
         for obj,source in zip(objects,entry['sources']):
             source_class = classes[obj['class']]
             getname = next(m for m in source_class.get_methods() if m.get_name() == 'getName')
