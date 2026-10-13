@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-13T14:11:57.304Z",
-  "lastRunAt": "2026-10-13T14:11:57.304Z",
+  "updatedAt": "2026-10-13T19:48:32.333Z",
+  "lastRunAt": "2026-10-13T19:48:32.333Z",
   "domains": {
     "11toon": {
       "baseUrl": "https://11toon.com",
@@ -39,9 +39,9 @@
       "baseUrl": "https://tvroom38.org",
       "status": "protected",
       "lastConfirmedAt": null,
-      "lastCheckedAt": "2026-10-13T14:11:57.304Z",
-      "reason": "연결 실패 또는 시간 초과",
-      "scanOffset": 2
+      "lastCheckedAt": "2026-10-13T19:48:32.333Z",
+      "reason": "목록 구조 미확인",
+      "scanOffset": 3
     }
   },
   "control": {
