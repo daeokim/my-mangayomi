@@ -82,6 +82,36 @@ test("catalogs have unique exact IDs and valid source metadata", function() {
   }
 });
 
+for (const entry of catalogs.flatMap(c => c.entries)) {
+  test(entry.name + ": automatic lookup uses the personal common registry", async function() {
+    const requests = [], data = { domains: {} };
+    const key = entry.name === "11toon 만화" ? "11toon" : entry.name === "굿툰" ? "goodtoon" : entry.name === "블랙툰" ? "blacktoon" : entry.name === "티비위키" ? "tvwiki" : "tvroom";
+    data.domains[key] = {baseUrl: entry.baseUrl};
+    const loaded = loadExtension(entry, {Client: class { async get(url) { requests.push(url); return {statusCode:200,body:JSON.stringify(data)}; } }});
+    if (key === "tvwiki") loaded.extension._get = async url => { requests.push(url); return JSON.stringify(data); };
+    assert.equal(await loaded.extension._resolveBaseUrl(), entry.baseUrl);
+    assert.equal(requests.length,1);
+    assert.ok(requests[0].startsWith("https://daeokim.github.io/my-mangayomi/domains.json"));
+  });
+}
+for (const spec of [
+  {name:"11toon 만화",key:"11toon",url:"https://11toon999.com"},
+  {name:"굿툰",key:"goodtoon",url:"https://goodtoon008.com"},
+  {name:"티비룸",key:"tvroom",url:"https://tvroom39.org"}
+]) {
+  test(spec.name + ": last automatic address survives a registry outage", async function() {
+    const entry = catalogs.flatMap(c => c.entries).find(e => e.name === spec.name), loaded = loadExtension(entry);
+    loaded.respond({domains:{[spec.key]:{baseUrl:spec.url}}});
+    assert.equal(await loaded.extension._resolveBaseUrl(),spec.url);
+    loaded.respond(null);
+    assert.equal(await loaded.extension._resolveBaseUrl(),spec.url);
+  });
+}
+test("TVRoom auxiliary title metadata keeps its original signal service", function() {
+  const entry = catalogs[1].entries.find(e => e.name === "티비룸"), loaded = loadExtension(entry);
+  assert.equal(loaded.extension.auxiliarySignalUrl,"https://wankyo83.github.io/tokki-traffic-light/domains.json");
+});
+
 const media = [
   { name: "티비룸", key: "tvroom_domain_url", signal: "tvroom", prefix: "tvroom", suffix: "org" },
   { name: "티비위키", key: "tvwiki_domain_url", signal: "tvwiki", prefix: "tvwiki", suffix: "net" }
