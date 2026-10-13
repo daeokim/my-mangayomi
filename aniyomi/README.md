@@ -65,8 +65,9 @@ Daeo Media 14.1003는 티비룸 기반으로 유지합니다. 이 영상 구성�
 DEX 체크섬·UTF-16 문자열 정렬과 등록 소스 ID를 다시 검증합니다.
 Naver/AnimeLife 소스를 추후 다시 등록하려면 이 슬롯 재사용을 먼저 제거해야 합니다.
 
-서버 배포 및 휴대폰 관리 화면 설정은 [자동 주소 관리 설명](../domain-manager/README.md)을 따르세요.
-Cloudflare 계정과 Secret 설정 전에는 자동 점검 서버가 실행되지 않습니다.
+GitHub Actions가 매일 오전 9:17 한국 시간에 공통 주소를 점검·배포합니다.
+[휴대폰 상태 화면](https://daeokim.github.io/my-mangayomi/domain-manager/)과 [자동 주소 관리 설명](../domain-manager/README.md)을 확인하세요.
+Cloudflare 계정 연결과 별도 개인 토큰 설정은 필요하지 않습니다.
 
 ## 주소와 실제 재생
 
