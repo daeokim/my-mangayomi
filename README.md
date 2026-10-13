@@ -155,7 +155,7 @@ Rabbit 외부 인증은 별도 서버가 필요한 선택 기능입니다. 빈 �
 
 JS 파일은 이 저장소에서 받지만, 다음 기능은 원저자의 서버를 사용합니다.
 
-- 자동 주소 조회: `wankyo83.github.io/tokki-traffic-light/domains.json`
+- 자동 주소 후보 수집: `wankyo83.github.io/tokki-traffic-light/domains.json` (개인 목록 갱신 시 참고하며 검증 후 채택)
 - 아이콘과 목록 카드: 원본 만화·미디어·소설 저장소
 - 티비위키: 재생 세션과 일부 HLS 재생목록 처리
 - 티비룸: HLS 재생목록 처리
@@ -214,10 +214,12 @@ Mangayomi 다섯 소스와 Aniyomi 선택 APK가 다음 목록을 사용합니�
 
 `https://daeokim.github.io/my-mangayomi/domains.json`
 
-Cloudflare Workers가 다섯 사이트의 목록 구조를 매시간 한 번씩 나누어 확인한 뒤 이 파일을 갱신합니다.
-배포 코드, 휴대폰 관리 화면, 계정 설정은 [domain-manager/README.md](domain-manager/README.md)에 있습니다.
-Cloudflare 계정 연결과 Secret 설정 전에는 자동 점검 서버가 가동되지 않습니다.
-초기 파일의 `unverified`는 서버 점검 전이라는 뜻이며 접속 성공을 주장하지 않습니다.
+GitHub Actions가 매일 **오전 9:17 한국 시간**에 다섯 사이트의 목록 구조를 확인하고 주소 파일을 갱신·배포합니다.
+[휴대폰 상태 화면](https://daeokim.github.io/my-mangayomi/domain-manager/)에서 결과를 확인하고,
+[Actions 실행 화면](https://github.com/daeokim/my-mangayomi/actions/workflows/domains.yml)에서 필요할 때 수동 점검합니다.
+설정과 동작 방식은 [domain-manager/README.md](domain-manager/README.md)에 있습니다.
+Cloudflare 계정 연결이나 별도 개인 GitHub 토큰 설정은 필요하지 않습니다.
+사이트별 `protected`는 서버에서 검증하지 못해 기존 주소를 유지했다는 뜻입니다.
 
 앱에서는 확장 업데이트 후 `주소 직접 지정`을 비우세요.
 Aniyomi 만화는 Daeo Manga 1.4.1003으로 업데이트합니다. 블랙툰은 `주소 갱신 방식: 중앙신호등`을 사용하고 11툰·굿툰은 별도 모드 선택 없이 자동 조회합니다.
