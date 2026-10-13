@@ -1,47 +1,47 @@
 {
   "schemaVersion": 1,
-  "updatedAt": null,
-  "lastRunAt": null,
+  "updatedAt": "2026-10-13T14:11:57.304Z",
+  "lastRunAt": "2026-10-13T14:11:57.304Z",
   "domains": {
     "11toon": {
       "baseUrl": "https://11toon.com",
-      "status": "unverified",
-      "lastConfirmedAt": null,
-      "lastCheckedAt": null,
-      "reason": "초기 설정 주소 · 서버 점검 전",
+      "status": "healthy",
+      "lastConfirmedAt": "2026-10-13T14:11:57.304Z",
+      "lastCheckedAt": "2026-10-13T14:11:57.304Z",
+      "reason": "목록 구조 확인 · 재생/이미지 검증은 별도",
       "scanOffset": 1
     },
     "blacktoon": {
       "baseUrl": "https://blacktoon424.com",
-      "status": "unverified",
-      "lastConfirmedAt": null,
-      "lastCheckedAt": null,
-      "reason": "초기 설정 주소 · 서버 점검 전",
+      "status": "healthy",
+      "lastConfirmedAt": "2026-10-13T14:11:57.304Z",
+      "lastCheckedAt": "2026-10-13T14:11:57.304Z",
+      "reason": "목록 구조 확인 · 재생/이미지 검증은 별도",
       "scanOffset": 1
     },
     "goodtoon": {
       "baseUrl": "https://goodtoon007.com",
-      "status": "unverified",
-      "lastConfirmedAt": null,
-      "lastCheckedAt": null,
-      "reason": "초기 설정 주소 · 서버 점검 전",
+      "status": "healthy",
+      "lastConfirmedAt": "2026-10-13T14:11:57.304Z",
+      "lastCheckedAt": "2026-10-13T14:11:57.304Z",
+      "reason": "목록 구조 확인 · 재생/이미지 검증은 별도",
       "scanOffset": 1
     },
     "tvwiki": {
       "baseUrl": "https://tvwiki53.net",
-      "status": "unverified",
-      "lastConfirmedAt": null,
-      "lastCheckedAt": null,
-      "reason": "초기 설정 주소 · 서버 점검 전",
+      "status": "healthy",
+      "lastConfirmedAt": "2026-10-13T14:11:57.304Z",
+      "lastCheckedAt": "2026-10-13T14:11:57.304Z",
+      "reason": "목록 구조 확인 · 재생/이미지 검증은 별도",
       "scanOffset": 1
     },
     "tvroom": {
       "baseUrl": "https://tvroom38.org",
-      "status": "unverified",
+      "status": "protected",
       "lastConfirmedAt": null,
-      "lastCheckedAt": null,
-      "reason": "초기 설정 주소 · 서버 점검 전",
-      "scanOffset": 1
+      "lastCheckedAt": "2026-10-13T14:11:57.304Z",
+      "reason": "연결 실패 또는 시간 초과",
+      "scanOffset": 2
     }
   },
   "control": {
