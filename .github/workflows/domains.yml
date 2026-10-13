@@ -1,0 +1,79 @@
+name: 주소 자동 갱신 · Pages 배포
+
+on:
+  schedule:
+    # 00:17 UTC = 09:17 Asia/Seoul. Avoid the crowded start of the hour.
+    - cron: '17 0 * * *'
+  workflow_dispatch:
+    inputs:
+      site:
+        description: 점검할 사이트
+        type: choice
+        default: all
+        options: [all, 11toon, blacktoon, goodtoon, tvwiki, tvroom]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pages-and-domain-registry
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v6
+        with:
+          ref: main
+          persist-credentials: false
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          package-manager-cache: false
+      - name: Verify domain validation and conflict handling
+        run: node --test domain-manager/test.mjs domain-manager/actions.test.mjs
+      - name: Check addresses and save the shared registry
+        if: github.event_name != 'push'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          CHECK_SITE: ${{ inputs.site || 'all' }}
+        run: node domain-manager/actions.mjs
+      # GITHUB_TOKEN commits do not start the branch-based Pages publisher.
+      # Deploy explicitly in this workflow, including the just-saved registry.
+      - name: Checkout the latest saved state
+        uses: actions/checkout@v6
+        with:
+          ref: main
+          persist-credentials: false
+      - name: Prepare the public site
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import shutil
+          shutil.copytree('.', '_site', ignore=shutil.ignore_patterns('.git', '.github', '_site', 'node_modules', '__pycache__'))
+          Path('_site/.nojekyll').touch()
+          PY
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+      - name: Upload the site
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: _site
+          retention-days: 1
+      - name: Deploy the shared registry and extension repository
+        id: deployment
+        uses: actions/deploy-pages@v4
