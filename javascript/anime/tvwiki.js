@@ -1,14 +1,14 @@
 const mangayomiSources = [{
   name: "티비위키",
   lang: "ko",
-  baseUrl: "https://tvwiki52.net",
+  baseUrl: "https://tvwiki53.net",
   apiUrl: "",
   iconUrl: "https://dc-toki-mangayomi-media.pages.dev/icon/ko.tvwiki.png",
   typeSource: "single",
   itemType: 1,
   isNsfw: false,
   hasCloudflare: false,
-  version: "0.1.10",
+  version: "0.1.11",
   dateFormat: "",
   dateFormatLocale: "",
   pkgPath: "anime/src/ko/tvwiki.js",
@@ -122,13 +122,13 @@ async function dcTvwikiEventCard() {
 class DefaultExtension extends MProvider {
   constructor() {
     super();
-    this.fallbackBaseUrl = "https://tvwiki52.net";
+    this.fallbackBaseUrl = "https://tvwiki53.net";
     this.bridgeBaseUrl = "https://dc-toki-mangayomi-media.pages.dev";
     this.cardBaseUrl = this.bridgeBaseUrl + "/card/tvwiki-section";
     this.cardRevision = "20260915-2";
     this.signalUrl = "https://wankyo83.github.io/tokki-traffic-light/domains.json";
-    this.cachedBaseKey = "tvwiki_last_base_url_v2";
-    this.cachedBaseTimeKey = "tvwiki_last_base_time_v2";
+    this.cachedBaseKey = "tvwiki_last_base_url_v3";
+    this.cachedBaseTimeKey = "tvwiki_last_base_time_v3";
     this.posterCachePrefix = "tvwiki_series_poster_v1_";
     this.titleCachePrefix = "tvwiki_series_title_v1_";
     this.descriptionCachePrefix = "tvwiki_series_description_v1_";
@@ -247,7 +247,8 @@ class DefaultExtension extends MProvider {
     return seriesPath ? this._safeSeriesDescription(this._preference(this._descriptionKey(seriesPath), "")) : "";
   }
   _manualBaseUrl() { const manual = this._trimSlash(this._preference("tvwiki_domain_url", "")); return this._isAllowedBase(manual) ? manual : ""; }
-  _cachedBaseUrl() { const cached = this._trimSlash(this._preference(this.cachedBaseKey, "")); return this._isAllowedBase(cached) ? cached : ""; }
+  _isCurrentAutomaticBase(value) { const match = this._trimSlash(value).match(/^https:\/\/tvwiki(\d+)\.net$/i); return !!match && Number(match[1]) >= 53; }
+  _cachedBaseUrl() { const cached = this._trimSlash(this._preference(this.cachedBaseKey, "")); return this._isCurrentAutomaticBase(cached) ? cached : ""; }
   _headers(referer, accept) { const base = this._origin(referer) || this._manualBaseUrl() || this._cachedBaseUrl() || this.fallbackBaseUrl; return { "User-Agent": this.userAgent, "Accept": accept || "text/html,application/xhtml+xml,application/json;q=0.9,*/*;q=0.8", "Accept-Language": "ko-KR,ko;q=0.9,en;q=0.8", "Referer": referer || base + "/" }; }
   _client(kind, timeout) {
     if (kind === "rhttp") return new Client({ persistentConnection: false, noProxy: true, timeout: timeout || 25, connectTimeout: 8 });
@@ -265,14 +266,14 @@ class DefaultExtension extends MProvider {
     try {
       const body = await this._get(this.signalUrl, "https://wankyo83.github.io/", "중앙신호등", { "Accept": "application/json" });
       const data = JSON.parse(body), resolved = this._trimSlash(data && data.domains && data.domains.tvwiki && data.domains.tvwiki.baseUrl);
-      if (this._isAllowedBase(resolved) && !/^https:\/\/tvwiki51\.net$/i.test(resolved)) {
+      if (this._isCurrentAutomaticBase(resolved)) {
         this._setPreference(this.cachedBaseKey, resolved);
         this._setPreference(this.cachedBaseTimeKey, String(Date.now()));
         return resolved;
       }
     } catch (_) {}
     const configured = this.source && this.source.baseUrl ? this.source.baseUrl : "";
-    return cached || (this._isAllowedBase(configured) ? this._trimSlash(configured) : this.fallbackBaseUrl);
+    return cached || (this._isCurrentAutomaticBase(configured) ? this._trimSlash(configured) : this.fallbackBaseUrl);
   }
   async _get(url, referer, stage, extra) {
     const failures = [];
