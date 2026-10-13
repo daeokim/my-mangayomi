@@ -4,6 +4,7 @@ import hashlib
 import json
 import struct
 import zlib
+import re
 from loguru import logger
 logger.remove()
 from androguard.core.apk import APK
@@ -74,6 +75,17 @@ for kind,names in EXPECTED.items():
         good = classes['Leu/kanade/tachiyomi/extension/ko/goodtoonwebtoontest/d;']
         seven = [i for m in good.get_methods() if m.get_name() in ('e','setupPreferenceScreen') for i in m.get_instructions() if i.get_name() == 'const-string' and i.get_operands()[1][2] == '7']
         assert len(seven) == 2
+        black = classes['Leu/kanade/tachiyomi/extension/ko/blacktoon/d;']
+        defaults = [i for m in black.get_methods() if m.get_name() in ('a','setupPreferenceScreen') for i in m.get_instructions() if i.get_name() == 'const-string' and i.get_operands()[1][2] == '424']
+        assert len(defaults) == 2
+        strings = list(dex.get_strings())
+        assert 'https://blacktoon424.com' in strings
+        assert 'https://blacktoon07.com' not in strings
+        assert 'blacktoon_domain_num_v2' in strings
+        assert 'blacktoon_domain_number' not in strings
+        pattern = next(i.get_operands()[1][2] for m in black.get_methods() if m.get_name() == '<clinit>' for i in m.get_instructions() if i.get_name() == 'const-string' and i.get_operands()[1][2].startswith('blacktoon\\B'))
+        for number in [0,7,99,100,399,400,419,420,423,424,425,499,500,999,1000,9999]:
+            assert bool(re.search(pattern,'https://blacktoon'+str(number)+'.com')) == (number >= 424)
     else:
         assert [obj['name'] for obj in objects] == names
         assert 'https://tvroom38.org' in dex.get_strings()

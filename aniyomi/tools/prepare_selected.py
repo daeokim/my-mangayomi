@@ -22,8 +22,8 @@ CONFIG = {
         'sha256': '8caea537ba54845fc80dc72435ee04752ace6109704f0000f4ed0d9343da94cd',
         'factory': 'Leu/kanade/tachiyomi/extension/ko/dcmanga/ExtensionGenerated;',
         'keep': [12, 2, 3], 'pkg': 'eu.kanade.tachiyomi.extension.ko.daeomanga',
-        'name': 'Daeo Manga', 'label': 'Tachiyomi: Daeo Manga', 'version': '1.4.1001',
-        'code': 1001, 'filename': 'daeomanga-v1.4.1001.apk',
+        'name': 'Daeo Manga', 'label': 'Tachiyomi: Daeo Manga', 'version': '1.4.1002',
+        'code': 1002, 'filename': 'daeomanga-v1.4.1002.apk',
     },
     'media': {
         'sha256': 'f4ac3b0a266def23ead51dcdd39eb9e4f372fa13a1116ea3665b3ccad06c70b1',
@@ -33,6 +33,57 @@ CONFIG = {
         'code': 1002, 'filename': 'daeomedia-v14.1002.apk',
     },
 }
+
+BLACKTOON_CURRENT_PATTERN = r'blacktoon\B(?:42[4-9]|4[3-9]\d|[5-9]\d{2}|[1-9]\d{3,})\.com'
+
+def patch_blacktoon_strings(data, dex):
+    """Rewrite only the string-data region without relocating later DEX sections.
+
+    The updated domain pattern and URL are balanced by a shorter preference
+    summary. String indices, byte length, and UTF-16 lexical ordering are checked.
+    """
+    replacements = {
+        'https://blacktoon07.com': 'https://blacktoon424.com',
+        r'blacktoon\d+\.com': BLACKTOON_CURRENT_PATTERN,
+        '.com\n07처럼 앞의 0을 포함해 입력할 수 있습니다.': '.com\n기본값: 424.',
+        'blacktoon_domain_number': 'blacktoon_domain_num_v2',
+    }
+    strings = list(dex.get_strings())
+    for old in replacements:assert strings.count(old) == 1
+    map_offset = struct.unpack_from('<I',data,52)[0]
+    count = struct.unpack_from('<I',data,map_offset)[0]
+    sections = [struct.unpack_from('<HHII',data,map_offset+4+i*12) for i in range(count)]
+    _,_,number,start = next(x for x in sections if x[0] == 0x2002)
+    end = min(x[3] for x in sections if x[3] > start)
+    assert number == len(strings)
+    table = struct.unpack_from('<I',data,60)[0]
+    records,offsets = bytearray(),[]
+    def uleb(n):
+        out=bytearray()
+        while True:
+            byte=n & 127;n >>= 7;out.append(byte | (128 if n else 0))
+            if not n:return bytes(out)
+    for index,original in enumerate(strings):
+        offset = struct.unpack_from('<I',data,table+index*4)[0]
+        p=offset
+        while data[p] & 128:p+=1
+        p+=1;last=data.index(0,p)+1
+        value=replacements.get(original,original)
+        offsets.append(start+len(records))
+        if original in replacements:
+            # These replacements contain no NUL, surrogate or supplementary code point.
+            encoded=value.encode('utf8')
+            records += uleb(len(value.encode('utf-16le'))//2)+encoded+b'\0'
+        else:records += data[offset:last]
+    assert len(records) == end-start, 'string section layout would change'
+    changed=[replacements.get(s,s) for s in strings]
+    def lexical(s):return tuple(struct.unpack('<'+'H'*(len(s.encode('utf-16le'))//2),s.encode('utf-16le')))
+    for old in replacements:
+        i=strings.index(old)
+        assert lexical(changed[i-1]) < lexical(changed[i]) < lexical(changed[i+1])
+    data[start:end]=records
+    for index,offset in enumerate(offsets):struct.pack_into('<I',data,table+index*4,offset)
+    return data
 
 def patch_factory(raw, cfg, kind):
     data = bytearray(raw)
@@ -95,6 +146,19 @@ def patch_factory(raw, cfg, kind):
                     replacements += 1
                 p += ins.get_length()
         assert replacements == 2
+        black = next(c for c in dex.get_classes() if c.get_name() ==
+                     'Leu/kanade/tachiyomi/extension/ko/blacktoon/d;')
+        current = strings.index('424')
+        changed = 0
+        for m in black.get_methods():
+            if m.get_name() not in ('a','setupPreferenceScreen'):continue
+            p=m.get_code_off()+16
+            for ins in m.get_instructions():
+                if ins.get_name() == 'const-string' and ins.get_output().endswith('"07"'):
+                    struct.pack_into('<H',data,p+2,current);changed+=1
+                p+=ins.get_length()
+        assert changed == 2
+        data=patch_blacktoon_strings(data,dex)
     else:
         old, new = b'https://tvroom31.org', b'https://tvroom38.org'
         assert data.count(old) == 1 and len(old) == len(new)
