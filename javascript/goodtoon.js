@@ -8,7 +8,7 @@ const mangayomiSources = [{
   itemType: 0,
   isNsfw: true,
   hasCloudflare: false,
-  version: "0.1.13",
+  version: "0.1.14",
   dateFormat: "yy.MM.dd",
   dateFormatLocale: "ko_KR",
   pkgPath: "manga/src/ko/goodtoon.js"
@@ -175,7 +175,7 @@ class DefaultExtension extends MProvider {
     super();
     const originalGetDetail = DefaultExtension.prototype.getDetail.bind(this);
     this.getDetail = async (url) => dcApplySiteOrderEpisodeNumbers(await originalGetDetail(url));
-    this.signalUrl = "https://wankyo83.github.io/tokki-traffic-light/domains.json";
+    this.signalUrl = "https://daeokim.github.io/my-mangayomi/domains.json";
     this.fallbackBaseUrl = "https://goodtoon007.com";
     this.searchUserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36";
     this.userAgent = "Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Mobile Safari/537.36";
@@ -289,9 +289,11 @@ class DefaultExtension extends MProvider {
         const data = JSON.parse(response.body);
         const candidate = data && data.domains && data.domains.goodtoon ? data.domains.goodtoon.baseUrl : "";
         // The configured 007 migration must not be undone by a stale 006 signal.
-        if (this._isAllowedBaseUrl(candidate) && !/^https:\/\/(?:www\.)?goodtoon006\.com\/?$/i.test(candidate)) return this._trimSlash(candidate);
+        if (this._isAllowedBaseUrl(candidate) && Number((candidate.match(/goodtoon(\d+)\.com/i) || [])[1]) >= 7) { new SharedPreferences().setString("goodtoon_registry_last_base_v1", this._trimSlash(candidate)); return this._trimSlash(candidate); }
       }
     } catch (_) {}
+    const saved = this._text(this._preference("goodtoon_registry_last_base_v1", "")).trim();
+    if (this._isAllowedBaseUrl(saved) && Number((saved.match(/goodtoon(\d+)\.com/i) || [])[1]) >= 7) return this._trimSlash(saved);
     const configured = this.source && this.source.baseUrl ? this.source.baseUrl : "";
     return this._isAllowedBaseUrl(configured) ? this._trimSlash(configured) : this.fallbackBaseUrl;
   }
@@ -921,7 +923,7 @@ class DefaultExtension extends MProvider {
         key: "goodtoon_domain_url",
         editTextPreference: {
           title: "확장앱 주소 직접 지정",
-          summary: "빈 값이면 토끼 중앙신호등의 검증된 주소를 사용합니다.", value: "",
+          summary: "빈 값이면 토끼 공통 주소 목록의 검증된 주소를 사용합니다.", value: "",
           dialogTitle: "https://goodtoon###.com", dialogMessage: "자동 주소를 사용하려면 빈 값으로 두세요."
         }
       },

@@ -8,7 +8,7 @@ const mangayomiSources = [{
   itemType: 0,
   isNsfw: true,
   hasCloudflare: false,
-  version: "0.1.15",
+  version: "0.1.16",
   dateFormat: "yyyy.MM.dd",
   dateFormatLocale: "ko_KR",
   pkgPath: "manga/src/ko/toon11.js"
@@ -175,7 +175,7 @@ class DefaultExtension extends MProvider {
     super();
     const originalGetDetail = DefaultExtension.prototype.getDetail.bind(this);
     this.getDetail = async (url) => dcApplySiteOrderEpisodeNumbers(await originalGetDetail(url));
-    this.signalUrl = "https://wankyo83.github.io/tokki-traffic-light/domains.json";
+    this.signalUrl = "https://daeokim.github.io/my-mangayomi/domains.json";
     this.fallbackBaseUrl = "https://11toon.com";
     this.userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36";
     this.imageAccept = "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8";
@@ -351,9 +351,11 @@ class DefaultExtension extends MProvider {
         const candidate = data && data.domains && data.domains["11toon"]
           ? data.domains["11toon"].baseUrl
           : "";
-        if (this._isAllowedBaseUrl(candidate)) return this._trimSlash(candidate);
+        if (this._isAllowedBaseUrl(candidate)) { new SharedPreferences().setString("toon11_registry_last_base_v1", this._trimSlash(candidate)); return this._trimSlash(candidate); }
       }
     } catch (_) {}
+    const saved = this._text(this._preference("toon11_registry_last_base_v1", "")).trim();
+    if (this._isAllowedBaseUrl(saved)) return this._trimSlash(saved);
     const configured = this.source && this.source.baseUrl ? this.source.baseUrl : "";
     return this._isAllowedBaseUrl(configured) ? this._trimSlash(configured) : this.fallbackBaseUrl;
   }

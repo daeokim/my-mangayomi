@@ -8,7 +8,7 @@ const mangayomiSources = [{
   itemType: 0,
   isNsfw: true,
   hasCloudflare: false,
-  version: "0.1.17",
+  version: "0.1.18",
   dateFormat: "yyyy-MM-dd",
   dateFormatLocale: "ko_KR",
   pkgPath: "manga/src/ko/blacktoon.js"
@@ -175,7 +175,7 @@ class DefaultExtension extends MProvider {
     super();
     const originalGetDetail = DefaultExtension.prototype.getDetail.bind(this);
     this.getDetail = async (url) => dcApplySiteOrderEpisodeNumbers(await originalGetDetail(url));
-    this.signalUrl = "https://wankyo83.github.io/tokki-traffic-light/domains.json";
+    this.signalUrl = "https://daeokim.github.io/my-mangayomi/domains.json";
     this.fallbackBaseUrl = "https://blacktoon424.com";
     this.lastKnownBasePreference = "blacktoon_last_known_base_url_v2";
     this.lastKnownBaseTimePreference = "blacktoon_last_known_base_url_time_v2";
@@ -953,7 +953,7 @@ class DefaultExtension extends MProvider {
 
   getSourcePreferences() {
     return [
-      { key: "blacktoon_domain_url", editTextPreference: { title: "블랙툰 주소 직접 지정", summary: "값이 있으면 수동 주소가 1순위입니다. 빈 값이면 중앙신호등 주소를 1순위로 사용합니다. 예: https://blacktoon424.com / blacktoon424.com / 424", value: "", dialogTitle: "블랙툰 주소 직접 지정", dialogMessage: "전체 주소 또는 번호를 입력하세요. 중앙신호등 자동 주소를 사용하려면 빈 값으로 두세요." } },
+      { key: "blacktoon_domain_url", editTextPreference: { title: "블랙툰 주소 직접 지정", summary: "값이 있으면 수동 주소가 1순위입니다. 빈 값이면 공통 주소 목록 주소를 1순위로 사용합니다. 예: https://blacktoon424.com / blacktoon424.com / 424", value: "", dialogTitle: "블랙툰 주소 직접 지정", dialogMessage: "전체 주소 또는 번호를 입력하세요. 공통 주소 목록 자동 주소를 사용하려면 빈 값으로 두세요." } },
       { key: "blacktoon_rabbit_enabled", switchPreferenceCompat: { title: "Rabbit 외부 인증 서버 사용", summary: "기본은 꺼짐. 직접 뷰어가 실패할 때만 켜세요.", value: false } },
       { key: "blacktoon_rabbit_endpoint", editTextPreference: { title: "Rabbit 서버 주소", summary: "Windows: localhost 가능 / iOS: LAN 또는 Tailscale 주소", value: "", dialogTitle: "예: http://192.168.0.10:9870", dialogMessage: "" } },
       { key: "blacktoon_rabbit_access_key", editTextPreference: { title: "Rabbit 접속 키", summary: "서버에 키를 설정한 경우만 입력", value: "", dialogTitle: "접속 키", dialogMessage: "" } },
