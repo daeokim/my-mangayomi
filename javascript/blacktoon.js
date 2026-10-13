@@ -1,14 +1,14 @@
 const mangayomiSources = [{
   name: "블랙툰",
   lang: "ko",
-  baseUrl: "https://blacktoon423.com",
+  baseUrl: "https://blacktoon424.com",
   apiUrl: "",
   iconUrl: "https://dc-toki-mangayomi-manga.pages.dev/icon/ko.blacktoon.png",
   typeSource: "single",
   itemType: 0,
   isNsfw: true,
   hasCloudflare: false,
-  version: "0.1.16",
+  version: "0.1.17",
   dateFormat: "yyyy-MM-dd",
   dateFormatLocale: "ko_KR",
   pkgPath: "manga/src/ko/blacktoon.js"
@@ -176,9 +176,9 @@ class DefaultExtension extends MProvider {
     const originalGetDetail = DefaultExtension.prototype.getDetail.bind(this);
     this.getDetail = async (url) => dcApplySiteOrderEpisodeNumbers(await originalGetDetail(url));
     this.signalUrl = "https://wankyo83.github.io/tokki-traffic-light/domains.json";
-    this.fallbackBaseUrl = "https://blacktoon423.com";
-    this.lastKnownBasePreference = "blacktoon_last_known_base_url";
-    this.lastKnownBaseTimePreference = "blacktoon_last_known_base_url_time";
+    this.fallbackBaseUrl = "https://blacktoon424.com";
+    this.lastKnownBasePreference = "blacktoon_last_known_base_url_v2";
+    this.lastKnownBaseTimePreference = "blacktoon_last_known_base_url_time_v2";
     this.siteConfigSnapshotPreference = "blacktoon_site_config_snapshot_v1";
     this.itemSnapshotPreference = "blacktoon_item_snapshot_v1";
     this.userAgent = "Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Mobile Safari/537.36";
@@ -306,6 +306,7 @@ class DefaultExtension extends MProvider {
     return image;
   }
   _isAllowedBaseUrl(value) { return /^https:\/\/(?:www\.)?blacktoon\d+\.com\/?$/i.test(this._text(value).trim()); }
+  _isCurrentAutomaticBaseUrl(value) { const match = this._trimSlash(value).match(/^https:\/\/(?:www\.)?blacktoon(\d+)\.com$/i); return !!match && Number(match[1]) >= 424; }
 
   _normalizeManualBaseUrl(value) {
     let raw = this._text(value).trim();
@@ -337,15 +338,16 @@ class DefaultExtension extends MProvider {
   async _resolveBaseUrl(forceRefresh) {
     const manual = this._normalizeManualBaseUrl(this._preferenceString("blacktoon_domain_url", ""));
     if (manual) return this._setResolvedBase(manual, "manual");
-    if (!forceRefresh && this.resolvedBase && this.resolvedBaseMode !== "manual" && Date.now() - this.resolvedBaseAt < this.domainCacheMs) return this.resolvedBase;
-    const lastKnown = this._normalizeManualBaseUrl(this._preferenceString(this.lastKnownBasePreference, ""));
+    if (!forceRefresh && this._isCurrentAutomaticBaseUrl(this.resolvedBase) && this.resolvedBaseMode !== "manual" && Date.now() - this.resolvedBaseAt < this.domainCacheMs) return this.resolvedBase;
+    const saved = this._normalizeManualBaseUrl(this._preferenceString(this.lastKnownBasePreference, ""));
+    const lastKnown = this._isCurrentAutomaticBaseUrl(saved) ? saved : "";
     try {
       const signalUrl = this.signalUrl + (this.signalUrl.indexOf("?") >= 0 ? "&" : "?") + "v=" + Date.now();
       const response = await new Client({ persistentConnection: false, noProxy: true, timeout: 8, connectTimeout: 5 }).get(signalUrl, { "User-Agent": this.userAgent, "Accept": "application/json", "Cache-Control": "no-cache" });
       if (response.statusCode >= 200 && response.statusCode < 300) {
         const data = JSON.parse(response.body);
         const candidate = data && data.domains && data.domains.blacktoon ? data.domains.blacktoon.baseUrl : "";
-        if (this._isAllowedBaseUrl(candidate)) {
+        if (this._isCurrentAutomaticBaseUrl(candidate)) {
           const resolved = this._trimSlash(candidate);
           this._setPreferenceString(this.lastKnownBasePreference, resolved);
           this._setPreferenceString(this.lastKnownBaseTimePreference, String(Date.now()));
@@ -355,7 +357,7 @@ class DefaultExtension extends MProvider {
     } catch (_) {}
     if (lastKnown) return this._setResolvedBase(lastKnown, "last-known");
     const configured = this.source && this.source.baseUrl ? this.source.baseUrl : "";
-    const resolved = this._isAllowedBaseUrl(configured) ? this._trimSlash(configured) : this.fallbackBaseUrl;
+    const resolved = this._isCurrentAutomaticBaseUrl(configured) ? this._trimSlash(configured) : this.fallbackBaseUrl;
     return this._setResolvedBase(resolved, "fallback");
   }
 
@@ -951,7 +953,7 @@ class DefaultExtension extends MProvider {
 
   getSourcePreferences() {
     return [
-      { key: "blacktoon_domain_url", editTextPreference: { title: "블랙툰 주소 직접 지정", summary: "값이 있으면 수동 주소가 1순위입니다. 빈 값이면 중앙신호등 주소를 1순위로 사용합니다. 예: https://blacktoon423.com / blacktoon423.com / 423", value: "", dialogTitle: "블랙툰 주소 직접 지정", dialogMessage: "전체 주소 또는 번호를 입력하세요. 중앙신호등 자동 주소를 사용하려면 빈 값으로 두세요." } },
+      { key: "blacktoon_domain_url", editTextPreference: { title: "블랙툰 주소 직접 지정", summary: "값이 있으면 수동 주소가 1순위입니다. 빈 값이면 중앙신호등 주소를 1순위로 사용합니다. 예: https://blacktoon424.com / blacktoon424.com / 424", value: "", dialogTitle: "블랙툰 주소 직접 지정", dialogMessage: "전체 주소 또는 번호를 입력하세요. 중앙신호등 자동 주소를 사용하려면 빈 값으로 두세요." } },
       { key: "blacktoon_rabbit_enabled", switchPreferenceCompat: { title: "Rabbit 외부 인증 서버 사용", summary: "기본은 꺼짐. 직접 뷰어가 실패할 때만 켜세요.", value: false } },
       { key: "blacktoon_rabbit_endpoint", editTextPreference: { title: "Rabbit 서버 주소", summary: "Windows: localhost 가능 / iOS: LAN 또는 Tailscale 주소", value: "", dialogTitle: "예: http://192.168.0.10:9870", dialogMessage: "" } },
       { key: "blacktoon_rabbit_access_key", editTextPreference: { title: "Rabbit 접속 키", summary: "서버에 키를 설정한 경우만 입력", value: "", dialogTitle: "접속 키", dialogMessage: "" } },
