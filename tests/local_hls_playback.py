@@ -77,9 +77,9 @@ def run():
             payload = {"source": str(ROOT / "javascript/anime/tvroom.js"), "playlistUrl": cdn_origin + "/vod/main.m3u8", "playlist": (work / "main.m3u8").read_text(), "headers": headers, "keyUrl": cdn_origin + "/keys/envelope", "keyData": "data:application/octet-stream;base64," + base64.b64encode(key).decode(), "localUrl": "http://127.0.0.1:" + str(proxy.server_port) + "/test-session/playlist.m3u8?url=dGVzdA"}
             js = """const fs=require('fs'),vm=require('vm');const input=JSON.parse(fs.readFileSync(0,'utf8'));const s={MProvider:class{},SharedPreferences:class{},createHlsProxyUrl:async()=>input.localUrl};vm.createContext(s);vm.runInContext(fs.readFileSync(input.source,'utf8')+';globalThis.extension=new DefaultExtension()',s);s.dcLocalHlsVideo(input.playlistUrl,input.playlist,input.headers,s.extension._absoluteUrl.bind(s.extension),input.keyUrl,input.keyData,input.playlistUrl,true).then(v=>process.stdout.write(JSON.stringify(v)));"""
             video = json.loads(subprocess.check_output(["node", "-e", js], input=json.dumps(payload).encode()))
-            assert video["url"].startswith("lavf://data:"), "Missing mpv FFmpeg protocol adapter"
-            # Standalone FFmpeg receives the data URI after mpv strips lavf://.
-            raw_data_url = video["url"][len("lavf://"):]
+            assert video["url"].startswith("av://hls:data:"), "Missing explicit mpv HLS input format"
+            # mpv extracts the hls format and forwards this data URI to FFmpeg.
+            raw_data_url = video["url"][len("av://hls:"):]
             result = subprocess.run(["ffmpeg", "-v", "error", "-i", raw_data_url, "-map", "0:v:0", "-f", "framemd5", "-"], capture_output=True, text=True, timeout=30)
             if result.returncode:
                 raise RuntimeError(result.stderr[:2000])

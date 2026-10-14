@@ -61,12 +61,12 @@ function wikiFixture(extra = {}, keyEnvelope = envelope()) {
 test("local HLS helpers remain identical in the two standalone sources", () => {
   for (const name of ["dcHlsBase64", "dcHlsBounded", "dcHlsPlaybackError", "dcHlsSingleFlight", "dcLocalHlsVideo"]) assert.equal(load("tvroom").sandbox[name].toString(), load("tvwiki").sandbox[name].toString());
 });
-test("inline HLS uses mpv's FFmpeg protocol while retaining the upstream download URL", async () => {
+test("inline HLS selects mpv's explicit HLS format while retaining the upstream download URL", async () => {
   for (const site of ["tvroom", "tvwiki"]) {
     const state = load(site, { createHlsProxyUrl: async () => localRoot });
     const absolute = site === "tvroom" ? state.extension._absoluteUrl.bind(state.extension) : state.extension._absolute.bind(state.extension);
     const video = await state.sandbox.dcLocalHlsVideo(playlistUrl, manifest, {}, absolute, keyUrl, "data:application/octet-stream;base64," + key.toString("base64"), playlistUrl, true);
-    assert.ok(video.url.startsWith("lavf://data:application/vnd.apple.mpegurl;base64,"));
+    assert.ok(video.url.startsWith("av://hls:data:application/vnd.apple.mpegurl;base64,"));
     assert.equal(video.originalUrl, playlistUrl);
     assert.ok(body(video).startsWith("#EXTM3U"));
     assert.ok(body(video).includes('URI="data:application/octet-stream;base64,'));
