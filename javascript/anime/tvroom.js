@@ -8,11 +8,11 @@ const mangayomiSources = [{
   itemType: 1,
   isNsfw: false,
   hasCloudflare: false,
-  version: "0.1.28",
+  version: "0.1.29",
   dateFormat: "",
   dateFormatLocale: "",
   pkgPath: "anime/src/ko/tvroom.js",
-  notes: "애니 목록·상세 제목 한국어/일본어 전환 · 제목 언어 설정 캐시 키 갱신 · Anissia 일본어 원제 우선 + AniList 보조 · 새로고침 즉시 반영 · 영화·드라마 등 한국어 유지 · 기본 인기: 메인 추천 · 기본 최신: 카테고리별 최신 12개 · 커스텀 목록 카드 · 휴대폰 내부 HLS 중계 · 로컬 영상 키 · 외부 복구 재생 제공 · 영상 다운로드 호환"
+  notes: "애니 목록·상세 제목 한국어/일본어 전환 · 제목 언어 설정 캐시 키 갱신 · Anissia 일본어 원제 우선 + AniList 보조 · 새로고침 즉시 반영 · 영화·드라마 등 한국어 유지 · 기본 인기: 메인 추천 · 기본 최신: 카테고리별 최신 12개 · 커스텀 목록 카드 · 공식 0.9.9 휴대폰 중계 기본 · 로컬 영상 키 · 외부 복구 재생 제공 · 영상 다운로드 호환"
 }];
 
 function dcResolveListCardManifest(data, scope, tab) {
@@ -189,7 +189,23 @@ function dcHlsBounded(operation, milliseconds) {
   return Promise.race([operation, timeout]).finally(function() { clearTimeout(timer); });
 }
 
-async function dcLocalHlsVideo(playlistUrl, playlist, headers, absolute, keyUrl, keyData, downloadUrl) {
+function dcHlsPlaybackError(error) {
+  const reason = String(error && error.message || error || "알 수 없는 오류").replace(/https?:\/\/[^\s]+/g, "[영상 주소]");
+  return new Error("휴대폰 중계 준비 실패: " + reason + " 소스 설정의 영상 재생 경로에서 자동 (복구 허용) 또는 기존 외부 재생을 선택할 수 있습니다.");
+}
+
+function dcHlsSingleFlight(extension) {
+  const original = extension.getVideoList.bind(extension), pending = new Map();
+  extension.getVideoList = function(url) {
+    const key = extension._playbackRoute() + "|" + String(url);
+    if (pending.has(key)) return pending.get(key);
+    const operation = original(url).finally(function() { if (pending.get(key) === operation) pending.delete(key); });
+    pending.set(key, operation);
+    return operation;
+  };
+}
+
+async function dcLocalHlsVideo(playlistUrl, playlist, headers, absolute, keyUrl, keyData, downloadUrl, requireProxy) {
   // Freeze only a finite media playlist. Live/master playlists need refresh or
   // recursive key handling and retain the existing recovery route.
   if (!/^#EXTM3U(?:\r?\n|$)/.test(playlist) || !/#EXT-X-ENDLIST\b/.test(playlist) || /#EXT-X-(?:STREAM-INF|MEDIA):/.test(playlist)) throw new Error("내부 재생은 완성된 단일 HLS 재생목록만 지원합니다.");
@@ -200,8 +216,9 @@ async function dcLocalHlsVideo(playlistUrl, playlist, headers, absolute, keyUrl,
       const local = String(await dcHlsBounded(createHlsProxyUrl(playlistUrl, headers), 3000));
       const match = local.match(/^(http:\/\/127\.0\.0\.1:\d{1,5}\/[A-Za-z0-9_-]+\/)playlist\.m3u8\?url=[A-Za-z0-9_-]+$/);
       if (match) prefix = match[1];
-    } catch (_) { /* Older builds can still use the inline key with direct CDN requests. */ }
+    } catch (error) { if (requireProxy) throw error; }
   }
+  if (requireProxy && !prefix) throw new Error("공식 0.9.9 내부 중계가 시작되지 않았습니다. 확장 업데이트 후 앱을 다시 실행하세요.");
   const usesFmp4 = /#EXT-X-MAP:/.test(playlist);
   function resource(reference, type) {
     if (/^data:/i.test(reference)) return type === "key" ? reference.replace(/#.*$/, "") + "#key.mp4" : reference;
@@ -239,6 +256,7 @@ async function dcLocalHlsVideo(playlistUrl, playlist, headers, absolute, keyUrl,
 class DefaultExtension extends MProvider {
   constructor() {
     super();
+    dcHlsSingleFlight(this);
     const originalGetDetail = DefaultExtension.prototype.getDetail.bind(this);
     this.getDetail = async (url) => dcApplySiteOrderEpisodeNumbers(await originalGetDetail(url));
     this.signalUrl = "https://daeokim.github.io/my-mangayomi/domains.json";
@@ -262,6 +280,11 @@ class DefaultExtension extends MProvider {
     this.contentOptions = [["전체", "all"]].concat(this.categories.map(function(c) { return [c.name, c.key]; }));
     this.countryOptions = [["전체", "전체"], ["한국", "한국"], ["외국", "외국"]];
     this.orderOptions = [["시간순", "시간순"], ["인기순", "인기순"]];
+  }
+
+  _playbackRoute() {
+    const route = this._preference("tvroom_playback_route_v2", "device");
+    return ["device", "auto", "external"].indexOf(route) >= 0 ? route : "device";
   }
 
   get supportsLatest() { return true; }
@@ -635,23 +658,31 @@ class DefaultExtension extends MProvider {
     if (!streamUrl) throw new Error("사이트가 HLS 주소를 제공하지 않았습니다.");
     streamUrl = this._absoluteUrl(playerUrl, streamUrl);
     const streamHeaders = { "Accept": "*/*", "Referer": playerUrl, "Origin": playerOrigin, "User-Agent": this.userAgent }, playlist = await this._requestText(streamUrl, playerUrl, "재생목록", streamHeaders), keyMatch = playlist.match(/#EXT-X-KEY:[^\r\n]*URI="([^"]+)"/i);
+    const route = this._playbackRoute();
     if (!keyMatch) {
       const direct = { url: streamUrl, originalUrl: this._hlsOriginalUrl(streamUrl), quality: "자동 (HLS)", headers: streamHeaders, subtitles: [], audios: [] };
-      if (this._preference("tvroom_playback_route", "auto") !== "external") {
-        try { return [await dcLocalHlsVideo(streamUrl, playlist, streamHeaders, this._absoluteUrl.bind(this), "", "", direct.originalUrl), direct]; } catch (_) {}
+      if (route !== "external") {
+        try {
+          const local = await dcLocalHlsVideo(streamUrl, playlist, streamHeaders, this._absoluteUrl.bind(this), "", "", direct.originalUrl, route === "device");
+          return route === "device" ? [local] : [local, direct];
+        } catch (error) { if (route === "device") throw dcHlsPlaybackError(error); }
       }
       return [direct];
     }
-    const keyUrl = this._absoluteUrl(streamUrl, keyMatch[1]), envelope = await this._requestText(keyUrl, playerUrl, "영상 키", streamHeaders), key = this._decodePlayerKey(envelope), directUrl = this._playlistBridgeUrl(playlist, streamUrl, key, playerUrl, "direct"), proxyUrl = this._playlistBridgeUrl(playlist, streamUrl, key, playerUrl, "proxy");
-    const recovery = [
+    const keyUrl = this._absoluteUrl(streamUrl, keyMatch[1]), envelope = await this._requestText(keyUrl, playerUrl, "영상 키", streamHeaders), key = this._decodePlayerKey(envelope);
+    const keyData = "data:application/octet-stream;base64," + this._base64Encode(key);
+    // Device mode must not depend on constructing an external recovery URL.
+    if (route === "device") {
+      try { return [await dcLocalHlsVideo(streamUrl, playlist, streamHeaders, this._absoluteUrl.bind(this), keyUrl, keyData, streamUrl, true)]; }
+      catch (error) { throw dcHlsPlaybackError(error); }
+    }
+    const directUrl = this._playlistBridgeUrl(playlist, streamUrl, key, playerUrl, "direct"), proxyUrl = this._playlistBridgeUrl(playlist, streamUrl, key, playerUrl, "proxy"), recovery = [
       { url: directUrl, originalUrl: this._hlsOriginalUrl(directUrl), quality: "외부 빠른 재생 (복구)", headers: streamHeaders, subtitles: [], audios: [] },
       { url: proxyUrl, originalUrl: this._hlsOriginalUrl(proxyUrl), quality: "외부 호환 재생 (복구)", headers: streamHeaders, subtitles: [], audios: [] }
     ];
-    if (this._preference("tvroom_playback_route", "auto") !== "external") {
-      try {
-        const keyData = "data:application/octet-stream;base64," + this._base64Encode(key);
-        return [await dcLocalHlsVideo(streamUrl, playlist, streamHeaders, this._absoluteUrl.bind(this), keyUrl, keyData, recovery[0].originalUrl)].concat(recovery);
-      } catch (_) {}
+    if (route === "auto") {
+      try { return [await dcLocalHlsVideo(streamUrl, playlist, streamHeaders, this._absoluteUrl.bind(this), keyUrl, keyData, recovery[0].originalUrl)].concat(recovery); }
+      catch (_) {}
     }
     return recovery;
   }
@@ -667,6 +698,6 @@ class DefaultExtension extends MProvider {
     return [separator("top"), header("usage", "필터 탭에서 콘텐츠 종류를 먼저 선택하세요. 국가와 정렬은 생략하면 전체·시간순으로 처리합니다."), this._select("contentType", "콘텐츠 종류", choices(this.contentOptions)), this._select("country", "국가", choices(this.countryOptions)), this._select("order", "정렬", choices(this.orderOptions)), separator("save"), header("defaultHelp", "기본 인기: 메인 추천 · 기본 최신: 카테고리별 최신 12개"), header("cardHelp", "목록 카드는 Popular/Latest 1번에만 표시되며 필터 결과와 통합 검색에서는 숨깁니다."), header("popularSummary", "현재 Popular: " + this._ruleSummary(popular)), header("latestSummary", "현재 Latest: " + this._ruleSummary(latest)), this._select("tabRuleAction", "Popular/Latest 규칙", [option("저장하지 않음 (필터 결과만 보기)", "0"), option("현재 조건을 Popular 탭에 저장", "1"), option("현재 조건을 Latest 탭에 저장", "2"), option("Popular 탭을 기본값으로 복원", "3"), option("Latest 탭을 기본값으로 복원", "4"), option("두 탭 모두 기본값으로 복원", "5")])];
   }
   getSourcePreferences() {
-    return [{ key: "tvroom_playback_route", listPreference: { title: "영상 재생 경로", summary: "자동은 로컬 재생목록과 휴대폰 중계를 우선합니다. 내부 중계는 공식 앱 0.9.9 이상에서 지원합니다. 문제 발생 시 외부 복구 재생을 선택하세요.", valueIndex: 0, entries: ["자동 (휴대폰 우선)", "기존 외부 재생"], entryValues: ["auto", "external"] } }, { key: "tvroom_anime_title_language_v2", listPreference: { title: "애니 작품 제목 언어", summary: "애니 작품은 한국어와 일본어 중에서 선택합니다. 변경 후 현재 화면을 새로고침하세요. 영화·드라마·예능·시사 등은 한국어 제목을 유지합니다.", valueIndex: 0, entries: ["한국어", "일본어"], entryValues: ["ko", "ja"] } }, { key: "tvroom_domain_url", editTextPreference: { title: "티비룸 주소 직접 지정 (선택)", summary: "빈 값이면 개인 공통 주소 목록을 사용합니다. 주소는 서버에서 자동 점검합니다.", value: "", dialogTitle: "https://tvroom40.org", dialogMessage: "자동 주소를 사용하려면 빈 값으로 두세요." } }, { key: "tvroom_custom_card_json_url", editTextPreference: { title: "커스텀 목록 카드 (선택)", summary: "공개 JSON 주소 1개로 요일별 카드 7장을 설정합니다. 360×540 GIF를 권장하며 용량·프레임 제한은 없습니다.", value: "", dialogTitle: "커스텀 목록 카드 JSON 주소", dialogMessage: "Google Drive 공개 공유 링크 또는 직접 JSON 주소를 넣으세요. 개인 카드를 설정하면 공용 이벤트 카드는 표시되지 않습니다. 빈 값이면 공용 이벤트 또는 기본 미디어 요일 카드를 사용합니다." } }];
+    return [{ key: "tvroom_playback_route_v2", listPreference: { title: "영상 재생 경로", summary: "기본값은 공식 0.9.9의 휴대폰 내부 중계를 사용합니다. 중계 실패 원인을 표시하며 조용히 직접 재생으로 전환하지 않습니다. 문제가 있으면 자동 (복구 허용)을 선택하세요.", valueIndex: 0, entries: ["휴대폰 중계 (0.9.9 기본)", "자동 (복구 허용)", "기존 외부 재생"], entryValues: ["device", "auto", "external"] } }, { key: "tvroom_anime_title_language_v2", listPreference: { title: "애니 작품 제목 언어", summary: "애니 작품은 한국어와 일본어 중에서 선택합니다. 변경 후 현재 화면을 새로고침하세요. 영화·드라마·예능·시사 등은 한국어 제목을 유지합니다.", valueIndex: 0, entries: ["한국어", "일본어"], entryValues: ["ko", "ja"] } }, { key: "tvroom_domain_url", editTextPreference: { title: "티비룸 주소 직접 지정 (선택)", summary: "빈 값이면 개인 공통 주소 목록을 사용합니다. 주소는 서버에서 자동 점검합니다.", value: "", dialogTitle: "https://tvroom40.org", dialogMessage: "자동 주소를 사용하려면 빈 값으로 두세요." } }, { key: "tvroom_custom_card_json_url", editTextPreference: { title: "커스텀 목록 카드 (선택)", summary: "공개 JSON 주소 1개로 요일별 카드 7장을 설정합니다. 360×540 GIF를 권장하며 용량·프레임 제한은 없습니다.", value: "", dialogTitle: "커스텀 목록 카드 JSON 주소", dialogMessage: "Google Drive 공개 공유 링크 또는 직접 JSON 주소를 넣으세요. 개인 카드를 설정하면 공용 이벤트 카드는 표시되지 않습니다. 빈 값이면 공용 이벤트 또는 기본 미디어 요일 카드를 사용합니다." } }];
   }
 }

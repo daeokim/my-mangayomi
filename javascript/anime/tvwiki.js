@@ -8,11 +8,11 @@ const mangayomiSources = [{
   itemType: 1,
   isNsfw: false,
   hasCloudflare: false,
-  version: "0.1.14",
+  version: "0.1.15",
   dateFormat: "",
   dateFormatLocale: "",
   pkgPath: "anime/src/ko/tvwiki.js",
-  notes: "검색 카드 작품 설명 우선 · 회차형 최신 줄거리 제외 · 인기/최신 탭 규칙 저장 · 커스텀 목록 카드 · WebP 공용 랜덤 카드 · 목록 구분 카드 6종 · 주간 TOP 100 회차 전수 보강 · 작품명/특별편 누락 수정 · 순차 HTTP 요청으로 403 알림 억제 · 공통 주소 목록 최신 주소 · 휴대폰 HLS 중계 우선 · 직접 세션 우선 · 외부 복구 재생"
+  notes: "검색 카드 작품 설명 우선 · 회차형 최신 줄거리 제외 · 인기/최신 탭 규칙 저장 · 커스텀 목록 카드 · WebP 공용 랜덤 카드 · 목록 구분 카드 6종 · 주간 TOP 100 회차 전수 보강 · 작품명/특별편 누락 수정 · 순차 HTTP 요청으로 403 알림 억제 · 공통 주소 목록 최신 주소 · 공식 0.9.9 휴대폰 중계 기본 · 직접 세션 우선 · 외부 복구 재생"
 }];
 
 function dcResolveTvwikiRemoteCards(data, tab) {
@@ -137,7 +137,23 @@ function dcHlsBounded(operation, milliseconds) {
   return Promise.race([operation, timeout]).finally(function() { clearTimeout(timer); });
 }
 
-async function dcLocalHlsVideo(playlistUrl, playlist, headers, absolute, keyUrl, keyData, downloadUrl) {
+function dcHlsPlaybackError(error) {
+  const reason = String(error && error.message || error || "알 수 없는 오류").replace(/https?:\/\/[^\s]+/g, "[영상 주소]");
+  return new Error("휴대폰 중계 준비 실패: " + reason + " 소스 설정의 영상 재생 경로에서 자동 (복구 허용) 또는 기존 외부 재생을 선택할 수 있습니다.");
+}
+
+function dcHlsSingleFlight(extension) {
+  const original = extension.getVideoList.bind(extension), pending = new Map();
+  extension.getVideoList = function(url) {
+    const key = extension._playbackRoute() + "|" + String(url);
+    if (pending.has(key)) return pending.get(key);
+    const operation = original(url).finally(function() { if (pending.get(key) === operation) pending.delete(key); });
+    pending.set(key, operation);
+    return operation;
+  };
+}
+
+async function dcLocalHlsVideo(playlistUrl, playlist, headers, absolute, keyUrl, keyData, downloadUrl, requireProxy) {
   // Freeze only a finite media playlist. Live/master playlists need refresh or
   // recursive key handling and retain the existing recovery route.
   if (!/^#EXTM3U(?:\r?\n|$)/.test(playlist) || !/#EXT-X-ENDLIST\b/.test(playlist) || /#EXT-X-(?:STREAM-INF|MEDIA):/.test(playlist)) throw new Error("내부 재생은 완성된 단일 HLS 재생목록만 지원합니다.");
@@ -148,8 +164,9 @@ async function dcLocalHlsVideo(playlistUrl, playlist, headers, absolute, keyUrl,
       const local = String(await dcHlsBounded(createHlsProxyUrl(playlistUrl, headers), 3000));
       const match = local.match(/^(http:\/\/127\.0\.0\.1:\d{1,5}\/[A-Za-z0-9_-]+\/)playlist\.m3u8\?url=[A-Za-z0-9_-]+$/);
       if (match) prefix = match[1];
-    } catch (_) { /* Older builds can still use the inline key with direct CDN requests. */ }
+    } catch (error) { if (requireProxy) throw error; }
   }
+  if (requireProxy && !prefix) throw new Error("공식 0.9.9 내부 중계가 시작되지 않았습니다. 확장 업데이트 후 앱을 다시 실행하세요.");
   const usesFmp4 = /#EXT-X-MAP:/.test(playlist);
   function resource(reference, type) {
     if (/^data:/i.test(reference)) return type === "key" ? reference.replace(/#.*$/, "") + "#key.mp4" : reference;
@@ -187,6 +204,7 @@ async function dcLocalHlsVideo(playlistUrl, playlist, headers, absolute, keyUrl,
 class DefaultExtension extends MProvider {
   constructor() {
     super();
+    dcHlsSingleFlight(this);
     this.fallbackBaseUrl = "https://tvwiki54.net";
     this.bridgeBaseUrl = "https://dc-toki-mangayomi-media.pages.dev";
     this.cardBaseUrl = this.bridgeBaseUrl + "/card/tvwiki-section";
@@ -217,6 +235,11 @@ class DefaultExtension extends MProvider {
       { key: "entertainment", name: "최신 예능", selector: ".slide_ent", limit: 12 },
       { key: "anime", name: "최신 애니", selector: ".slide_ani_movie", limit: 12 }
     ];
+  }
+
+  _playbackRoute() {
+    const route = this._preference("tvwiki_playback_route_v2", "device");
+    return ["device", "auto", "external"].indexOf(route) >= 0 ? route : "device";
   }
 
   get supportsLatest() { return true; }
@@ -869,37 +892,48 @@ class DefaultExtension extends MProvider {
     const playlistUrl = this._absolute(playerUrl, episode.hls_url);
     const headers = { "User-Agent": this.userAgent, "Accept": "*/*", "Referer": playerUrl, "Origin": this._origin(playerUrl) };
     const playlist = await this._get(playlistUrl, playerUrl, "재생목록", headers), keyMatch = playlist.match(/#EXT-X-KEY:[^\r\n]*URI="([^"]+)"/i);
+    const route = this._playbackRoute();
     if (!keyMatch) {
       const direct = { url: playlistUrl, originalUrl: playlistUrl, quality: "자동 (HLS)", headers, subtitles: [], audios: [] };
-      if (this._preference("tvwiki_playback_route", "auto") !== "external") {
-        try { return [await dcLocalHlsVideo(playlistUrl, playlist, headers, this._absolute.bind(this), "", "", playlistUrl), direct]; } catch (_) {}
+      if (route !== "external") {
+        try {
+          const local = await dcLocalHlsVideo(playlistUrl, playlist, headers, this._absolute.bind(this), "", "", playlistUrl, route === "device");
+          return route === "device" ? [local] : [local, direct];
+        } catch (error) { if (route === "device") throw dcHlsPlaybackError(error); }
       }
       return [direct];
     }
     const keyUrl = this._absolute(playlistUrl, keyMatch[1]), envelope = await this._get(keyUrl, playerUrl, "영상 키", headers);
     JSON.parse(envelope);
+    let decodedKey = null;
+    try { decodedKey = this._decodePlayerKey(dcHlsBase64(envelope, false)); } catch (_) {}
+    if (route === "device" && decodedKey) {
+      try {
+        const keyData = "data:application/octet-stream;base64," + this._base64Encode(decodedKey);
+        return [await dcLocalHlsVideo(playlistUrl, playlist, headers, this._absolute.bind(this), keyUrl, keyData, playlistUrl, true)];
+      } catch (error) { throw dcHlsPlaybackError(error); }
+    }
     const common = "u=" + encodeURIComponent(this._base64Url(playlistUrl)) + "&r=" + encodeURIComponent(this._base64Url(playerUrl)) + "&x=" + encodeURIComponent(this._base64Url(envelope));
     const recovery = [
       { url: this.bridgeBaseUrl + "/api/tvwiki-playlist.m3u8?m=f&" + common, originalUrl: playlistUrl, quality: "외부 빠른 재생 (복구)", headers, subtitles: [], audios: [] },
       { url: this.bridgeBaseUrl + "/api/tvwiki-playlist.m3u8?m=p&" + common, originalUrl: playlistUrl, quality: "외부 호환 재생 (복구)", headers, subtitles: [], audios: [] }
     ];
-    if (this._preference("tvwiki_playback_route", "auto") !== "external") {
-      try {
-        const key = this._decodePlayerKey(dcHlsBase64(envelope, false)), keyData = "data:application/octet-stream;base64," + this._base64Encode(key);
-        return [await dcLocalHlsVideo(playlistUrl, playlist, headers, this._absolute.bind(this), keyUrl, keyData, recovery[0].url)].concat(recovery);
-      } catch (_) { /* Unknown TVWiki key formats still use the existing decoder. */ }
-      if (typeof createHlsProxyUrl === "function") {
+    if (route !== "external") {
+      if (decodedKey) {
         try {
-          // Prepare once. The standard proxy must not rewrite an inline data
-          // key into an unsupported upstream URL, so freeze this VOD locally.
-          const response = await dcHlsBounded(this._client(this._clientOrder()[0], 6).get(recovery[0].url, headers), 6000);
-          if (!response || response.statusCode !== 200) throw new Error("외부 키 변환 준비 실패");
-          const prepared = this._text(response.body);
-          const local = await dcLocalHlsVideo(recovery[0].url, prepared, headers, this._absolute.bind(this), "", "", recovery[0].url);
-          local.quality = local.quality === "휴대폰 중계 (권장)" ? "휴대폰 중계 (키 변환은 외부)" : "직접 재생 (키 변환은 외부)";
-          return [local].concat(recovery);
+          const keyData = "data:application/octet-stream;base64," + this._base64Encode(decodedKey);
+          return [await dcLocalHlsVideo(playlistUrl, playlist, headers, this._absolute.bind(this), keyUrl, keyData, recovery[0].url)].concat(recovery);
         } catch (_) {}
       }
+      if (typeof createHlsProxyUrl === "function") {
+        try {
+          const response = await dcHlsBounded(this._client(this._clientOrder()[0], 6).get(recovery[0].url, headers), 6000);
+          if (!response || response.statusCode !== 200) throw new Error("외부 키 변환 준비 실패");
+          const local = await dcLocalHlsVideo(recovery[0].url, this._text(response.body), headers, this._absolute.bind(this), "", "", recovery[0].url, route === "device");
+          local.quality = local.quality === "휴대폰 중계 (권장)" ? "휴대폰 중계 (키 변환은 외부)" : "직접 재생 (키 변환은 외부)";
+          return route === "device" ? [local] : [local].concat(recovery);
+        } catch (error) { if (route === "device") throw dcHlsPlaybackError(error); }
+      } else if (route === "device") throw dcHlsPlaybackError(new Error("공식 0.9.9 내부 중계 API가 없습니다."));
     }
     return recovery;
   }
@@ -921,7 +955,7 @@ class DefaultExtension extends MProvider {
   }
   getSourcePreferences() {
     return [
-      { key: "tvwiki_playback_route", listPreference: { title: "영상 재생 경로", summary: "자동은 휴대폰 중계를 우선합니다. 사이트의 키 형식에 따라 외부 키 변환이 필요할 수 있습니다. 내부 중계는 공식 앱 0.9.9 이상에서 지원합니다.", valueIndex: 0, entries: ["자동 (휴대폰 우선)", "기존 외부 재생"], entryValues: ["auto", "external"] } },
+      { key: "tvwiki_playback_route_v2", listPreference: { title: "영상 재생 경로", summary: "기본값은 공식 0.9.9의 휴대폰 내부 중계를 사용하며 실패 원인을 표시합니다. 일부 영상 키는 외부 변환이 필요합니다. 자동 (복구 허용)은 직접·외부 재생도 제공합니다.", valueIndex: 0, entries: ["휴대폰 중계 (0.9.9 기본)", "자동 (복구 허용)", "기존 외부 재생"], entryValues: ["device", "auto", "external"] } },
       { key: "tvwiki_domain_url", editTextPreference: { title: "티비위키 주소 직접 지정 (선택)", summary: "빈 값이면 공통 주소 목록의 최신 주소를 사용하고, 실패하면 마지막 정상 주소로 복구합니다.", value: "", dialogTitle: "https://tvwiki54.net", dialogMessage: "tvwiki숫자.net 형식의 HTTPS 주소만 허용됩니다." } },
       { key: "tvwiki_custom_card_json_url", editTextPreference: { title: "커스텀 목록 카드 (선택)", summary: "공개 JSON 주소 1개로 요일별 카드 7장을 설정합니다. 360×540 GIF·WebP를 권장하며 용량·프레임 제한은 없습니다.", value: "", dialogTitle: "커스텀 목록 카드 JSON 주소", dialogMessage: "Google Drive 공개 공유 링크 또는 직접 JSON 주소를 넣으세요. 개인 카드를 설정하면 공용 이벤트 카드는 표시되지 않습니다. 빈 값이면 공용 이벤트 또는 기본 원격 카드를 사용합니다." } }
     ];
