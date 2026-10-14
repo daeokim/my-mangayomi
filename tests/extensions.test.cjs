@@ -663,6 +663,7 @@ for (const stream of ["/hls/main.m3u8?x=1&amp;y=2", "//cdn.example.org/main.m3u8
       }
     }).extension;
     extension._resolveBaseUrl = async function() { return tvroom.baseUrl; };
+    extension._playbackRoute = function() { return "external"; };
     extension._requestText = async function(url, referer, stage, headers) {
       calls.push({ url, referer, stage, headers });
       return stage === "재생목록" ? "#EXTM3U\n#EXTINF:10,\nsegment.ts\n" : "HTML fixture";

@@ -17,7 +17,7 @@ function envelope() {
   return JSON.stringify({ encrypted_key: Buffer.concat([key.subarray(8), Buffer.from([99, 98]), key.subarray(0, 8), Buffer.from([97, 96])]).toString("base64"), rule: { noise_length: 2, segment_sizes: [8, 8], permutation: [1, 0], key_length: 16 } });
 }
 function load(site, extra = {}) {
-  const preferences = new Map();
+  const preferences = new Map([[site + "_playback_route_v2", "auto"]]);
   const sandbox = {
     MProvider: class {},
     SharedPreferences: class {
@@ -59,7 +59,7 @@ function wikiFixture(extra = {}, keyEnvelope = envelope()) {
 }
 
 test("local HLS helpers remain identical in the two standalone sources", () => {
-  for (const name of ["dcHlsBase64", "dcHlsBounded", "dcLocalHlsVideo"]) assert.equal(load("tvroom").sandbox[name].toString(), load("tvwiki").sandbox[name].toString());
+  for (const name of ["dcHlsBase64", "dcHlsBounded", "dcHlsPlaybackError", "dcHlsSingleFlight", "dcLocalHlsVideo"]) assert.equal(load("tvroom").sandbox[name].toString(), load("tvwiki").sandbox[name].toString());
 });
 test("TVRoom: local proxy is first, inline key is exact, and no external preparation is fetched", async () => {
   const native = [], state = roomFixture({ createHlsProxyUrl: async (url, headers) => { native.push({ url, headers }); return localRoot; } });
@@ -91,7 +91,7 @@ test("TVRoom: failing native proxy does not lose direct playback or recovery cho
 });
 test("TVRoom: external preference preserves the former URLs", async () => {
   const state = roomFixture({ createHlsProxyUrl: async () => { throw new Error("must not be called"); } });
-  state.preferences.set("tvroom_playback_route", "external");
+  state.preferences.set("tvroom_playback_route_v2", "external");
   const videos = await state.extension.getVideoList("/video/1/episode");
   assert.equal(videos.length, 2);
   assert.ok(videos.every(video => video.url.startsWith("https://dc-toki-mangayomi-media.pages.dev/")));
@@ -180,4 +180,65 @@ test("encrypted synthetic VOD decodes with local key, proxy and required upstrea
   assert.equal(report.cdn_segment_requests, 4);
   assert.equal(report.external_key_requests, 0);
   assert.equal(report.original_headers_required, true);
+});
+
+test("0.9.9 default TVRoom route requires the local proxy and returns only that route", async () => {
+  const state = roomFixture({ createHlsProxyUrl: async () => localRoot });
+  state.preferences.delete("tvroom_playback_route_v2");
+  assert.equal(state.extension._playbackRoute(), "device");
+  state.extension._playlistBridgeUrl = () => { throw new Error("must not construct external URLs"); };
+  const videos = await state.extension.getVideoList("/video/1/episode");
+  assert.equal(videos.length, 1);
+  assert.equal(videos[0].quality, "휴대폰 중계 (권장)");
+  assert.ok(body(videos[0]).includes("http://127.0.0.1:12345/test-session/segment.ts"));
+});
+test("0.9.9 default TVRoom route reports a missing API instead of silently using direct CDN", async () => {
+  const state = roomFixture();
+  state.preferences.delete("tvroom_playback_route_v2");
+  await assert.rejects(state.extension.getVideoList("/video/1/episode"), /휴대폰 중계 준비 실패.*0.9.9.*자동 \(복구 허용\)/);
+});
+test("0.9.9 default TVWiki route reports native startup failure without using the external decoder", async () => {
+  const state = wikiFixture({ createHlsProxyUrl: async () => { throw new Error("fixture startup failure"); } });
+  state.preferences.delete("tvwiki_playback_route_v2");
+  state.extension._client = () => { throw new Error("must not use external decoder"); };
+  await assert.rejects(state.extension.getVideoList("/drama/1/1"), /휴대폰 중계 준비 실패: fixture startup failure/);
+});
+test("0.9.9 default TVWiki route keeps its native decoder dependency label", async () => {
+  const state = wikiFixture({ createHlsProxyUrl: async () => localRoot }, '{"unknown":true}');
+  state.preferences.delete("tvwiki_playback_route_v2");
+  state.extension._client = () => ({ get: async () => ({ statusCode: 200, body: manifest.replace('../keys/key.json', 'data:application/octet-stream;base64,' + key.toString('base64')).replace('../segments/one.ts?sig=x', 'https://cdn.example.org/segments/one.ts?sig=x') }) });
+  const videos = await state.extension.getVideoList("/drama/1/1");
+  assert.equal(videos.length, 1);
+  assert.equal(videos[0].quality, "휴대폰 중계 (키 변환은 외부)");
+});
+test("concurrent requests for the same episode share preparation and the native session", async () => {
+  let nativeCalls = 0;
+  const state = roomFixture({ createHlsProxyUrl: async () => { nativeCalls++; return localRoot; } });
+  state.preferences.delete("tvroom_playback_route_v2");
+  const one = state.extension.getVideoList("/video/1/episode"), two = state.extension.getVideoList("/video/1/episode");
+  assert.equal(one, two);
+  const [a, b] = await Promise.all([one, two]);
+  assert.equal(a, b);
+  assert.equal(nativeCalls, 1);
+  assert.equal(state.calls.length, 4);
+});
+test("failed playback preparation is removed so a repaired proxy can retry", async () => {
+  let working = false;
+  const state = roomFixture({ createHlsProxyUrl: async () => { if (!working) throw new Error("startup failure"); return localRoot; } });
+  state.preferences.delete("tvroom_playback_route_v2");
+  await assert.rejects(state.extension.getVideoList("/video/1/episode"), /startup failure/);
+  working = true;
+  const videos = await state.extension.getVideoList("/video/1/episode");
+  assert.equal(videos[0].quality, "휴대폰 중계 (권장)");
+  assert.equal(state.calls.length, 8);
+});
+test("current preferences make device mode the explicit default for both sources", () => {
+  for (const site of ["tvroom", "tvwiki"]) {
+    const state = load(site);
+    state.preferences.delete(site + "_playback_route_v2");
+    const preference = state.extension.getSourcePreferences().find(p => p.key === site + "_playback_route_v2");
+    assert.equal(preference.listPreference.valueIndex, 0);
+    assert.equal(preference.listPreference.entryValues[0], "device");
+    assert.equal(state.extension._playbackRoute(), "device");
+  }
 });
