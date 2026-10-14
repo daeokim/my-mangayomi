@@ -8,7 +8,7 @@ const mangayomiSources = [{
   itemType: 1,
   isNsfw: false,
   hasCloudflare: false,
-  version: "0.1.15",
+  version: "0.1.16",
   dateFormat: "",
   dateFormatLocale: "",
   pkgPath: "anime/src/ko/tvwiki.js",
@@ -935,7 +935,10 @@ class DefaultExtension extends MProvider {
         } catch (error) { if (route === "device") throw dcHlsPlaybackError(error); }
       } else if (route === "device") throw dcHlsPlaybackError(new Error("공식 0.9.9 내부 중계 API가 없습니다."));
     }
-    return recovery;
+    // External compatibility playback was confirmed by the user on 0.9.9.
+    // Keep automatic/native preparation unchanged; external mode opens the
+    // compatibility route first instead of requiring a manual quality switch.
+    return route === "external" ? [recovery[1], recovery[0]] : recovery;
   }
 
   async getPageList() { return []; }
@@ -955,7 +958,7 @@ class DefaultExtension extends MProvider {
   }
   getSourcePreferences() {
     return [
-      { key: "tvwiki_playback_route_v2", listPreference: { title: "영상 재생 경로", summary: "기본값은 공식 0.9.9의 휴대폰 내부 중계를 사용하며 실패 원인을 표시합니다. 일부 영상 키는 외부 변환이 필요합니다. 자동 (복구 허용)은 직접·외부 재생도 제공합니다.", valueIndex: 0, entries: ["휴대폰 중계 (0.9.9 기본)", "자동 (복구 허용)", "기존 외부 재생"], entryValues: ["device", "auto", "external"] } },
+      { key: "tvwiki_playback_route_v2", listPreference: { title: "영상 재생 경로", summary: "휴대폰 중계에서 로딩이 계속되면 기존 외부 재생을 선택하세요. 기존 외부 재생은 사용자 기기에서 재생이 확인된 외부 호환 재생을 먼저 제공합니다. 일부 영상 키는 외부 변환이 필요합니다.", valueIndex: 0, entries: ["휴대폰 중계 (0.9.9 기본)", "자동 (복구 허용)", "기존 외부 재생"], entryValues: ["device", "auto", "external"] } },
       { key: "tvwiki_domain_url", editTextPreference: { title: "티비위키 주소 직접 지정 (선택)", summary: "빈 값이면 공통 주소 목록의 최신 주소를 사용하고, 실패하면 마지막 정상 주소로 복구합니다.", value: "", dialogTitle: "https://tvwiki54.net", dialogMessage: "tvwiki숫자.net 형식의 HTTPS 주소만 허용됩니다." } },
       { key: "tvwiki_custom_card_json_url", editTextPreference: { title: "커스텀 목록 카드 (선택)", summary: "공개 JSON 주소 1개로 요일별 카드 7장을 설정합니다. 360×540 GIF·WebP를 권장하며 용량·프레임 제한은 없습니다.", value: "", dialogTitle: "커스텀 목록 카드 JSON 주소", dialogMessage: "Google Drive 공개 공유 링크 또는 직접 JSON 주소를 넣으세요. 개인 카드를 설정하면 공용 이벤트 카드는 표시되지 않습니다. 빈 값이면 공용 이벤트 또는 기본 원격 카드를 사용합니다." } }
     ];
