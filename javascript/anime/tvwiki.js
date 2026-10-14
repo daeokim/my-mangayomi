@@ -198,9 +198,9 @@ async function dcLocalHlsVideo(playlistUrl, playlist, headers, absolute, keyUrl,
   // libmpv/FFmpeg accepts an inline HLS manifest; segment requests go through
   // Mangayomi's loopback service with the original Referer/Origin/User-Agent.
   const dataUrl = "data:application/vnd.apple.mpegurl;base64," + dcHlsBase64(output.join("\n") + "\n", false) + "#local.m3u8";
-  // mpv matches top-level protocols using ://. A bare RFC 2397 data: URI
-  // is treated as a filename; lavf:// explicitly forwards it to FFmpeg.
-  return { url: "lavf://" + dataUrl, originalUrl: downloadUrl || playlistUrl, quality: prefix ? "휴대폰 중계 (권장)" : "직접 재생 (로컬 재생목록)", headers, subtitles: [], audios: [] };
+  // mpv needs both a recognized :// protocol and an explicit HLS format.
+  // Otherwise data: becomes a filename, or M3U probing discards AES key tags.
+  return { url: "av://hls:" + dataUrl, originalUrl: downloadUrl || playlistUrl, quality: prefix ? "휴대폰 중계 (권장)" : "직접 재생 (로컬 재생목록)", headers, subtitles: [], audios: [] };
 }
 
 class DefaultExtension extends MProvider {
