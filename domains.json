@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-14T07:14:47.757Z",
+  "updatedAt": "2026-10-14T07:17:21Z",
   "lastRunAt": "2026-10-14T07:14:47.757Z",
   "domains": {
     "11toon": {
@@ -36,12 +36,13 @@
       "scanOffset": 1
     },
     "tvroom": {
-      "baseUrl": "https://tvroom38.org",
-      "status": "protected",
-      "lastConfirmedAt": null,
-      "lastCheckedAt": "2026-10-14T07:14:47.757Z",
-      "reason": "연결 실패 또는 시간 초과",
-      "scanOffset": 5
+      "baseUrl": "https://tvroom40.org",
+      "status": "healthy",
+      "lastConfirmedAt": "2026-10-14T07:17:21Z",
+      "lastCheckedAt": "2026-10-14T07:17:21Z",
+      "reason": "목록 구조 확인 (별도 HTTP 점검 환경) · GitHub 재검증/재생 확인은 별도",
+      "scanOffset": 1,
+      "lastConfirmedBy": "external-http-check"
     }
   },
   "control": {
