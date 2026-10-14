@@ -8,11 +8,11 @@ const mangayomiSources = [{
   itemType: 1,
   isNsfw: false,
   hasCloudflare: false,
-  version: "0.1.27",
+  version: "0.1.28",
   dateFormat: "",
   dateFormatLocale: "",
   pkgPath: "anime/src/ko/tvroom.js",
-  notes: "애니 목록·상세 제목 한국어/일본어 전환 · 제목 언어 설정 캐시 키 갱신 · Anissia 일본어 원제 우선 + AniList 보조 · 새로고침 즉시 반영 · 영화·드라마 등 한국어 유지 · 기본 인기: 메인 추천 · 기본 최신: 카테고리별 최신 12개 · 커스텀 목록 카드 · HLS 영상 캐시 최적화 · 호환 재생 제공 · 영상 다운로드 호환"
+  notes: "애니 목록·상세 제목 한국어/일본어 전환 · 제목 언어 설정 캐시 키 갱신 · Anissia 일본어 원제 우선 + AniList 보조 · 새로고침 즉시 반영 · 영화·드라마 등 한국어 유지 · 기본 인기: 메인 추천 · 기본 최신: 카테고리별 최신 12개 · 커스텀 목록 카드 · 휴대폰 내부 HLS 중계 · 로컬 영상 키 · 외부 복구 재생 제공 · 영상 다운로드 호환"
 }];
 
 function dcResolveListCardManifest(data, scope, tab) {
@@ -171,6 +171,71 @@ function dcApplySiteOrderEpisodeNumbers(detail) {
   return detail;
 }
 
+// Daeo local HLS: shared verbatim by the two standalone JS extensions.
+function dcHlsBase64(text, urlSafe) {
+  const bytes = unescape(encodeURIComponent(String(text))), chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+  let output = "";
+  for (let i = 0; i < bytes.length; i += 3) {
+    const a = bytes.charCodeAt(i), hb = i + 1 < bytes.length, hc = i + 2 < bytes.length, b = hb ? bytes.charCodeAt(i + 1) : 0, c = hc ? bytes.charCodeAt(i + 2) : 0, n = (a << 16) | (b << 8) | c;
+    output += chars[(n >> 18) & 63] + chars[(n >> 12) & 63] + (hb ? chars[(n >> 6) & 63] : "=") + (hc ? chars[n & 63] : "=");
+  }
+  return urlSafe ? output.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "") : output;
+}
+
+function dcHlsBounded(operation, milliseconds) {
+  if (typeof setTimeout !== "function" || typeof clearTimeout !== "function") return operation;
+  let timer;
+  const timeout = new Promise(function(resolve, reject) { timer = setTimeout(function() { reject(new Error("TIMEOUT: 재생 준비 시간 제한")); }, milliseconds); });
+  return Promise.race([operation, timeout]).finally(function() { clearTimeout(timer); });
+}
+
+async function dcLocalHlsVideo(playlistUrl, playlist, headers, absolute, keyUrl, keyData, downloadUrl) {
+  // Freeze only a finite media playlist. Live/master playlists need refresh or
+  // recursive key handling and retain the existing recovery route.
+  if (!/^#EXTM3U(?:\r?\n|$)/.test(playlist) || !/#EXT-X-ENDLIST\b/.test(playlist) || /#EXT-X-(?:STREAM-INF|MEDIA):/.test(playlist)) throw new Error("내부 재생은 완성된 단일 HLS 재생목록만 지원합니다.");
+  if (playlist.length > 1024 * 1024) throw new Error("내부 재생목록 용량 제한을 초과했습니다.");
+  let prefix = "";
+  if (typeof createHlsProxyUrl === "function") {
+    try {
+      const local = String(await dcHlsBounded(createHlsProxyUrl(playlistUrl, headers), 3000));
+      const match = local.match(/^(http:\/\/127\.0\.0\.1:\d{1,5}\/[A-Za-z0-9_-]+\/)playlist\.m3u8\?url=[A-Za-z0-9_-]+$/);
+      if (match) prefix = match[1];
+    } catch (_) { /* Older builds can still use the inline key with direct CDN requests. */ }
+  }
+  const usesFmp4 = /#EXT-X-MAP:/.test(playlist);
+  function resource(reference, type) {
+    if (/^data:/i.test(reference)) return type === "key" ? reference.replace(/#.*$/, "") + "#key.mp4" : reference;
+    const target = absolute(playlistUrl, reference);
+    if (!/^https?:\/\/[^\s]+$/i.test(target)) throw new Error("지원하지 않는 영상 조각 주소입니다.");
+    if (!prefix) return target;
+    const path = target.replace(/[?#].*$/, "").toLowerCase();
+    const name = type === "key" ? "key.bin" : type === "subtitle" || /\.vtt$/.test(path) ? "subtitle.vtt" : usesFmp4 || /\.(?:mp4|m4s|m4a)$/.test(path) ? "segment.mp4" : "segment.ts";
+    return prefix + name + "?url=" + dcHlsBase64(target, true);
+  }
+  const output = [];
+  for (const raw of playlist.split(/\r?\n/)) {
+    const line = raw.trim();
+    if (!line || line[0] === "#") {
+      output.push(raw.replace(/URI="([^"]+)"/g, function(all, reference) {
+        if (/^#EXT-X-KEY:/.test(line)) {
+          if (keyData) {
+            if (absolute(playlistUrl, reference) !== keyUrl) throw new Error("키가 교체되는 재생목록은 기존 재생 경로를 사용합니다.");
+            if (!/METHOD=AES-128(?:,|$)/.test(line)) throw new Error("지원하지 않는 영상 암호화 방식입니다.");
+            return 'URI="' + keyData.replace(/#.*$/, "") + "#key.mp4" + '"';
+          }
+          return 'URI="' + resource(reference, "key") + '"';
+        }
+        if (/^#EXT-X-MAP:/.test(line)) return 'URI="' + resource(reference, "segment") + '"';
+        throw new Error("추가 재생목록은 기존 재생 경로를 사용합니다.");
+      }));
+    } else output.push(resource(line, "segment"));
+  }
+  // libmpv/FFmpeg accepts an inline HLS manifest; segment requests go through
+  // Mangayomi's loopback service with the original Referer/Origin/User-Agent.
+  const dataUrl = "data:application/vnd.apple.mpegurl;base64," + dcHlsBase64(output.join("\n") + "\n", false) + "#local.m3u8";
+  return { url: dataUrl, originalUrl: downloadUrl || playlistUrl, quality: prefix ? "휴대폰 중계 (권장)" : "직접 재생 (로컬 재생목록)", headers, subtitles: [], audios: [] };
+}
+
 class DefaultExtension extends MProvider {
   constructor() {
     super();
@@ -310,14 +375,14 @@ class DefaultExtension extends MProvider {
     return refresh ? refresh[1].replace(/&amp;/g, "&") : "";
   }
   async _requestText(url, referer, stage, extraHeaders) {
-    const transports = [{ name: "RHTTP", options: { persistentConnection: false, noProxy: true, timeout: 30, connectTimeout: 10, followRedirects: false, maxRedirects: 0 } }, { name: "DART", options: { useDartHttpClient: true, persistentConnection: false, followRedirects: false, maxRedirects: 0 } }];
+    const transports = [{ name: "RHTTP", options: { persistentConnection: false, noProxy: true, timeout: 18, connectTimeout: 7, followRedirects: false, maxRedirects: 0 } }, { name: "DART", options: { useDartHttpClient: true, persistentConnection: false, timeout: 18, connectTimeout: 7, followRedirects: false, maxRedirects: 0 } }];
     const diagnostics = [];
     for (const t of transports) {
       try {
         let currentUrl = url, currentReferer = referer;
         for (let redirect = 0; redirect <= 5; redirect++) {
           const headers = this._headers(currentUrl, currentReferer); Object.assign(headers, extraHeaders || {});
-          const r = await new Client(t.options).get(currentUrl, headers);
+          const r = await dcHlsBounded(new Client(t.options).get(currentUrl, headers), 18000);
           if (r.statusCode >= 200 && r.statusCode < 300) return this._text(r.body);
           const location = r.statusCode >= 300 && r.statusCode < 400 ? this._redirectLocation(r) : "";
           if (location && redirect < 5) { currentReferer = currentUrl; currentUrl = this._absoluteUrl(currentUrl, location); continue; }
@@ -570,12 +635,25 @@ class DefaultExtension extends MProvider {
     if (!streamUrl) throw new Error("사이트가 HLS 주소를 제공하지 않았습니다.");
     streamUrl = this._absoluteUrl(playerUrl, streamUrl);
     const streamHeaders = { "Accept": "*/*", "Referer": playerUrl, "Origin": playerOrigin, "User-Agent": this.userAgent }, playlist = await this._requestText(streamUrl, playerUrl, "재생목록", streamHeaders), keyMatch = playlist.match(/#EXT-X-KEY:[^\r\n]*URI="([^"]+)"/i);
-    if (!keyMatch) return [{ url: streamUrl, originalUrl: this._hlsOriginalUrl(streamUrl), quality: "자동 (HLS)", headers: streamHeaders, subtitles: [], audios: [] }];
+    if (!keyMatch) {
+      const direct = { url: streamUrl, originalUrl: this._hlsOriginalUrl(streamUrl), quality: "자동 (HLS)", headers: streamHeaders, subtitles: [], audios: [] };
+      if (this._preference("tvroom_playback_route", "auto") !== "external") {
+        try { return [await dcLocalHlsVideo(streamUrl, playlist, streamHeaders, this._absoluteUrl.bind(this), "", "", direct.originalUrl), direct]; } catch (_) {}
+      }
+      return [direct];
+    }
     const keyUrl = this._absoluteUrl(streamUrl, keyMatch[1]), envelope = await this._requestText(keyUrl, playerUrl, "영상 키", streamHeaders), key = this._decodePlayerKey(envelope), directUrl = this._playlistBridgeUrl(playlist, streamUrl, key, playerUrl, "direct"), proxyUrl = this._playlistBridgeUrl(playlist, streamUrl, key, playerUrl, "proxy");
-    return [
-      { url: directUrl, originalUrl: this._hlsOriginalUrl(directUrl), quality: "빠른 재생 (캐시)", headers: streamHeaders, subtitles: [], audios: [] },
-      { url: proxyUrl, originalUrl: this._hlsOriginalUrl(proxyUrl), quality: "호환 재생 (중계)", headers: streamHeaders, subtitles: [], audios: [] }
+    const recovery = [
+      { url: directUrl, originalUrl: this._hlsOriginalUrl(directUrl), quality: "외부 빠른 재생 (복구)", headers: streamHeaders, subtitles: [], audios: [] },
+      { url: proxyUrl, originalUrl: this._hlsOriginalUrl(proxyUrl), quality: "외부 호환 재생 (복구)", headers: streamHeaders, subtitles: [], audios: [] }
     ];
+    if (this._preference("tvroom_playback_route", "auto") !== "external") {
+      try {
+        const keyData = "data:application/octet-stream;base64," + this._base64Encode(key);
+        return [await dcLocalHlsVideo(streamUrl, playlist, streamHeaders, this._absoluteUrl.bind(this), keyUrl, keyData, recovery[0].originalUrl)].concat(recovery);
+      } catch (_) {}
+    }
+    return recovery;
   }
 
   async getPageList() { return []; }
@@ -589,6 +667,6 @@ class DefaultExtension extends MProvider {
     return [separator("top"), header("usage", "필터 탭에서 콘텐츠 종류를 먼저 선택하세요. 국가와 정렬은 생략하면 전체·시간순으로 처리합니다."), this._select("contentType", "콘텐츠 종류", choices(this.contentOptions)), this._select("country", "국가", choices(this.countryOptions)), this._select("order", "정렬", choices(this.orderOptions)), separator("save"), header("defaultHelp", "기본 인기: 메인 추천 · 기본 최신: 카테고리별 최신 12개"), header("cardHelp", "목록 카드는 Popular/Latest 1번에만 표시되며 필터 결과와 통합 검색에서는 숨깁니다."), header("popularSummary", "현재 Popular: " + this._ruleSummary(popular)), header("latestSummary", "현재 Latest: " + this._ruleSummary(latest)), this._select("tabRuleAction", "Popular/Latest 규칙", [option("저장하지 않음 (필터 결과만 보기)", "0"), option("현재 조건을 Popular 탭에 저장", "1"), option("현재 조건을 Latest 탭에 저장", "2"), option("Popular 탭을 기본값으로 복원", "3"), option("Latest 탭을 기본값으로 복원", "4"), option("두 탭 모두 기본값으로 복원", "5")])];
   }
   getSourcePreferences() {
-    return [{ key: "tvroom_anime_title_language_v2", listPreference: { title: "애니 작품 제목 언어", summary: "애니 작품은 한국어와 일본어 중에서 선택합니다. 변경 후 현재 화면을 새로고침하세요. 영화·드라마·예능·시사 등은 한국어 제목을 유지합니다.", valueIndex: 0, entries: ["한국어", "일본어"], entryValues: ["ko", "ja"] } }, { key: "tvroom_domain_url", editTextPreference: { title: "티비룸 주소 직접 지정 (선택)", summary: "빈 값이면 개인 공통 주소 목록을 사용합니다. 주소는 서버에서 자동 점검합니다.", value: "", dialogTitle: "https://tvroom40.org", dialogMessage: "자동 주소를 사용하려면 빈 값으로 두세요." } }, { key: "tvroom_custom_card_json_url", editTextPreference: { title: "커스텀 목록 카드 (선택)", summary: "공개 JSON 주소 1개로 요일별 카드 7장을 설정합니다. 360×540 GIF를 권장하며 용량·프레임 제한은 없습니다.", value: "", dialogTitle: "커스텀 목록 카드 JSON 주소", dialogMessage: "Google Drive 공개 공유 링크 또는 직접 JSON 주소를 넣으세요. 개인 카드를 설정하면 공용 이벤트 카드는 표시되지 않습니다. 빈 값이면 공용 이벤트 또는 기본 미디어 요일 카드를 사용합니다." } }];
+    return [{ key: "tvroom_playback_route", listPreference: { title: "영상 재생 경로", summary: "자동은 로컬 재생목록과 휴대폰 중계를 우선합니다. 내부 중계는 공식 앱 0.9.9 이상에서 지원합니다. 문제 발생 시 외부 복구 재생을 선택하세요.", valueIndex: 0, entries: ["자동 (휴대폰 우선)", "기존 외부 재생"], entryValues: ["auto", "external"] } }, { key: "tvroom_anime_title_language_v2", listPreference: { title: "애니 작품 제목 언어", summary: "애니 작품은 한국어와 일본어 중에서 선택합니다. 변경 후 현재 화면을 새로고침하세요. 영화·드라마·예능·시사 등은 한국어 제목을 유지합니다.", valueIndex: 0, entries: ["한국어", "일본어"], entryValues: ["ko", "ja"] } }, { key: "tvroom_domain_url", editTextPreference: { title: "티비룸 주소 직접 지정 (선택)", summary: "빈 값이면 개인 공통 주소 목록을 사용합니다. 주소는 서버에서 자동 점검합니다.", value: "", dialogTitle: "https://tvroom40.org", dialogMessage: "자동 주소를 사용하려면 빈 값으로 두세요." } }, { key: "tvroom_custom_card_json_url", editTextPreference: { title: "커스텀 목록 카드 (선택)", summary: "공개 JSON 주소 1개로 요일별 카드 7장을 설정합니다. 360×540 GIF를 권장하며 용량·프레임 제한은 없습니다.", value: "", dialogTitle: "커스텀 목록 카드 JSON 주소", dialogMessage: "Google Drive 공개 공유 링크 또는 직접 JSON 주소를 넣으세요. 개인 카드를 설정하면 공용 이벤트 카드는 표시되지 않습니다. 빈 값이면 공용 이벤트 또는 기본 미디어 요일 카드를 사용합니다." } }];
   }
 }
