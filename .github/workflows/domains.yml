@@ -71,6 +71,11 @@ jobs:
         with:
           ref: main
           persist-credentials: false
+      - name: Install synthetic playback test tools
+        if: github.event_name != 'schedule'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends ffmpeg mpv
       - name: Verify published extension metadata and behavior
         run: node --test tests/extensions.test.cjs
       - name: Prepare the public site
