@@ -61,6 +61,17 @@ function wikiFixture(extra = {}, keyEnvelope = envelope()) {
 test("local HLS helpers remain identical in the two standalone sources", () => {
   for (const name of ["dcHlsBase64", "dcHlsBounded", "dcHlsPlaybackError", "dcHlsSingleFlight", "dcLocalHlsVideo"]) assert.equal(load("tvroom").sandbox[name].toString(), load("tvwiki").sandbox[name].toString());
 });
+test("inline HLS uses mpv's FFmpeg protocol while retaining the upstream download URL", async () => {
+  for (const site of ["tvroom", "tvwiki"]) {
+    const state = load(site, { createHlsProxyUrl: async () => localRoot });
+    const absolute = site === "tvroom" ? state.extension._absoluteUrl.bind(state.extension) : state.extension._absolute.bind(state.extension);
+    const video = await state.sandbox.dcLocalHlsVideo(playlistUrl, manifest, {}, absolute, keyUrl, "data:application/octet-stream;base64," + key.toString("base64"), playlistUrl, true);
+    assert.ok(video.url.startsWith("lavf://data:application/vnd.apple.mpegurl;base64,"));
+    assert.equal(video.originalUrl, playlistUrl);
+    assert.ok(body(video).startsWith("#EXTM3U"));
+    assert.ok(body(video).includes('URI="data:application/octet-stream;base64,'));
+  }
+});
 test("TVRoom: local proxy is first, inline key is exact, and no external preparation is fetched", async () => {
   const native = [], state = roomFixture({ createHlsProxyUrl: async (url, headers) => { native.push({ url, headers }); return localRoot; } });
   const videos = await state.extension.getVideoList("/video/1/episode");
