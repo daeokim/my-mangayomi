@@ -1,37 +1,37 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-13T19:48:32.333Z",
-  "lastRunAt": "2026-10-13T19:48:32.333Z",
+  "updatedAt": "2026-10-14T04:53:23.544Z",
+  "lastRunAt": "2026-10-14T04:53:23.544Z",
   "domains": {
     "11toon": {
       "baseUrl": "https://11toon.com",
       "status": "healthy",
-      "lastConfirmedAt": "2026-10-13T14:11:57.304Z",
-      "lastCheckedAt": "2026-10-13T14:11:57.304Z",
+      "lastConfirmedAt": "2026-10-14T04:53:23.544Z",
+      "lastCheckedAt": "2026-10-14T04:53:23.544Z",
       "reason": "목록 구조 확인 · 재생/이미지 검증은 별도",
       "scanOffset": 1
     },
     "blacktoon": {
       "baseUrl": "https://blacktoon424.com",
       "status": "healthy",
-      "lastConfirmedAt": "2026-10-13T14:11:57.304Z",
-      "lastCheckedAt": "2026-10-13T14:11:57.304Z",
+      "lastConfirmedAt": "2026-10-14T04:53:23.544Z",
+      "lastCheckedAt": "2026-10-14T04:53:23.544Z",
       "reason": "목록 구조 확인 · 재생/이미지 검증은 별도",
       "scanOffset": 1
     },
     "goodtoon": {
-      "baseUrl": "https://goodtoon007.com",
+      "baseUrl": "https://www.goodtoon007.com",
       "status": "healthy",
-      "lastConfirmedAt": "2026-10-13T14:11:57.304Z",
-      "lastCheckedAt": "2026-10-13T14:11:57.304Z",
+      "lastConfirmedAt": "2026-10-14T04:53:23.544Z",
+      "lastCheckedAt": "2026-10-14T04:53:23.544Z",
       "reason": "목록 구조 확인 · 재생/이미지 검증은 별도",
       "scanOffset": 1
     },
     "tvwiki": {
       "baseUrl": "https://tvwiki53.net",
       "status": "healthy",
-      "lastConfirmedAt": "2026-10-13T14:11:57.304Z",
-      "lastCheckedAt": "2026-10-13T14:11:57.304Z",
+      "lastConfirmedAt": "2026-10-14T04:53:23.544Z",
+      "lastCheckedAt": "2026-10-14T04:53:23.544Z",
       "reason": "목록 구조 확인 · 재생/이미지 검증은 별도",
       "scanOffset": 1
     },
@@ -39,9 +39,9 @@
       "baseUrl": "https://tvroom38.org",
       "status": "protected",
       "lastConfirmedAt": null,
-      "lastCheckedAt": "2026-10-13T19:48:32.333Z",
+      "lastCheckedAt": "2026-10-14T04:53:23.544Z",
       "reason": "목록 구조 미확인",
-      "scanOffset": 3
+      "scanOffset": 4
     }
   },
   "control": {
