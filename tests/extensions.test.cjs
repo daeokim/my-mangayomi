@@ -194,13 +194,15 @@ const tvwiki = catalogs[1].entries.find(function(entry) { return entry.name === 
 test("Goodtoon: stale 006 central signal does not undo the 007 migration", async function() {
   const loaded = loadExtension(goodtoon);
   loaded.respond({ domains: { goodtoon: { baseUrl: "https://www.goodtoon006.com/" } } });
-  assert.equal(await loaded.extension._resolveBaseUrl(), "https://goodtoon007.com");
+  assert.equal(await loaded.extension._resolveBaseUrl(), goodtoon.baseUrl);
 });
 
 test("Goodtoon: future central domain updates remain enabled", async function() {
   const loaded = loadExtension(goodtoon);
-  loaded.respond({ domains: { goodtoon: { baseUrl: "https://goodtoon008.com" } } });
-  assert.equal(await loaded.extension._resolveBaseUrl(), "https://goodtoon008.com");
+  const number = Number(goodtoon.baseUrl.match(/goodtoon(\d+)\.com/)[1]) + 1;
+  const next = "https://goodtoon" + String(number).padStart(3,"0") + ".com";
+  loaded.respond({ domains: { goodtoon: { baseUrl: next } } });
+  assert.equal(await loaded.extension._resolveBaseUrl(), next);
 });
 
 test("티비위키: previous 52 domain cache is ignored after the 53 migration", async function() {
@@ -224,13 +226,14 @@ test("티비위키: old 52 cache and configured URL cannot replace the 53 fallba
   loaded.extension.source.baseUrl = "https://tvwiki52.net";
   loaded.preferences.set(loaded.extension.cachedBaseKey, "https://tvwiki52.net");
   loaded.preferences.set(loaded.extension.cachedBaseTimeKey, String(Date.now()));
-  assert.equal(await loaded.extension._resolveBaseUrl(), "https://tvwiki53.net");
+  assert.equal(await loaded.extension._resolveBaseUrl(), tvwiki.baseUrl);
 });
 
 test("티비위키: next automatic domain and manual override remain supported", async function() {
   const loaded = loadExtension(tvwiki);
-  loaded.respond({ domains: { tvwiki: { baseUrl: "https://tvwiki54.net" } } });
-  assert.equal(await loaded.extension._resolveBaseUrl(), "https://tvwiki54.net");
+  const next = "https://tvwiki" + (Number(tvwiki.baseUrl.match(/tvwiki(\d+)\.net/)[1]) + 1) + ".net";
+  loaded.respond({ domains: { tvwiki: { baseUrl: next } } });
+  assert.equal(await loaded.extension._resolveBaseUrl(), next);
   loaded.preferences.set("tvwiki_domain_url", "https://tvwiki52.net");
   assert.equal(await loaded.extension._resolveBaseUrl(), "https://tvwiki52.net");
 });
@@ -243,14 +246,15 @@ test("Blacktoon: stale 423 signal, cache and metadata cannot undo the 424 migrat
   loaded.preferences.set(extension.lastKnownBasePreference, "https://blacktoon423.com");
   extension.source.baseUrl = "https://blacktoon423.com";
   extension._setResolvedBase("https://blacktoon423.com", "signal");
-  assert.equal(await extension._resolveBaseUrl(), "https://blacktoon424.com");
+  assert.equal(await extension._resolveBaseUrl(), entry.baseUrl);
 });
 
 test("Blacktoon: future automatic domains and explicit manual values remain supported", async function() {
   const entry = catalogs[0].entries.find(function(entry) { return entry.name === "블랙툰"; });
   const loaded = loadExtension(entry);
-  loaded.respond({ domains: { blacktoon: { baseUrl: "https://blacktoon425.com" } } });
-  assert.equal(await loaded.extension._resolveBaseUrl(), "https://blacktoon425.com");
+  const next = "https://blacktoon" + (Number(entry.baseUrl.match(/blacktoon(\d+)\.com/)[1]) + 1) + ".com";
+  loaded.respond({ domains: { blacktoon: { baseUrl: next } } });
+  assert.equal(await loaded.extension._resolveBaseUrl(), next);
   loaded.preferences.set("blacktoon_domain_url", "423");
   assert.equal(await loaded.extension._resolveBaseUrl(), "https://blacktoon423.com");
 });
@@ -259,7 +263,7 @@ test("티비위키: first-page markup mismatch is diagnosed with the actual URL"
   const extension = loadExtension(tvwiki).extension;
   assert.throws(function() {
     extension._assertListPage("<html><h1>Changed layout</h1></html>", [], tvwiki.baseUrl + "/drama?page=1", "목록", 1);
-  }, /NO_CARDS.*tvwiki53\.net\/drama\?page=1/);
+  }, error => /NO_CARDS/.test(error.message) && error.message.includes(tvwiki.baseUrl + "/drama?page=1"));
 });
 
 test("티비위키: empty search and final pagination pages remain valid", function() {
