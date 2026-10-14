@@ -8,7 +8,7 @@ const mangayomiSources = [{
   itemType: 1,
   isNsfw: false,
   hasCloudflare: false,
-  version: "0.1.29",
+  version: "0.1.30",
   dateFormat: "",
   dateFormatLocale: "",
   pkgPath: "anime/src/ko/tvroom.js",
@@ -250,7 +250,9 @@ async function dcLocalHlsVideo(playlistUrl, playlist, headers, absolute, keyUrl,
   // libmpv/FFmpeg accepts an inline HLS manifest; segment requests go through
   // Mangayomi's loopback service with the original Referer/Origin/User-Agent.
   const dataUrl = "data:application/vnd.apple.mpegurl;base64," + dcHlsBase64(output.join("\n") + "\n", false) + "#local.m3u8";
-  return { url: dataUrl, originalUrl: downloadUrl || playlistUrl, quality: prefix ? "휴대폰 중계 (권장)" : "직접 재생 (로컬 재생목록)", headers, subtitles: [], audios: [] };
+  // mpv matches top-level protocols using ://. A bare RFC 2397 data: URI
+  // is treated as a filename; lavf:// explicitly forwards it to FFmpeg.
+  return { url: "lavf://" + dataUrl, originalUrl: downloadUrl || playlistUrl, quality: prefix ? "휴대폰 중계 (권장)" : "직접 재생 (로컬 재생목록)", headers, subtitles: [], audios: [] };
 }
 
 class DefaultExtension extends MProvider {
