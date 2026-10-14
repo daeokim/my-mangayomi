@@ -4,6 +4,8 @@ const path = require("node:path");
 const vm = require("node:vm");
 const { test } = require("node:test");
 
+require("./local-hls.test.cjs");
+
 const root = path.resolve(__dirname, "..");
 const catalogs = ["index.json", "anime_index.json"].map(function(file) {
   const text = fs.readFileSync(path.join(root, file), "utf8");
