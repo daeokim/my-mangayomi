@@ -45,6 +45,8 @@ jobs:
           package-manager-cache: false
       - name: Verify domain validation and conflict handling
         run: node --test domain-manager/test.mjs domain-manager/actions.test.mjs
+      - name: Verify metadata synchronization
+        run: python -m unittest discover -s domain-manager -p 'test_sync_metadata.py'
       - name: Check addresses and save the shared registry
         if: github.event_name != 'push'
         env:
@@ -59,6 +61,18 @@ jobs:
         with:
           ref: main
           persist-credentials: false
+      - name: Synchronize fallback addresses and extension catalogs
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: python domain-manager/sync_metadata.py --publish
+      - name: Checkout synchronized extension metadata
+        uses: actions/checkout@v6
+        with:
+          ref: main
+          persist-credentials: false
+      - name: Verify published extension metadata and behavior
+        run: node --test tests/extensions.test.cjs
       - name: Prepare the public site
         run: |
           python - <<'PY'
