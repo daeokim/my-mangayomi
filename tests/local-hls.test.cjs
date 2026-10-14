@@ -115,6 +115,18 @@ test("TVWiki: an unknown key schema on older apps retains both former recovery U
   assert.equal(videos.length, 2);
   assert.ok(videos.every(video => video.url.startsWith("https://")));
 });
+test("TVWiki: external mode opens compatibility playback without starting the local proxy", async () => {
+  const state = wikiFixture({ createHlsProxyUrl: async () => { throw new Error("external mode must bypass the local proxy"); } }, '{"unknown":true}');
+  state.preferences.set("tvwiki_playback_route_v2", "external");
+  state.extension._client = () => { throw new Error("external mode must not prefetch a rewritten manifest"); };
+  const videos = await state.extension.getVideoList("/drama/1/1");
+  assert.equal(videos.length, 2);
+  assert.equal(videos[0].quality, "외부 호환 재생 (복구)");
+  assert.equal(new URL(videos[0].url).searchParams.get("m"), "p");
+  assert.equal(new URL(videos[1].url).searchParams.get("m"), "f");
+  assert.equal(videos[0].originalUrl, playlistUrl);
+  assert.ok(videos[0].headers.Referer.startsWith(playerUrl));
+});
 test("TVWiki: direct session success avoids the external session server", async () => {
   const state = load("tvwiki"), calls = [];
   state.extension._client = (kind, timeout) => ({ kind, timeout });
