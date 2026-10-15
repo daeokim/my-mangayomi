@@ -1,48 +1,222 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-15T04:38:30.028Z",
-  "lastRunAt": "2026-10-15T04:38:30.028Z",
+  "updatedAt": "2026-10-15T16:59:25.578Z",
+  "lastRunAt": "2026-10-15T16:59:25.578Z",
   "domains": {
     "11toon": {
       "baseUrl": "https://11toon.com",
-      "status": "healthy",
+      "status": "protected",
       "lastConfirmedAt": "2026-10-15T04:38:30.028Z",
-      "lastCheckedAt": "2026-10-15T04:38:30.028Z",
-      "reason": "목록 구조 확인 · 재생/이미지 검증은 별도",
-      "scanOffset": 1
+      "lastCheckedAt": "2026-10-15T16:59:25.578Z",
+      "reason": "연결 실패 또는 시간 초과",
+      "scanOffset": 2,
+      "attempts": [
+        {
+          "baseUrl": "https://11toon.com",
+          "ok": false,
+          "reason": "연결 실패 또는 시간 초과"
+        },
+        {
+          "baseUrl": "https://11toon1.com",
+          "ok": false,
+          "reason": "HTTP 404"
+        },
+        {
+          "baseUrl": "https://11toon2.com",
+          "ok": false,
+          "reason": "연결 실패 또는 시간 초과"
+        },
+        {
+          "baseUrl": "https://11toon3.com",
+          "ok": false,
+          "reason": "연결 실패 또는 시간 초과"
+        },
+        {
+          "baseUrl": "https://11toon4.com",
+          "ok": false,
+          "reason": "연결 실패 또는 시간 초과"
+        },
+        {
+          "baseUrl": "https://11toon5.com",
+          "ok": false,
+          "reason": "HTTP 530"
+        },
+        {
+          "baseUrl": "https://11toon6.com",
+          "ok": false,
+          "reason": "연결 실패 또는 시간 초과"
+        },
+        {
+          "baseUrl": "https://11toon7.com",
+          "ok": false,
+          "reason": "HTTP 404"
+        },
+        {
+          "baseUrl": "https://11toon8.com",
+          "ok": false,
+          "reason": "HTTP 404"
+        },
+        {
+          "baseUrl": "https://11toon9.com",
+          "ok": false,
+          "reason": "연결 실패 또는 시간 초과"
+        },
+        {
+          "baseUrl": "https://11toon10.com",
+          "ok": false,
+          "reason": "연결 실패 또는 시간 초과"
+        }
+      ],
+      "currentCheck": {
+        "baseUrl": "https://11toon.com",
+        "ok": false,
+        "reason": "연결 실패 또는 시간 초과",
+        "checked": true
+      },
+      "consecutiveFailures": 1
     },
     "blacktoon": {
       "baseUrl": "https://blacktoon424.com",
       "status": "healthy",
-      "lastConfirmedAt": "2026-10-15T04:38:30.028Z",
-      "lastCheckedAt": "2026-10-15T04:38:30.028Z",
+      "lastConfirmedAt": "2026-10-15T16:59:25.578Z",
+      "lastCheckedAt": "2026-10-15T16:59:25.578Z",
       "reason": "목록 구조 확인 · 재생/이미지 검증은 별도",
-      "scanOffset": 1
+      "scanOffset": 1,
+      "attempts": [
+        {
+          "baseUrl": "https://blacktoon424.com",
+          "ok": true,
+          "reason": "목록 구조 확인",
+          "finalBaseUrl": "https://blacktoon424.com"
+        }
+      ],
+      "currentCheck": {
+        "baseUrl": "https://blacktoon424.com",
+        "ok": true,
+        "reason": "목록 구조 확인",
+        "finalBaseUrl": "https://blacktoon424.com",
+        "checked": true
+      },
+      "consecutiveFailures": 0
     },
     "goodtoon": {
-      "baseUrl": "https://www.goodtoon007.com",
+      "baseUrl": "https://goodtoon007.com",
       "status": "healthy",
-      "lastConfirmedAt": "2026-10-15T04:38:30.028Z",
-      "lastCheckedAt": "2026-10-15T04:38:30.028Z",
+      "lastConfirmedAt": "2026-10-15T16:59:25.578Z",
+      "lastCheckedAt": "2026-10-15T16:59:25.578Z",
       "reason": "목록 구조 확인 · 재생/이미지 검증은 별도",
-      "scanOffset": 1
+      "scanOffset": 1,
+      "attempts": [
+        {
+          "baseUrl": "https://goodtoon007.com",
+          "ok": true,
+          "reason": "목록 구조 확인",
+          "finalBaseUrl": "https://goodtoon007.com"
+        }
+      ],
+      "currentCheck": {
+        "baseUrl": "https://www.goodtoon007.com",
+        "checked": false,
+        "reason": "다른 후보 확인으로 기존 주소는 미점검"
+      },
+      "consecutiveFailures": 0
     },
     "tvwiki": {
       "baseUrl": "https://tvwiki54.net",
       "status": "healthy",
-      "lastConfirmedAt": "2026-10-15T04:38:30.028Z",
-      "lastCheckedAt": "2026-10-15T04:38:30.028Z",
+      "lastConfirmedAt": "2026-10-15T16:59:25.578Z",
+      "lastCheckedAt": "2026-10-15T16:59:25.578Z",
       "reason": "목록 구조 확인 · 재생/이미지 검증은 별도",
-      "scanOffset": 1
+      "scanOffset": 1,
+      "attempts": [
+        {
+          "baseUrl": "https://tvwiki54.net",
+          "ok": true,
+          "reason": "목록 구조 확인",
+          "finalBaseUrl": "https://tvwiki54.net"
+        }
+      ],
+      "currentCheck": {
+        "baseUrl": "https://tvwiki54.net",
+        "ok": true,
+        "reason": "목록 구조 확인",
+        "finalBaseUrl": "https://tvwiki54.net",
+        "checked": true
+      },
+      "consecutiveFailures": 0
     },
     "tvroom": {
       "baseUrl": "https://tvroom40.org",
       "status": "protected",
       "lastConfirmedAt": "2026-10-14T07:17:21Z",
-      "lastCheckedAt": "2026-10-15T04:38:30.028Z",
-      "reason": "목록 구조 미확인",
-      "scanOffset": 3,
-      "lastConfirmedBy": "external-http-check"
+      "lastCheckedAt": "2026-10-15T16:59:25.578Z",
+      "reason": "HTTP 403",
+      "scanOffset": 4,
+      "lastConfirmedBy": "external-http-check",
+      "attempts": [
+        {
+          "baseUrl": "https://tvroom40.org",
+          "ok": false,
+          "reason": "HTTP 403"
+        },
+        {
+          "baseUrl": "https://tvroom43.org",
+          "ok": false,
+          "reason": "연결 실패 또는 시간 초과"
+        },
+        {
+          "baseUrl": "https://tvroom44.org",
+          "ok": false,
+          "reason": "연결 실패 또는 시간 초과"
+        },
+        {
+          "baseUrl": "https://tvroom45.org",
+          "ok": false,
+          "reason": "연결 실패 또는 시간 초과"
+        },
+        {
+          "baseUrl": "https://tvroom46.org",
+          "ok": false,
+          "reason": "연결 실패 또는 시간 초과"
+        },
+        {
+          "baseUrl": "https://tvroom47.org",
+          "ok": false,
+          "reason": "연결 실패 또는 시간 초과"
+        },
+        {
+          "baseUrl": "https://tvroom48.org",
+          "ok": false,
+          "reason": "연결 실패 또는 시간 초과"
+        },
+        {
+          "baseUrl": "https://tvroom49.org",
+          "ok": false,
+          "reason": "연결 실패 또는 시간 초과"
+        },
+        {
+          "baseUrl": "https://tvroom50.org",
+          "ok": false,
+          "reason": "연결 실패 또는 시간 초과"
+        },
+        {
+          "baseUrl": "https://tvroom41.org",
+          "ok": false,
+          "reason": "목록 구조 미확인"
+        },
+        {
+          "baseUrl": "https://tvroom42.org",
+          "ok": false,
+          "reason": "연결 실패 또는 시간 초과"
+        }
+      ],
+      "currentCheck": {
+        "baseUrl": "https://tvroom40.org",
+        "ok": false,
+        "reason": "HTTP 403",
+        "checked": true
+      },
+      "consecutiveFailures": 1
     }
   },
   "control": {
