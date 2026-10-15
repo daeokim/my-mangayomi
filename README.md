@@ -11,9 +11,15 @@
 | Aniyomi | 만화 확장 앱 저장소 | https://daeokim.github.io/my-mangayomi/aniyomi/manga/index.min.json |
 | Aniyomi | 애니메이션 확장 앱 저장소 | https://daeokim.github.io/my-mangayomi/aniyomi/media/index.min.json |
 
-Aniyomi는 **Daeo Manga 1.4.1003**, **Daeo Media 14.1003**을 설치합니다.
+Aniyomi는 **Daeo Manga 1.4.1003**, **Daeo TVRoom 14.1004**, **Daeo TVWiki 14.1001**을 설치합니다.
 만화는 11툰·블랙툰·굿툰, 영상은 티비룸 기반 DC 영화·드라마·예능·애니입니다.
-티비위키는 Mangayomi에만 포함됩니다. 앱의 성인 콘텐츠 소스 설정을 켜야 확장이 표시될 수 있습니다.
+티비위키는 별도 APK로 영화·드라마·예능·애니 소스를 제공합니다. 앱의 성인 콘텐츠 소스 설정을 켜야 확장이 표시될 수 있습니다.
+Daeo TVRoom은 기존 Daeo Media와 패키지·서명·소스 ID가 같으므로 **기존 앱 위에 업데이트**합니다.
+Daeo TVWiki는 다른 패키지와 고유 소스 ID를 사용하므로 티비룸과 동시에 설치할 수 있습니다.
+
+- [티비룸 APK 14.1004](https://daeokim.github.io/my-mangayomi/aniyomi/media/apk/daeotvroom-v14.1004.apk)
+- [티비위키 APK 14.1001](https://daeokim.github.io/my-mangayomi/aniyomi/media/apk/daeotvwiki-v14.1001.apk)
+
 원본 DC APK와 패키지·서명이 다르므로 동시에 설치하면 소스 ID가 중복될 수 있습니다.
 보관함·설정을 백업하고 사용할 패키지 하나를 선택하세요.
 
@@ -33,7 +39,7 @@ Aniyomi는 **Daeo Manga 1.4.1003**, **Daeo Media 14.1003**을 설치합니다.
 
 - **Mangayomi:** 확장을 업데이트하고 각 소스의 **주소 직접 지정**을 비웁니다. 직접 입력한 값이 있으면 자동 주소보다 우선합니다.
 - **Aniyomi 만화:** 블랙툰의 **주소 갱신 방식 → 중앙신호등**을 선택합니다. 11툰·굿툰은 별도 모드 설정 없이 공통 목록을 조회합니다.
-- **Aniyomi 영상:** Daeo Media가 공통 목록의 티비룸 주소를 읽습니다. 주소 번호 변경마다 APK를 재설치할 필요는 없습니다.
+- **Aniyomi 영상:** Daeo TVRoom과 Daeo TVWiki가 공통 목록의 각 사이트 주소를 읽습니다. 주소 번호 변경마다 APK를 재설치할 필요는 없습니다.
 
 GitHub Actions는 **6시간마다 (한국 시간 03:17·09:17·15:17·21:17)**에 실행되도록 설정되어 있습니다. 예약 실행은 지연·누락될 수 있으며 실시간 감지가 아닙니다.
 중앙 후보 → 기존 주소 → 다음 번호 +1~+10 순으로 확인하며, 기존 주소가 정상인 경우 번호 탐색을 끝냅니다.
@@ -46,7 +52,8 @@ GitHub Actions는 **6시간마다 (한국 시간 03:17·09:17·15:17·21:17)**�
 앱 캐시로 반영이 늦어질 수 있습니다. Mangayomi 블랙툰은 1분, 티비위키는 5분,
 Aniyomi 11툰·굿툰은 5분, 영상은 10분 캐시를 사용합니다.
 자동 주소 조회와 확장 업데이트는 별개입니다. 앱의 표시용 예비 주소까지 갱신하려면 확장 목록을 새로고침하고 업데이트하세요.
-Aniyomi 영상 APK에 표시되는 예비 주소 38은 실제 공통 목록 조회 결과와 다를 수 있습니다.
+Aniyomi 영상 APK의 예비 주소는 티비룸 40·티비위키 54입니다. 실제 조회 주소는 공통 목록을 따릅니다.
+티비위키는 HTTPS 호스트·최소 주소 번호·번호 역행을 검사하며 주소 목록 조회가 실패하면 마지막 유효 주소를 유지합니다.
 
 - [주소 상태 화면](https://daeokim.github.io/my-mangayomi/domain-manager/)
 - [즉시 점검·실행 기록](https://github.com/daeokim/my-mangayomi/actions/workflows/domains.yml): **Run workflow → all 또는 사이트 선택 → Run workflow**
@@ -64,6 +71,18 @@ python aniyomi/tools/verify_selected.py
 APK 검사는 `androguard==4.1.4`가 필요합니다. 빌드 입력·출력 해시는 [빌드 기록](aniyomi/build-report.json)에 있습니다.
 재빌드는 `aniyomi/tools/prepare_selected.py`와 `connect_registry.py`, 서명은 `SignSelected.java`를 사용합니다.
 원본 APK·도구는 코드의 고정 SHA-256과 일치해야 하며, 기존 업데이트에는 동일한 개인 서명 키가 필요합니다.
+티비룸 14.1004는 `prepare_tvroom.py`로 기존 14.1003을 갱신합니다. 기존 보관함 연결을 위해 DC 소스 이름과 ID를 유지합니다.
+티비위키 소스는 `aniyomi/native`에 있으며 JDK 17·Android SDK 35 환경에서 아래 명령으로 빌드·검사합니다.
+
+```sh
+bash aniyomi/native/gradlew -p aniyomi/native :tvwiki:assembleRelease :tvwiki:testReleaseUnitTest
+```
+
+빌드 워크플로는 서명 전 APK와 테스트 보고서를 보관합니다. 배포 APK에는 기존 개인 서명을 사용합니다.
+티비룸 배포 델타는 서명 완료 파일을 복원하며, 입력·델타·출력 SHA-256을 검사한 뒤 GitHub에 커밋합니다.
+동일한 주소 점검 워크플로에서 최신 커밋을 다시 체크아웃하고 Pages에 배포합니다. 개인 서명 키는 GitHub에 업로드하지 않습니다.
+티비위키는 사이트 직접 세션과 휴대폰 내부 HLS 중계를 사용합니다. 외부 복구 중계 서버는 사용하지 않습니다.
+합성 HLS·키·Range 검사와 실제 사이트의 목록·회차·세션·재생목록을 확인했습니다. 티비위키 버전 7 키 형식은 독립 참조 결과와 비교하고 짧은 실제 영상 구간의 해독도 검증했습니다. Android 실기기의 설치·전체 영상 재생은 아직 검증하지 않았습니다.
 원본 제작자의 새 APK는 자동 재빌드되지 않습니다. 서명 키는 저장소에 포함하지 않습니다.
 
 ## 원본 출처

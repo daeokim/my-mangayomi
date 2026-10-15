@@ -1,0 +1,30 @@
+name: Aniyomi TVWiki build and tests
+on:
+  push:
+    branches: [main]
+    paths: ['aniyomi/native/**', '.github/workflows/aniyomi-native.yml']
+  pull_request:
+    paths: ['aniyomi/native/**', '.github/workflows/aniyomi-native.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Install Android SDK 35
+        run: sdkmanager 'platforms;android-35' 'build-tools;35.0.0'
+      - name: Build and test
+        run: bash aniyomi/native/gradlew -p aniyomi/native --no-daemon :tvwiki:assembleRelease :tvwiki:testReleaseUnitTest
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tvwiki-unsigned-build-and-tests
+          path: |
+            aniyomi/native/tvwiki/build/outputs/apk/release/*-unsigned.apk
+            aniyomi/native/tvwiki/build/reports/tests/testReleaseUnitTest/

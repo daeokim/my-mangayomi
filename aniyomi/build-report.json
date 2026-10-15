@@ -1,14 +1,14 @@
 {
-  "date": "2026-10-13",
-  "origin": "Personal source subset of DC maintainer APKs; original engines retained",
+  "date": "2026-10-16",
+  "origin": "TVRoom retained from selected DC engine; independent TVWiki native extension",
   "device_installation_tested": false,
   "live_reading_and_playback_tested": false,
   "checks": [
     "APK manifest, package and version match catalogue",
-    "Factory interpreted: exactly three manga and four anime sources",
+    "Factories: three manga, four TVRoom and four separate TVWiki sources",
     "Manga source IDs match original APK getters",
     "Goodtoon default references both point to 7",
-    "TVRoom fallback string is 38",
+    "TVRoom fallback string is 40",
     "DEX SHA-1 and Adler-32 checksums valid",
     "Google apksig 8.9.0 verifies v2 and v3 signatures",
     "Catalogue repo fingerprint matches APK certificate",
@@ -21,7 +21,13 @@
     "Media original URL regex extracts TVRoom domain from common JSON",
     "11toon and Goodtoon getters invoke daeo.Registry and retain original fallback branches",
     "Manga DEX assembled using verified official Apktool 3.0.3 Smali libraries",
-    "Native registry skips main-thread network, validates HTTPS/site host, and bounds response size"
+    "Native registry skips main-thread network, validates HTTPS/site host, and bounds response size",
+    "TVRoom 14.1004 preserves existing daemedia package, certificate and all source IDs",
+    "TVWiki 14.1001 has a distinct package and four unique source IDs; host API classes excluded from APK",
+    "TVWiki version 7 key decoding matches independent site decoder and a synthetic fixture",
+    "Bounded live HLS prefix decrypts to ten valid MPEG-TS packet sync bytes",
+    "Loopback HLS test verifies master/media playlists, keys, segments and HTTP Range forwarding",
+    "Signed TVRoom binary delta reconstructs exact SHA-256 and is idempotent"
   ],
   "outputs": [
     {
@@ -38,17 +44,31 @@
       ]
     },
     {
-      "kind": "media",
-      "file": "daeomedia-v14.1003.apk",
+      "kind": "tvroom",
+      "file": "daeotvroom-v14.1004.apk",
       "package": "eu.kanade.tachiyomi.animeextension.ko.daemedia",
-      "version": "14.1003",
-      "size_bytes": 25792000,
-      "sha256": "ff68f8e3b3c0cae83c9fe567e5bcb1a710880c35fdb73d8044c55f37de57d45e",
+      "version": "14.1004",
+      "size_bytes": 25792004,
+      "sha256": "9077e3a952dde34d8766481e732b7a599102014d9c08b8b4bd750d45f2d6c7c3",
       "source_names": [
         "DC 영화",
         "DC 드라마",
         "DC 예능",
         "DC 애니"
+      ]
+    },
+    {
+      "kind": "tvwiki",
+      "file": "daeotvwiki-v14.1001.apk",
+      "package": "eu.kanade.tachiyomi.animeextension.ko.daeotvwiki",
+      "version": "14.1001",
+      "size_bytes": 37583,
+      "sha256": "b2afb9a0c93fe4127c48696d030a0d008d80b444d02141d66c1f24e6191b4247",
+      "source_names": [
+        "티비위키 영화",
+        "티비위키 드라마",
+        "티비위키 예능",
+        "티비위키 애니"
       ]
     }
   ],
@@ -57,5 +77,13 @@
     "media": "f4ac3b0a266def23ead51dcdd39eb9e4f372fa13a1116ea3665b3ccad06c70b1"
   },
   "common_registry": "https://daeokim.github.io/my-mangayomi/domains.json",
-  "automatic_checker_deployed": false
+  "automatic_checker_deployed": true,
+  "live_tvwiki_protocol_tested": true,
+  "full_video_playback_tested": false,
+  "test_results": {
+    "existing_node_tests_passed": 143,
+    "metadata_python_tests_passed": 8,
+    "native_tests_passed": 16,
+    "native_tests_failed": 0
+  }
 }

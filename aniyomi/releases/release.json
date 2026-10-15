@@ -1,0 +1,12 @@
+{
+  "deltas": [
+    {
+      "source": "aniyomi/media/apk/daeomedia-v14.1003.apk",
+      "source_sha256": "ff68f8e3b3c0cae83c9fe567e5bcb1a710880c35fdb73d8044c55f37de57d45e",
+      "patch": "aniyomi/releases/tvroom-14.1004.bsdiff",
+      "patch_sha256": "f632363fd405e6fc3c104a09798101e9fcfe4bc26727fcddfc8768ccc3046c3e",
+      "target": "aniyomi/media/apk/daeotvroom-v14.1004.apk",
+      "sha256": "9077e3a952dde34d8766481e732b7a599102014d9c08b8b4bd750d45f2d6c7c3"
+    }
+  ]
+}

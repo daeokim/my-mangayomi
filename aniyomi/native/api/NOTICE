@@ -1,0 +1,3 @@
+Compile-only API declarations from https://github.com/komikku-app/aniyomi-extensions-lib
+Commit bdc8184127b72f8f87cbc7bd622d785df5ce0c6e. Apache-2.0.
+These stubs are not packaged in the extension. Only the legacy v14 API is used.

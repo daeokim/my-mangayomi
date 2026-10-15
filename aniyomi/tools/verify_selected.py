@@ -12,7 +12,8 @@ from androguard.core.dex import DEX
 
 ROOT = Path(__file__).resolve().parent.parent
 EXPECTED = {'manga':['11toon 만화','Blacktoon 웹툰','Goodtoon 웹툰'],
-            'media':['DC 영화','DC 드라마','DC 예능','DC 애니']}
+            'media':['DC 영화','DC 드라마','DC 예능','DC 애니'],
+            'tvwiki':['티비위키 영화','티비위키 드라마','티비위키 예능','티비위키 애니']}
 
 def interpret_factory(method):
     """Execute only the tiny registration method; never execute source/network code."""
@@ -36,8 +37,9 @@ def interpret_factory(method):
     raise AssertionError('missing return')
 
 for kind,names in EXPECTED.items():
-    directory = ROOT / kind
+    directory = ROOT / ('media' if kind == 'tvwiki' else kind)
     entries = json.loads((directory/'index.min.json').read_text())
+    entries = [e for e in entries if e['pkg'].endswith('.daeotvwiki') == (kind == 'tvwiki')]
     assert len(entries) == 1
     entry = entries[0]
     assert [s['name'] for s in entry['sources']] == names
@@ -60,6 +62,22 @@ for kind,names in EXPECTED.items():
     lexical = lambda s: tuple(struct.unpack('<'+'H'*(len(s.encode('utf-16le'))//2),s.encode('utf-16le')))
     assert all(lexical(a) < lexical(b) for a,b in zip(strings,strings[1:]))
     assert registry in strings
+    if kind == 'tvwiki':
+        classes = {c.get_name():c for c in dex.get_classes()}
+        prefix = 'Leu/kanade/tachiyomi/animeextension/ko/daeotvwiki/'
+        assert classes[prefix+'TvWiki;'].get_superclassname() == 'Leu/kanade/tachiyomi/animesource/online/AnimeHttpSource;'
+        factory = classes[prefix+'TvWikiFactory;']
+        create = next(m for m in factory.get_methods() if m.get_name() == 'createSources')
+        ids = [i.get_operands()[1][1] for i in create.get_instructions() if i.get_name().startswith('const-wide')]
+        assert [str(i) for i in ids] == [s['id'] for s in entry['sources']]
+        actual_names = [i.get_operands()[1][2] for i in create.get_instructions() if i.get_name() == 'const-string']
+        assert actual_names[1::2] == names
+        assert prefix+'TvWikiProxy;' in classes
+        assert not any(c.startswith(('Leu/kanade/tachiyomi/animesource/', 'Lokhttp3/', 'Lkotlin/')) for c in classes)
+        assert '/api/create_session.php' in strings
+        assert (directory/'icon'/f"{entry['pkg']}.png").is_file()
+        print('tvwiki: separate package, four unique IDs, runtime registry, local proxy, host-only API and certificate PASS')
+        continue
     owner,caller,obsolete = ('Lr1;','j','https://wankyo83.github.io/tokki-traffic-light/domains.json') if kind == 'manga' else ('Lqb;','S','https://t.me/s/tvroom8282')
     source = next(c for c in dex.get_classes() if c.get_name() == owner)
     method = next(m for m in source.get_methods() if m.get_name() == caller)
@@ -120,7 +138,7 @@ for kind,names in EXPECTED.items():
             assert bool(re.search(pattern,'https://blacktoon'+str(number)+'.com')) == (number >= 424)
     else:
         assert [obj['name'] for obj in objects] == names
-        assert 'https://tvroom38.org' in dex.get_strings()
+        assert 'https://tvroom40.org' in dex.get_strings()
         assert 'https://tvroom31.org' not in dex.get_strings()
         assert 'eu.kanade.tachiyomi.animeextension.ko.dctvroom' not in dex.get_strings()
         assert entry['pkg'] in dex.get_strings()
