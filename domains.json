@@ -1,25 +1,20 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-15T16:59:25.578Z",
-  "lastRunAt": "2026-10-15T16:59:25.578Z",
+  "updatedAt": "2026-10-15T21:21:59.982Z",
+  "lastRunAt": "2026-10-15T21:21:59.982Z",
   "domains": {
     "11toon": {
       "baseUrl": "https://11toon.com",
       "status": "protected",
       "lastConfirmedAt": "2026-10-15T04:38:30.028Z",
-      "lastCheckedAt": "2026-10-15T16:59:25.578Z",
+      "lastCheckedAt": "2026-10-15T21:21:59.982Z",
       "reason": "연결 실패 또는 시간 초과",
-      "scanOffset": 2,
+      "scanOffset": 3,
       "attempts": [
         {
           "baseUrl": "https://11toon.com",
           "ok": false,
           "reason": "연결 실패 또는 시간 초과"
-        },
-        {
-          "baseUrl": "https://11toon1.com",
-          "ok": false,
-          "reason": "HTTP 404"
         },
         {
           "baseUrl": "https://11toon2.com",
@@ -65,6 +60,11 @@
           "baseUrl": "https://11toon10.com",
           "ok": false,
           "reason": "연결 실패 또는 시간 초과"
+        },
+        {
+          "baseUrl": "https://11toon1.com",
+          "ok": false,
+          "reason": "HTTP 404"
         }
       ],
       "currentCheck": {
@@ -73,13 +73,13 @@
         "reason": "연결 실패 또는 시간 초과",
         "checked": true
       },
-      "consecutiveFailures": 1
+      "consecutiveFailures": 2
     },
     "blacktoon": {
       "baseUrl": "https://blacktoon424.com",
       "status": "healthy",
-      "lastConfirmedAt": "2026-10-15T16:59:25.578Z",
-      "lastCheckedAt": "2026-10-15T16:59:25.578Z",
+      "lastConfirmedAt": "2026-10-15T21:21:59.982Z",
+      "lastCheckedAt": "2026-10-15T21:21:59.982Z",
       "reason": "목록 구조 확인 · 재생/이미지 검증은 별도",
       "scanOffset": 1,
       "attempts": [
@@ -100,22 +100,22 @@
       "consecutiveFailures": 0
     },
     "goodtoon": {
-      "baseUrl": "https://goodtoon007.com",
+      "baseUrl": "https://www.goodtoon007.com",
       "status": "healthy",
-      "lastConfirmedAt": "2026-10-15T16:59:25.578Z",
-      "lastCheckedAt": "2026-10-15T16:59:25.578Z",
+      "lastConfirmedAt": "2026-10-15T21:21:59.982Z",
+      "lastCheckedAt": "2026-10-15T21:21:59.982Z",
       "reason": "목록 구조 확인 · 재생/이미지 검증은 별도",
       "scanOffset": 1,
       "attempts": [
         {
-          "baseUrl": "https://goodtoon007.com",
+          "baseUrl": "https://www.goodtoon007.com",
           "ok": true,
           "reason": "목록 구조 확인",
-          "finalBaseUrl": "https://goodtoon007.com"
+          "finalBaseUrl": "https://www.goodtoon007.com"
         }
       ],
       "currentCheck": {
-        "baseUrl": "https://www.goodtoon007.com",
+        "baseUrl": "https://goodtoon007.com",
         "checked": false,
         "reason": "다른 후보 확인으로 기존 주소는 미점검"
       },
@@ -124,8 +124,8 @@
     "tvwiki": {
       "baseUrl": "https://tvwiki54.net",
       "status": "healthy",
-      "lastConfirmedAt": "2026-10-15T16:59:25.578Z",
-      "lastCheckedAt": "2026-10-15T16:59:25.578Z",
+      "lastConfirmedAt": "2026-10-15T21:21:59.982Z",
+      "lastCheckedAt": "2026-10-15T21:21:59.982Z",
       "reason": "목록 구조 확인 · 재생/이미지 검증은 별도",
       "scanOffset": 1,
       "attempts": [
@@ -149,20 +149,15 @@
       "baseUrl": "https://tvroom40.org",
       "status": "protected",
       "lastConfirmedAt": "2026-10-14T07:17:21Z",
-      "lastCheckedAt": "2026-10-15T16:59:25.578Z",
+      "lastCheckedAt": "2026-10-15T21:21:59.982Z",
       "reason": "HTTP 403",
-      "scanOffset": 4,
+      "scanOffset": 5,
       "lastConfirmedBy": "external-http-check",
       "attempts": [
         {
           "baseUrl": "https://tvroom40.org",
           "ok": false,
           "reason": "HTTP 403"
-        },
-        {
-          "baseUrl": "https://tvroom43.org",
-          "ok": false,
-          "reason": "연결 실패 또는 시간 초과"
         },
         {
           "baseUrl": "https://tvroom44.org",
@@ -208,6 +203,11 @@
           "baseUrl": "https://tvroom42.org",
           "ok": false,
           "reason": "연결 실패 또는 시간 초과"
+        },
+        {
+          "baseUrl": "https://tvroom43.org",
+          "ok": false,
+          "reason": "연결 실패 또는 시간 초과"
         }
       ],
       "currentCheck": {
@@ -216,7 +216,7 @@
         "reason": "HTTP 403",
         "checked": true
       },
-      "consecutiveFailures": 1
+      "consecutiveFailures": 2
     }
   },
   "control": {
