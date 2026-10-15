@@ -6,7 +6,7 @@ export const PROFILES = {
   blacktoon: { label: "블랙툰", pattern: /^(?:www\.)?blacktoon(\d+)\.com$/, floor: 424, seed: "https://blacktoon424.com", path: "/", identity: /blacktoon|블랙툰/i, cards: /webtoon_[01](?:_\d+)?\.js/i },
   goodtoon: { label: "굿툰", pattern: /^(?:www\.)?goodtoon(\d+)\.com$/, floor: 7, seed: "https://goodtoon007.com", path: "/ongoing/", identity: /goodtoon|굿툰/i, cards: /href\s*=\s*["'][^"']*\/manga\/[^/"']+\/?["']/i },
   tvwiki: { label: "티비위키", pattern: /^(?:www\.)?tvwiki(\d+)\.net$/, floor: 53, seed: "https://tvwiki53.net", path: "/drama", identity: /tvwiki|티비위키/i, cards: /href\s*=\s*["'][^"']*\/(?:drama|movie|ent|ani|animation|entertainment)\/\d+\/?["']/i },
-  tvroom: { label: "티비룸", pattern: /^(?:www\.)?tvroom(\d+)\.org$/, floor: 38, seed: "https://tvroom38.org", path: "/", identity: /tvroom|티비룸/i, cards: /href\s*=\s*["'][^"']*\/video\/[^/"']+\/?["']/i },
+  tvroom: { label: "티비룸", pattern: /^(?:www\.)?tvroom(\d+)\.org$/, floor: 38, seed: "https://tvroom38.org", path: "/", identity: /tvroom|티비룸/i },
 };
 const BLOCKED = /cf-chl-|challenge-platform|just a moment|verify (?:that )?you are human|checking your browser|captcha|access denied|domain (?:is )?for sale|parkingcrew|sedoparking/i;
 const MAX_BYTES = 256 * 1024;
@@ -74,11 +74,43 @@ export async function commitState(env, loaded, next, io = fetch) {
   if (!response.ok) throw new Error("github_write_" + response.status);
   return true;
 }
+// Match the extension's actual v-item cards, not /video/category navigation.
+export function hasTvroomCards(html) {
+  const clean = html.replace(/<!--[\s\S]*?-->|<(script|style)\b[^>]*>[\s\S]*?<\/\1\s*>/gi, '');
+  const attr = (tag, name) => {
+    const match = tag.match(new RegExp('\\s' + name + '\\s*=\\s*(?:"([^"]*)"|\'([^\']*)\')', 'i'));
+    return (match?.[1] ?? match?.[2] ?? '').trim();
+  };
+  const hasClass = (tag, name) => attr(tag, 'class').split(/\s+/).includes(name);
+  const categories = new Set(['영화','드라마','TV예능','음악프로','애니','시사다큐']);
+  let depth = 0, card = null;
+  for (const [tag] of clean.matchAll(/<\/?div\b[^>]*>|<a\b[^>]*>|<img\b[^>]*>/gi)) {
+    if (/^<\/div\b/i.test(tag)) {
+      if (card && depth === card.depth) {
+        if (card.link && card.image) return true;
+        card = null;
+      }
+      depth = Math.max(0, depth - 1);
+    } else if (/^<div\b/i.test(tag)) {
+      depth++;
+      if (hasClass(tag, 'v-item')) card = {depth, link:false, image:false};
+    } else if (card && /^<a\b/i.test(tag) && hasClass(tag, 'v-item-hitarea') && attr(tag, 'aria-label')) {
+      try {
+        const url = new URL(attr(tag, 'href'), 'https://tvroom38.org');
+        const slug = url.pathname.match(/^\/video\/([^/]+)\/?$/)?.[1];
+        if (!url.username && !url.password && normalize('tvroom', url.origin, 0) && slug && !categories.has(decodeURIComponent(slug))) card.link = true;
+      } catch { /* Malformed or foreign links are not work cards. */ }
+    } else if (card && /^<img\b/i.test(tag)) {
+      if (['data-src','data-original','src'].some(name => /^(?:https?:\/\/|\/)/i.test(attr(tag, name)))) card.image = true;
+    }
+  }
+  return false;
+}
 export function assess(key, html, status) {
   if (status < 200 || status >= 300) return "HTTP " + status;
   if (BLOCKED.test(html)) return "보호 화면 또는 차단 응답";
   if (!PROFILES[key].identity.test(html)) return "사이트 이름 미확인";
-  if (!PROFILES[key].cards.test(html)) return "목록 구조 미확인";
+  if (!(key === 'tvroom' ? hasTvroomCards(html) : PROFILES[key].cards.test(html))) return "목록 구조 미확인";
   return "";
 }
 export async function probe(key, base, io = fetch, budget = {used:0}) {
@@ -119,13 +151,20 @@ export async function scanState(initial, io = fetch, now = new Date().toISOStrin
     const offset = Number.isInteger(previous.scanOffset) && previous.scanOffset >= 1 && previous.scanOffset <= 10 ? previous.scanOffset : 1;
     const future = Array.from({length:lookahead},(_,i) => scanCandidate(key,previous.baseUrl,(offset+i-1)%10+1));
     const candidates = pin ? [pin] : [...new Set([upstream,previous.baseUrl,...future].filter(Boolean))];
-    let found = null, reason = "점검 실패";
+    let found = null;
+    const attempts = [];
     for (const candidate of candidates) {
       const result = await probe(key,candidate,io,budget);
-      if (result.ok && normalize(key,result.baseUrl,pin ? 0 : minimum)) { found = result; break; }
-      reason = result.reason || "이전 번호로 이동하여 제외";
+      const accepted = result.ok && !!normalize(key,result.baseUrl,pin ? 0 : minimum);
+      attempts.push({baseUrl:candidate,ok:accepted,reason:accepted ? '목록 구조 확인' : result.reason || '이전 번호로 이동하여 제외',...(result.baseUrl ? {finalBaseUrl:result.baseUrl} : {})});
+      if (accepted) { found = result; break; }
     }
-    next.domains[key] = found ? {...previous,baseUrl:found.baseUrl,status:"healthy",lastConfirmedAt:now,lastCheckedAt:now,reason:"목록 구조 확인 · 재생/이미지 검증은 별도",scanOffset:1} : {...previous,status:"protected",lastCheckedAt:now,reason,scanOffset:offset % 10 + 1};
+    const current = attempts.find(attempt => attempt.baseUrl === previous.baseUrl);
+    const currentCheck = current ? {...current,checked:true} : {baseUrl:previous.baseUrl,checked:false,reason:'다른 후보 확인으로 기존 주소는 미점검'};
+    const reason = current?.reason || attempts[0]?.reason || '점검 실패';
+    const failures = Number.isSafeInteger(previous.consecutiveFailures) && previous.consecutiveFailures >= 0 ? previous.consecutiveFailures : 0;
+    const diagnostics = {attempts,currentCheck,consecutiveFailures:found ? 0 : failures + 1};
+    next.domains[key] = found ? {...previous,...diagnostics,baseUrl:found.baseUrl,status:"healthy",lastConfirmedAt:now,lastCheckedAt:now,reason:"목록 구조 확인 · 재생/이미지 검증은 별도",scanOffset:1} : {...previous,...diagnostics,status:"protected",lastCheckedAt:now,reason,scanOffset:offset % 10 + 1};
   }
   next.updatedAt = now; next.lastRunAt = now; return next;
 }

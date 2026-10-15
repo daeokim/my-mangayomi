@@ -2,8 +2,8 @@ name: 주소 자동 갱신 · Pages 배포
 
 on:
   schedule:
-    # 00:17 UTC = 09:17 Asia/Seoul. Avoid the crowded start of the hour.
-    - cron: '17 0 * * *'
+    # Every 6 hours: 03:17, 09:17, 15:17, 21:17 Asia/Seoul.
+    - cron: '17 */6 * * *'
   workflow_dispatch:
     inputs:
       site:
@@ -44,7 +44,7 @@ jobs:
           node-version: '24'
           package-manager-cache: false
       - name: Verify domain validation and conflict handling
-        run: node --test domain-manager/test.mjs domain-manager/actions.test.mjs
+        run: node --test domain-manager/test.mjs domain-manager/actions.test.mjs domain-manager/status.test.mjs
       - name: Verify metadata synchronization
         run: python -m unittest discover -s domain-manager -p 'test_sync_metadata.py'
       - name: Check addresses and save the shared registry

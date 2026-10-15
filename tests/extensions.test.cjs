@@ -99,7 +99,7 @@ for (const entry of catalogs.flatMap(c => c.entries)) {
 for (const spec of [
   {name:"11toon 만화",key:"11toon",url:"https://11toon999.com"},
   {name:"굿툰",key:"goodtoon",url:"https://goodtoon008.com"},
-  {name:"티비룸",key:"tvroom",url:"https://tvroom39.org"}
+  {name:"티비룸",key:"tvroom",url:"https://tvroom999.org"}
 ]) {
   test(spec.name + ": last automatic address survives a registry outage", async function() {
     const entry = catalogs.flatMap(c => c.entries).find(e => e.name === spec.name), loaded = loadExtension(entry);
@@ -112,6 +112,33 @@ for (const spec of [
 test("TVRoom auxiliary title metadata keeps its original signal service", function() {
   const entry = catalogs[1].entries.find(e => e.name === "티비룸"), loaded = loadExtension(entry);
   assert.equal(loaded.extension.auxiliarySignalUrl,"https://wankyo83.github.io/tokki-traffic-light/domains.json");
+});
+
+test('TVRoom: stale automatic signal and cache cannot override a newer fallback',async()=>{
+  const entry=catalogs[1].entries.find(e=>e.name==='티비룸');
+  const loaded=loadExtension(entry), base=entry.baseUrl;
+  const n=Number(base.match(/tvroom(\d+)/)[1]),old='https://tvroom'+(n-1)+'.org';
+  loaded.preferences.set('tvroom_registry_last_base_v1',old);
+  loaded.respond({domains:{tvroom:{baseUrl:old}}});
+  assert.equal(await loaded.extension._resolveBaseUrl(),base);
+  loaded.respond(null);
+  assert.equal(await loaded.extension._resolveBaseUrl(),base);
+  loaded.extension.source.baseUrl=old;
+  assert.equal(await loaded.extension._resolveBaseUrl(),base);
+  loaded.preferences.set('tvroom_domain_url',old);
+  assert.equal(await loaded.extension._resolveBaseUrl(),old);
+});
+test('TVRoom: newer configured defaults and future registry updates remain supported',async()=>{
+  const entry=catalogs[1].entries.find(e=>e.name==='티비룸'),loaded=loadExtension(entry);
+  const n=Number(entry.baseUrl.match(/tvroom(\d+)/)[1]);
+  const next='https://tvroom'+(n+1)+'.org',future='https://tvroom'+(n+2)+'.org';
+  loaded.extension.source.baseUrl=next;
+  loaded.preferences.set('tvroom_registry_last_base_v1',entry.baseUrl);
+  assert.equal(await loaded.extension._resolveBaseUrl(),next);
+  loaded.respond({domains:{tvroom:{baseUrl:future}}});
+  assert.equal(await loaded.extension._resolveBaseUrl(),future);
+  loaded.respond(null);
+  assert.equal(await loaded.extension._resolveBaseUrl(),future);
 });
 
 const media = [

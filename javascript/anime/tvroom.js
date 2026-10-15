@@ -8,7 +8,7 @@ const mangayomiSources = [{
   itemType: 1,
   isNsfw: false,
   hasCloudflare: false,
-  version: "0.1.30",
+  version: "0.1.31",
   dateFormat: "",
   dateFormatLocale: "",
   pkgPath: "anime/src/ko/tvroom.js",
@@ -352,6 +352,13 @@ class DefaultExtension extends MProvider {
     await Promise.all(workers); return result;
   }
   _isAllowedBaseUrl(v) { return /^https:\/\/(?:www\.)?tvroom\d+\.org\/?$/i.test(this._text(v).trim()); }
+  _isCurrentAutomaticBaseUrl(value) {
+    if (!this._isAllowedBaseUrl(value)) return false;
+    const number = (url) => Number((this._text(url).match(/tvroom(\d+)\.org/i) || [])[1]);
+    const configured = this.source && this.source.baseUrl;
+    const minimum = Math.max(number(this.fallbackBaseUrl), this._isAllowedBaseUrl(configured) ? number(configured) : 0);
+    return number(value) >= minimum;
+  }
   async _resolveBaseUrl() {
     const manual = this._text(this._preference("tvroom_domain_url", "")).trim();
     if (this._isAllowedBaseUrl(manual)) return this._trimSlash(manual);
@@ -360,13 +367,13 @@ class DefaultExtension extends MProvider {
       if (r.statusCode >= 200 && r.statusCode < 300) {
         const data = JSON.parse(r.body);
         const candidate = data && data.domains && data.domains.tvroom ? data.domains.tvroom.baseUrl : "";
-        if (this._isAllowedBaseUrl(candidate)) { new SharedPreferences().setString("tvroom_registry_last_base_v1", this._trimSlash(candidate)); return this._trimSlash(candidate); }
+        if (this._isCurrentAutomaticBaseUrl(candidate)) { new SharedPreferences().setString("tvroom_registry_last_base_v1", this._trimSlash(candidate)); return this._trimSlash(candidate); }
       }
     } catch (_) {}
     const saved = this._text(this._preference("tvroom_registry_last_base_v1", "")).trim();
-    if (this._isAllowedBaseUrl(saved)) return this._trimSlash(saved);
+    if (this._isCurrentAutomaticBaseUrl(saved)) return this._trimSlash(saved);
     const configured = this.source && this.source.baseUrl ? this.source.baseUrl : "";
-    return this._isAllowedBaseUrl(configured) ? this._trimSlash(configured) : this.fallbackBaseUrl;
+    return this._isCurrentAutomaticBaseUrl(configured) ? this._trimSlash(configured) : this.fallbackBaseUrl;
   }
 
   _headers(url, referer) {

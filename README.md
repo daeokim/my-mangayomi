@@ -24,7 +24,7 @@ Aniyomi는 **Daeo Manga 1.4.1003**, **Daeo Media 14.1003**을 설치합니다.
 | 11toon 만화 | 0.1.16 | https://11toon.com | 0.9.2 |
 | 굿툰 | 0.1.14 | https://goodtoon007.com | 0.9.2 |
 | 블랙툰 | 0.1.18 | https://blacktoon424.com | 0.9.2 |
-| 티비룸 | 0.1.30 | https://tvroom40.org | 0.9.9 |
+| 티비룸 | 0.1.31 | https://tvroom40.org | 0.9.9 |
 | 티비위키 | 0.1.17 | https://tvwiki54.net | 0.9.9 |
 
 이 표는 자동 갱신됩니다. 실제 자동 조회 주소와 상태는 [공통 주소 목록](https://daeokim.github.io/my-mangayomi/domains.json)을 확인하세요.
@@ -35,9 +35,12 @@ Aniyomi는 **Daeo Manga 1.4.1003**, **Daeo Media 14.1003**을 설치합니다.
 - **Aniyomi 만화:** 블랙툰의 **주소 갱신 방식 → 중앙신호등**을 선택합니다. 11툰·굿툰은 별도 모드 설정 없이 공통 목록을 조회합니다.
 - **Aniyomi 영상:** Daeo Media가 공통 목록의 티비룸 주소를 읽습니다. 주소 번호 변경마다 APK를 재설치할 필요는 없습니다.
 
-GitHub Actions는 **매일 오전 9:17 한국 시간**에 실행되도록 설정되어 있습니다. 예약 실행은 지연·누락될 수 있으며 실시간 감지가 아닙니다.
+GitHub Actions는 **6시간마다 (한국 시간 03:17·09:17·15:17·21:17)**에 실행되도록 설정되어 있습니다. 예약 실행은 지연·누락될 수 있으며 실시간 감지가 아닙니다.
 중앙 후보 → 기존 주소 → 다음 번호 +1~+10 순으로 확인하며, 기존 주소가 정상인 경우 번호 탐색을 끝냅니다.
-사이트 이름·목록 구조 등을 확인한 주소만 저장합니다. 실패하면 기존 주소를 유지하고 `protected`로 표시합니다.
+사이트 이름·목록 구조 등을 확인한 주소만 저장합니다. 티비룸은 메뉴 링크를 제외하고 작품 카드의 링크·제목·이미지를 확인합니다. 실패하면 기존 주소를 유지하고 `protected`로 표시합니다.
+상태 화면과 Actions 요약에서 현재 주소와 후보별 점검 결과, 연속 실패 횟수, 마지막 정상 확인 후 경과 시간을 확인합니다.
+실패 횟수는 새 집계 시작 이후부터 누적하고 정상 확인 시 0으로 초기화합니다. 12시간 이상 점검이 없으면 상태 화면에서 안내합니다.
+티비룸 0.1.31은 자동 주소·캐시가 현재 예비 주소보다 이전 번호이면 사용하지 않습니다. 직접 지정한 주소는 유지합니다.
 확인된 주소는 Mangayomi JS 예비 주소·버전·목록·위 표에 동기화한 뒤 Pages에 배포합니다.
 
 앱 캐시로 반영이 늦어질 수 있습니다. Mangayomi 블랙툰은 1분, 티비위키는 5분,
@@ -53,7 +56,7 @@ Aniyomi 영상 APK에 표시되는 예비 주소 38은 실제 공통 목록 조�
 ## 검사와 유지관리
 
 ```sh
-node --test domain-manager/test.mjs domain-manager/actions.test.mjs tests/extensions.test.cjs
+node --test domain-manager/test.mjs domain-manager/actions.test.mjs domain-manager/status.test.mjs tests/extensions.test.cjs
 python -m unittest discover -s domain-manager -p 'test_sync_metadata.py'
 python aniyomi/tools/verify_selected.py
 ```

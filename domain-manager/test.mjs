@@ -9,7 +9,7 @@ const fixtures={
  blacktoon:'<title>블랙툰 Blacktoon</title><script>inc_url2 + "/webtoon_0.js"</script>',
  goodtoon:'<title>Goodtoon 굿툰</title><a class="card" href="/manga/a/">작품</a>',
  tvwiki:'<title>TVWiki 티비위키</title><a href="/drama/123">작품</a>',
- tvroom:'<title>TVRoom 티비룸</title><a href="/video/abc">작품</a>'
+ tvroom:'<title>TVRoom 티비룸</title><div class="v-item"><a class="v-item-hitarea" href="/video/abc" aria-label="작품"></a><div><img data-src="/cover.jpg"></div></div>'
 };
 const now='2026-10-13T12:00:00.000Z';
 function originReply(url){const u=new URL(url);if(u.hostname==='wankyo83.github.io')return new Response(JSON.stringify({domains:{}}));const key=Object.keys(PROFILES).find(k=>PROFILES[k].pattern.test(u.hostname));if(!key)return new Response('unavailable',{status:404});return new Response(u.pathname==='/data/config.js'?"var inc_url = 'https://data.example/'; var img_domain = 'https://img.example/';":fixtures[key]);}
@@ -40,3 +40,50 @@ test('mobile admin never embeds secrets and renders registry data as text',async
 
 test("partial scan does not overwrite another source updated during checks",async()=>{const initial=seedState(),scanned=await scanState(initial,originReply,now,["tvwiki"]),latest=clone(initial);latest.domains.blacktoon.baseUrl="https://blacktoon425.com";latest.domains.blacktoon.lastCheckedAt="2026-10-13T11:59:00Z";const merged=mergeScan(latest,initial,scanned);assert.equal(merged.domains.blacktoon.baseUrl,"https://blacktoon425.com");assert.equal(merged.domains.tvwiki.status,"healthy");});
 test("one-source check does not probe other sites",async()=>{const seen=[];const next=await scanState(seedState(),async url=>{seen.push(url);return originReply(url)},now,["tvwiki"]);assert.equal(next.domains.tvwiki.status,"healthy");assert.equal(next.domains.blacktoon.status,"unverified");assert.ok(!seen.some(u=>u.includes("blacktoon")));});
+
+test('TVRoom requires a titled work link and image in the same real card',()=>{
+  const valid=fixtures.tvroom;
+  for(const invalid of [
+    '<title>티비룸</title><nav><a href="/video/영화">영화</a></nav>',
+    valid.replace('/video/abc','/video/%EC%98%81%ED%99%94'),
+    valid.replace(' aria-label="작품"',''),
+    valid.replace('<img data-src="/cover.jpg">',''),
+    valid.replace('/video/abc','https://evil.invalid/video/abc'),
+    '<title>티비룸</title><!--'+valid+'-->',
+    '<title>티비룸</title><script>'+valid+'</script>',
+    valid.replace('<div><img','</div><div><img'),
+  ]) assert.equal(assess('tvroom',invalid,200),'목록 구조 미확인');
+  assert.equal(assess('tvroom',valid.replace('class="v-item"',"class='tile v-item'").replace('/video/abc','https://tvroom40.org/video/abc'),200),'');
+});
+test('current address failure is preserved separately from later candidate failures',async()=>{
+  const initial=seedState();
+  const next=await scanState(initial,async url=>url.includes('tvroom38.org')?new Response('blocked',{status:403}):new Response('<title>티비룸</title>'),now,['tvroom'],2);
+  const d=next.domains.tvroom;
+  assert.equal(d.reason,'HTTP 403');
+  assert.equal(d.currentCheck.reason,'HTTP 403');
+  assert.equal(d.currentCheck.checked,true);
+  assert.equal(d.attempts.length,3);
+  assert.equal(d.attempts[1].reason,'목록 구조 미확인');
+  assert.equal(d.attempts[2].baseUrl,'https://tvroom40.org');
+  assert.equal(d.consecutiveFailures,1);
+});
+test('consecutive failures count scans, preserve confirmation and reset on recovery',async()=>{
+  let state=seedState();state.domains.tvroom.lastConfirmedAt='2026-10-12T00:00:00Z';
+  for(let count=1;count<=2;count++){
+    state=await scanState(state,async()=>new Response('down',{status:503}),now,['tvroom'],10);
+    assert.equal(state.domains.tvroom.consecutiveFailures,count);
+    assert.equal(state.domains.tvroom.lastConfirmedAt,'2026-10-12T00:00:00Z');
+    assert.equal(state.domains.tvwiki.consecutiveFailures,undefined);
+  }
+  state=await scanState(state,originReply,now,['tvroom'],10);
+  assert.equal(state.domains.tvroom.consecutiveFailures,0);
+  assert.equal(state.domains.tvroom.lastConfirmedAt,now);
+  assert.equal(state.domains.tvroom.attempts.length,1);
+});
+test('a successful upstream candidate does not fabricate an old-address check',async()=>{
+  const next=await scanState(seedState(),async url=>url.includes('github.io')?new Response(JSON.stringify({domains:{tvroom:{baseUrl:'https://tvroom40.org'}}})):originReply(url),now,['tvroom']);
+  assert.equal(next.domains.tvroom.baseUrl,'https://tvroom40.org');
+  assert.equal(next.domains.tvroom.currentCheck.checked,false);
+  assert.equal(next.domains.tvroom.currentCheck.baseUrl,'https://tvroom38.org');
+  assert.equal(next.domains.tvroom.attempts.length,1);
+});

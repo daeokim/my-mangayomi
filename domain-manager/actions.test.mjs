@@ -54,3 +54,13 @@ test('runner requires a GitHub token and propagates publication failure',async()
   await assert.rejects(runActions({},async()=>{throw new Error('no fetch');}),/github_secret_missing/);
   await assert.rejects(runActions({GITHUB_TOKEN:'test-only'},async()=>new Response('{}',{status:403})),/github_read_403/);
 });
+test('summary shows failure count and current/candidate reasons separately',()=>{
+  const state=seedState();Object.assign(state.domains.tvroom,{consecutiveFailures:2,reason:'HTTP 403',
+    currentCheck:{baseUrl:'https://tvroom38.org',checked:true,reason:'HTTP 403'},
+    attempts:[{baseUrl:'https://tvroom38.org',reason:'HTTP 403'},
+      {baseUrl:'https://tvroom39.org',reason:'목록 구조 미확인'}]});
+  const text=renderSummary({state,skipped:false},['tvroom']);
+  assert.match(text,/2회/);assert.match(text,/정상 확인 후 경과/);
+  assert.match(text,/점검 시작 당시 주소: https:\/\/tvroom38.org · HTTP 403/);
+  assert.match(text,/https:\/\/tvroom39.org: 목록 구조 미확인/);
+});

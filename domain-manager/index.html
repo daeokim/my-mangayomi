@@ -5,35 +5,36 @@
 <meta name="referrer" content="no-referrer">
 <title>Daeo 자동 주소 상태</title>
 <style>
-:root{color-scheme:dark;font-family:system-ui,sans-serif;background:#101621;color:#edf2fa}*{box-sizing:border-box}body{margin:0}main{max-width:850px;margin:auto;padding:28px 18px 50px}h1{font-size:28px;margin:10px 0}p{line-height:1.6;color:#aab9ce}a{color:#9dc4ff}.actions{display:flex;flex-wrap:wrap;gap:10px;margin:22px 0}button,.button{border:1px solid #3b506f;border-radius:10px;background:#253754;color:white;padding:12px 16px;font:inherit;cursor:pointer;text-decoration:none}.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px}.card{background:#192233;border:1px solid #2d3d54;border-radius:14px;padding:18px;overflow-wrap:anywhere}.card h2{font-size:19px;margin:0 0 12px}.badge{display:inline-block;border-radius:7px;padding:4px 8px;font-size:13px;background:#654517;margin-bottom:10px}.healthy{background:#164f3e}.details{font-size:14px;line-height:1.6;color:#aab9ce}.error{border-left:3px solid #f3b565;padding-left:12px}footer{margin-top:24px;font-size:14px;color:#aab9ce}
+:root{color-scheme:dark;font-family:system-ui,sans-serif;background:#101621;color:#edf2fa}*{box-sizing:border-box}body{margin:0}main{max-width:850px;margin:auto;padding:28px 18px 50px}h1{font-size:28px;margin:10px 0}p{line-height:1.6;color:#aab9ce}a{color:#9dc4ff}.actions{display:flex;flex-wrap:wrap;gap:10px;margin:22px 0}button,.button{border:1px solid #3b506f;border-radius:10px;background:#253754;color:white;padding:12px 16px;font:inherit;cursor:pointer;text-decoration:none}.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px}.card{background:#192233;border:1px solid #2d3d54;border-radius:14px;padding:18px;overflow-wrap:anywhere}.card h2{font-size:19px;margin:0 0 12px}.badge{display:inline-block;border-radius:7px;padding:4px 8px;font-size:13px;background:#654517;margin-bottom:10px}.healthy{background:#164f3e}.details{white-space:pre-line;font-size:14px;line-height:1.6;color:#aab9ce}.error{border-left:3px solid #f3b565;padding-left:12px}footer{margin-top:24px;font-size:14px;color:#aab9ce}
 </style>
 </head>
 <body><main>
 <p>GitHub Actions · 공통 주소 목록</p><h1>자동 주소 상태</h1>
-<p>매일 오전 9:17에 주소를 점검합니다. 예약 실행과 앱 캐시 때문에 반영이 늦어질 수 있습니다.</p>
+<p>6시간마다 주소를 점검합니다. 한국 시간 03:17·09:17·15:17·21:17 예정이며, 예약 실행과 앱 캐시 때문에 반영이 늦어질 수 있습니다.</p>
 <div class="actions"><button id="refresh" type="button">상태 새로고침</button><a class="button" href="https://github.com/daeokim/my-mangayomi/actions/workflows/domains.yml" target="_blank" rel="noopener">지금 점검 · 실행 기록</a><a class="button" href="https://github.com/daeokim/my-mangayomi/blob/main/README.md#주소-자동-갱신" target="_blank" rel="noopener">앱 설정 안내</a></div>
 <p id="last" role="status">주소 목록을 불러오는 중입니다.</p><div id="cards" class="cards"></div>
 <footer>‘목록 확인’은 서버에서 사이트 이름과 작품 목록 구조를 확인했다는 뜻입니다. 이미지·영상 재생 성공을 뜻하지 않습니다. 확인 실패 시 기존 주소를 유지합니다.<p>수동 점검: GitHub 로그인 → Run workflow → site 선택 → Run workflow. 실행 완료 후 이 화면을 새로고침하세요.</p></footer>
-</main><script>
+</main><script type="module">
+import {checkNotice,siteDetails} from './status.mjs';
 'use strict';
 const profiles=[['11toon','11툰',/^(?:www\.)?11toon\d*\.com$/],['blacktoon','블랙툰',/^(?:www\.)?blacktoon\d+\.com$/],['goodtoon','굿툰',/^(?:www\.)?goodtoon\d+\.com$/],['tvwiki','티비위키',/^(?:www\.)?tvwiki\d+\.net$/],['tvroom','티비룸',/^(?:www\.)?tvroom\d+\.org$/]];
-const time=value=>value?new Date(value).toLocaleString('ko-KR',{timeZone:'Asia/Seoul',hour12:false}):'아직 없음';
 function el(tag,text,className){const node=document.createElement(tag);node.textContent=text;if(className)node.className=className;return node;}
 async function refresh(){
  const button=document.getElementById('refresh'),last=document.getElementById('last');button.disabled=true;
  try{
   const res=await fetch('../domains.json?t='+Date.now(),{cache:'no-store',signal:AbortSignal.timeout(12000)});if(!res.ok)throw new Error('HTTP '+res.status);
   const state=await res.json();if(state.schemaVersion!==1||!state.domains)throw new Error('주소 목록 형식 오류');
-  const age=Date.now()-Date.parse(state.lastRunAt);last.className='';
-  last.textContent=state.lastRunAt?'마지막 점검: '+time(state.lastRunAt)+' (한국 시간)':'아직 자동 점검 기록이 없습니다. 실행 기록을 확인하세요.';
-  if(!state.lastRunAt||age>48*60*60*1000){last.className='error';if(state.lastRunAt)last.textContent+=' · 48시간 이상 지났습니다. 실행 기록을 확인하세요.';}
+  const now=Date.now(),notice=checkNotice(state,now);last.className=notice.stale?'error':'';last.textContent=notice.text;
   const cards=document.getElementById('cards');cards.replaceChildren();
   for(const [key,label,pattern] of profiles){const d=state.domains[key];if(!d)throw new Error('주소 항목 누락');const card=el('section','','card');card.append(el('h2',label));
    card.append(el('span',d.status==='healthy'?'목록 확인':d.status==='unverified'?'점검 전':'확인 실패 · 기존 주소 유지','badge'+(d.status==='healthy'?' healthy':'')));
    let target;try{target=new URL(d.baseUrl);}catch{throw new Error('주소 형식 오류');}
    if(target.protocol!=='https:'||target.username||target.password||target.port||target.pathname!=='/'||target.search||target.hash||!pattern.test(target.hostname))throw new Error('허용되지 않은 주소');
    const link=el('a',target.origin);link.href=target.origin;link.target='_blank';link.rel='noopener noreferrer';const address=el('p','');address.append(link);card.append(address);
-   card.append(el('p','최근 점검: '+time(d.lastCheckedAt)+'\n정상 확인: '+time(d.lastConfirmedAt),'details'));card.append(el('p',d.reason||'','details'));cards.append(card);
+   card.append(el('p',siteDetails(d,now),'details'));card.append(el('p',d.reason||'','details'));
+   if(d.currentCheck){const c=d.currentCheck;card.append(el('p','점검 시작 당시 주소: '+c.baseUrl+'\n'+(c.checked?c.reason:'미점검 · 다른 후보 확인 또는 수동 지정'),'details'));}
+   if(Array.isArray(d.attempts)&&d.attempts.length){const detail=el('details','');detail.append(el('summary','주소별 점검 결과 ('+d.attempts.length+'개)'));for(const a of d.attempts){detail.append(el('p',a.baseUrl+'\n'+(a.ok?'목록 확인':a.reason)+(a.finalBaseUrl&&a.finalBaseUrl!==a.baseUrl?'\n최종 이동: '+a.finalBaseUrl:''),'details'));}card.append(detail);}
+   cards.append(card);
   }
  }catch(error){last.className='error';last.textContent='목록을 불러오지 못했습니다: '+error.message+' · 실행 기록에서 점검 결과를 확인하세요.';}
  finally{button.disabled=false;}
