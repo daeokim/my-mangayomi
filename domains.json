@@ -1,37 +1,37 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-14T08:20:04.903Z",
-  "lastRunAt": "2026-10-14T08:20:04.903Z",
+  "updatedAt": "2026-10-15T04:38:30.028Z",
+  "lastRunAt": "2026-10-15T04:38:30.028Z",
   "domains": {
     "11toon": {
       "baseUrl": "https://11toon.com",
       "status": "healthy",
-      "lastConfirmedAt": "2026-10-14T08:20:04.903Z",
-      "lastCheckedAt": "2026-10-14T08:20:04.903Z",
+      "lastConfirmedAt": "2026-10-15T04:38:30.028Z",
+      "lastCheckedAt": "2026-10-15T04:38:30.028Z",
       "reason": "목록 구조 확인 · 재생/이미지 검증은 별도",
       "scanOffset": 1
     },
     "blacktoon": {
       "baseUrl": "https://blacktoon424.com",
       "status": "healthy",
-      "lastConfirmedAt": "2026-10-14T08:20:04.903Z",
-      "lastCheckedAt": "2026-10-14T08:20:04.903Z",
+      "lastConfirmedAt": "2026-10-15T04:38:30.028Z",
+      "lastCheckedAt": "2026-10-15T04:38:30.028Z",
       "reason": "목록 구조 확인 · 재생/이미지 검증은 별도",
       "scanOffset": 1
     },
     "goodtoon": {
-      "baseUrl": "https://goodtoon007.com",
+      "baseUrl": "https://www.goodtoon007.com",
       "status": "healthy",
-      "lastConfirmedAt": "2026-10-14T08:20:04.903Z",
-      "lastCheckedAt": "2026-10-14T08:20:04.903Z",
+      "lastConfirmedAt": "2026-10-15T04:38:30.028Z",
+      "lastCheckedAt": "2026-10-15T04:38:30.028Z",
       "reason": "목록 구조 확인 · 재생/이미지 검증은 별도",
       "scanOffset": 1
     },
     "tvwiki": {
       "baseUrl": "https://tvwiki54.net",
       "status": "healthy",
-      "lastConfirmedAt": "2026-10-14T08:20:04.903Z",
-      "lastCheckedAt": "2026-10-14T08:20:04.903Z",
+      "lastConfirmedAt": "2026-10-15T04:38:30.028Z",
+      "lastCheckedAt": "2026-10-15T04:38:30.028Z",
       "reason": "목록 구조 확인 · 재생/이미지 검증은 별도",
       "scanOffset": 1
     },
@@ -39,9 +39,9 @@
       "baseUrl": "https://tvroom40.org",
       "status": "protected",
       "lastConfirmedAt": "2026-10-14T07:17:21Z",
-      "lastCheckedAt": "2026-10-14T08:20:04.903Z",
-      "reason": "연결 실패 또는 시간 초과",
-      "scanOffset": 2,
+      "lastCheckedAt": "2026-10-15T04:38:30.028Z",
+      "reason": "목록 구조 미확인",
+      "scanOffset": 3,
       "lastConfirmedBy": "external-http-check"
     }
   },
