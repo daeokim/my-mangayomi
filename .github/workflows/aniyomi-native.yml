@@ -10,16 +10,18 @@ permissions:
   contents: read
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '17'
-      - name: Install Android SDK 35
-        run: sdkmanager 'platforms;android-35' 'build-tools;35.0.0'
+      - name: Verify preinstalled Android SDK 35
+        run: |
+          test -f "$ANDROID_HOME/platforms/android-35/android.jar"
+          test -x "$ANDROID_HOME/build-tools/35.0.0/aapt2
       - name: Build and test
         run: bash aniyomi/native/gradlew -p aniyomi/native --no-daemon :tvwiki:assembleRelease :tvwiki:testReleaseUnitTest
       - uses: actions/upload-artifact@v4
