@@ -21,7 +21,7 @@ jobs:
       - name: Verify preinstalled Android SDK 35
         run: |
           test -f "$ANDROID_HOME/platforms/android-35/android.jar"
-          test -x "$ANDROID_HOME/build-tools/35.0.0/aapt2
+          test -x "$ANDROID_HOME/build-tools/35.0.0/aapt2"
       - name: Build and test
         run: bash aniyomi/native/gradlew -p aniyomi/native --no-daemon :tvwiki:assembleRelease :tvwiki:testReleaseUnitTest
       - uses: actions/upload-artifact@v4
