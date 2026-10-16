@@ -1,4 +1,4 @@
-name: Aniyomi TVWiki build and tests
+name: Aniyomi extensions build and tests
 on:
   push:
     branches: [main]
@@ -23,10 +23,16 @@ jobs:
           test -f "$ANDROID_HOME/platforms/android-35/android.jar"
           test -x "$ANDROID_HOME/build-tools/35.0.0/aapt2"
       - name: Build and test
-        run: bash aniyomi/native/gradlew -p aniyomi/native --no-daemon :tvwiki:assembleRelease :tvwiki:testReleaseUnitTest
+        run: >-
+          bash aniyomi/native/gradlew -p aniyomi/native --no-daemon
+          :tvwiki:assembleRelease :tvwiki:testReleaseUnitTest
+          :common:testReleaseUnitTest
+          :ani24:assembleRelease :ani24:testReleaseUnitTest
+          :anilife:assembleRelease :anilife:testReleaseUnitTest
+          :naver:assembleRelease :naver:testReleaseUnitTest
       - uses: actions/upload-artifact@v4
         with:
-          name: tvwiki-unsigned-build-and-tests
+          name: native-unsigned-build-and-tests
           path: |
-            aniyomi/native/tvwiki/build/outputs/apk/release/*-unsigned.apk
-            aniyomi/native/tvwiki/build/reports/tests/testReleaseUnitTest/
+            aniyomi/native/*/build/outputs/apk/release/*-unsigned.apk
+            aniyomi/native/*/build/reports/tests/testReleaseUnitTest/

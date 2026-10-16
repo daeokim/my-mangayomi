@@ -1,6 +1,6 @@
 {
   "date": "2026-10-16",
-  "origin": "TVRoom retained from selected DC engine; independent TVWiki native extension",
+  "origin": "Selected DC manga/TVRoom engines; independent native TVWiki, Ani24, AniLife and Naver extensions",
   "device_installation_tested": false,
   "live_reading_and_playback_tested": false,
   "checks": [
@@ -27,7 +27,13 @@
     "TVWiki version 7 key decoding matches independent site decoder and a synthetic fixture",
     "Bounded live HLS prefix decrypts to ten valid MPEG-TS packet sync bytes",
     "Loopback HLS test verifies master/media playlists, keys, segments and HTTP Range forwarding",
-    "Signed TVRoom binary delta reconstructs exact SHA-256 and is idempotent"
+    "Signed TVRoom binary delta reconstructs exact SHA-256 and is idempotent",
+    "Ani24, AniLife and Naver have independent packages and unique fixed source IDs; no host API classes bundled",
+    "Ani24 unescaped question-mark slugs retain all 25 captured works",
+    "AniLife first-party session, cookie, token retry and dedicated delivery header tested with synthetic TLS server",
+    "Naver URL validation, Korean 23:00 release rollover, locked chapter metadata and ordered viewer image extraction tested",
+    "New native APK signatures match the existing repository certificate",
+    "11toon 101 and Goodtoon 63 captured list entries match upstream work paths, titles, order and thumbnail URLs"
   ],
   "outputs": [
     {
@@ -70,6 +76,39 @@
         "티비위키 예능",
         "티비위키 애니"
       ]
+    },
+    {
+      "kind": "ani24",
+      "file": "daeoani24-v14.1001.apk",
+      "package": "eu.kanade.tachiyomi.animeextension.ko.daeoani24",
+      "version": "14.1001",
+      "size_bytes": 37583,
+      "sha256": "49448d2fca2c5929a6163babe9fb00dbfe41e3ff1b40fc2e3b486e46f9ccd473",
+      "source_names": [
+        "애니24"
+      ]
+    },
+    {
+      "kind": "anilife",
+      "file": "daeoanilife-v14.1001.apk",
+      "package": "eu.kanade.tachiyomi.animeextension.ko.daeoanilife",
+      "version": "14.1001",
+      "size_bytes": 37583,
+      "sha256": "03c4bc66c6e24a250f1227c223154bb8b254d75052730cdeccce2128e5b54531",
+      "source_names": [
+        "애니라이프"
+      ]
+    },
+    {
+      "kind": "naver",
+      "file": "daeonaver-v1.4.1001.apk",
+      "package": "eu.kanade.tachiyomi.extension.ko.daeonaver",
+      "version": "1.4.1001",
+      "size_bytes": 37583,
+      "sha256": "66993246c3bdbaf642d905b798ddafacac8df4754462666c2ad4b63c81edaa7c",
+      "source_names": [
+        "네이버 웹툰"
+      ]
     }
   ],
   "upstream_inputs": {
@@ -81,9 +120,34 @@
   "live_tvwiki_protocol_tested": true,
   "full_video_playback_tested": false,
   "test_results": {
-    "existing_node_tests_passed": 143,
-    "metadata_python_tests_passed": 8,
-    "native_tests_passed": 16,
-    "native_tests_failed": 0
-  }
+    "existing_node_tests_passed": 147,
+    "metadata_python_tests_passed": 9,
+    "native_tests_passed": 24,
+    "native_tests_failed": 0,
+    "native_tvwiki_tests_previous_release_passed": 16
+  },
+  "live_new_sources_protocol_tested": {
+    "ani24": [
+      "catalogue",
+      "details",
+      "episodes",
+      "player API",
+      "HLS playlist"
+    ],
+    "anilife": [
+      "catalogue",
+      "details",
+      "playable episodes",
+      "first-party session",
+      "playback API",
+      "HLS playlist"
+    ],
+    "naver": [
+      "weekday catalogue",
+      "details",
+      "first and last episode-list pages",
+      "free chapter image list"
+    ]
+  },
+  "comparison_report": "aniyomi/upstream-comparison.json"
 }

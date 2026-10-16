@@ -10,7 +10,7 @@ on:
         description: 점검할 사이트
         type: choice
         default: all
-        options: [all, 11toon, blacktoon, goodtoon, tvwiki, tvroom]
+        options: [all, 11toon, blacktoon, goodtoon, tvwiki, tvroom, ani24, anilife]
   push:
     branches: [main]
 

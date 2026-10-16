@@ -217,6 +217,54 @@
         "checked": true
       },
       "consecutiveFailures": 3
+    },
+    "ani24": {
+      "baseUrl": "https://www.ohli24.net",
+      "status": "healthy",
+      "lastConfirmedAt": "2026-10-16T04:37:12.287Z",
+      "lastCheckedAt": "2026-10-16T04:37:12.287Z",
+      "lastConfirmedBy": "external-http-check",
+      "reason": "목록 구조 확인 · 재생/이미지 검증은 별도",
+      "scanOffset": 1,
+      "consecutiveFailures": 0,
+      "attempts": [
+        {
+          "baseUrl": "https://www.ohli24.net",
+          "ok": true,
+          "reason": "목록 구조 확인",
+          "finalBaseUrl": "https://www.ohli24.net"
+        }
+      ],
+      "currentCheck": {
+        "baseUrl": "https://www.ohli24.net",
+        "ok": true,
+        "checked": true,
+        "reason": "목록 구조 확인"
+      }
+    },
+    "anilife": {
+      "baseUrl": "https://anilife01.tv",
+      "status": "healthy",
+      "lastConfirmedAt": "2026-10-16T04:29:25.597Z",
+      "lastCheckedAt": "2026-10-16T04:29:25.597Z",
+      "lastConfirmedBy": "external-http-check",
+      "reason": "목록 구조 확인 · 재생/이미지 검증은 별도",
+      "scanOffset": 1,
+      "consecutiveFailures": 0,
+      "attempts": [
+        {
+          "baseUrl": "https://anilife01.tv",
+          "ok": true,
+          "reason": "목록 구조 확인",
+          "finalBaseUrl": "https://anilife01.tv"
+        }
+      ],
+      "currentCheck": {
+        "baseUrl": "https://anilife01.tv",
+        "ok": true,
+        "checked": true,
+        "reason": "목록 구조 확인"
+      }
     }
   },
   "control": {

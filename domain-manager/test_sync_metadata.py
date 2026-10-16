@@ -35,6 +35,30 @@ class MetadataTests(unittest.TestCase):
     def save_state(self):
         (self.root / 'domains.json').write_text(json.dumps(self.state))
 
+    def test_native_catalog_updates_only_confirmed_nonregressing_addresses(self):
+        p = self.root / 'aniyomi/media/index.min.json'
+        p.parent.mkdir(parents=True)
+        entry = {'pkg': 'eu.kanade.tachiyomi.animeextension.ko.daeoanilife',
+                 'version': '14.1001', 'sources': [{'id': '850164079243120202', 'baseUrl': 'https://anilife01.tv'}]}
+        p.write_text(json.dumps([entry]))
+        self.state['domains']['anilife'] = {'baseUrl': 'https://anilife02.tv', 'lastConfirmedAt': None}
+        self.save_state()
+        self.assertEqual(sync.build_changes(self.root), {})
+        self.state['domains']['anilife']['lastConfirmedAt'] = '2026-10-16T04:00:00Z'
+        self.save_state()
+        changes = sync.build_changes(self.root)
+        updated, = json.loads(changes['aniyomi/media/index.min.json'])
+        self.assertEqual(updated['version'], '14.1001')
+        self.assertEqual(updated['sources'][0]['baseUrl'], 'https://anilife02.tv')
+        p.write_text(changes['aniyomi/media/index.min.json'])
+        self.state['domains']['anilife']['baseUrl'] = 'https://anilife01.tv'
+        self.save_state()
+        self.assertEqual(sync.build_changes(self.root), {})
+        self.state['domains']['anilife']['baseUrl'] = 'https://anilife03.tv'
+        self.state['control']['overrides']['anilife'] = 'https://anilife03.tv'
+        self.save_state()
+        self.assertEqual(sync.build_changes(self.root), {})
+
     def test_update_is_atomic_plan_with_version_cache_floor_and_exact_ids(self):
         self.state['domains']['tvwiki']['baseUrl'] = 'https://tvwiki54.net'
         self.save_state()

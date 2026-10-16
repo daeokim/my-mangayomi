@@ -44,7 +44,7 @@ test('mobile status renders legacy records and separate candidate diagnostics as
   const context=vm.createContext({document,URL,AbortSignal,checkNotice,siteDetails,
     Date:class extends Date{static now(){return now;}},fetch:async()=>({ok:true,json:async()=>state})});
   await vm.runInContext(code+'\nrefresh();',context);
-  assert.equal(elements.cards.children.length,5);
+  assert.equal(elements.cards.children.length,Object.keys(state.domains).length);
   assert.match(elements.cards.children[0].text,/집계 전/);
   const room=elements.cards.children[4];
   assert.match(room.text,/연속 실패: 2회/);

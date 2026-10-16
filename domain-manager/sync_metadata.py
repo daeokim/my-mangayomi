@@ -96,6 +96,32 @@ def build_changes(root):
     for name, entries in catalogs.items():
         if json.dumps(entries, ensure_ascii=False) != originals[name]:
             changes[name] = json.dumps(entries, ensure_ascii=False, indent=2) + '\n'
+    # Native-only sources read the registry at runtime. Refresh their display
+    # addresses without pretending that a domain move rebuilt the signed APK.
+    native_catalog = root / 'aniyomi/media/index.min.json'
+    if native_catalog.is_file():
+        native = json.loads(native_catalog.read_text())
+        before = json.dumps(native, ensure_ascii=False)
+        for entry in native:
+            key = {'eu.kanade.tachiyomi.animeextension.ko.daeoani24': 'ani24',
+                   'eu.kanade.tachiyomi.animeextension.ko.daeoanilife': 'anilife'}.get(entry.get('pkg'))
+            if not key:
+                continue
+            record = state['domains'].get(key, {})
+            if not record.get('lastConfirmedAt') or key in state.get('control', {}).get('overrides', {}):
+                continue
+            pattern = r'(?:www\.)?ohli(\d+)\.net' if key == 'ani24' else r'(?:www\.)?anilife(\d+)\.tv'
+            u = urlsplit(record.get('baseUrl', ''))
+            match = re.fullmatch(pattern, u.hostname or '')
+            if (u.scheme != 'https' or u.username or u.password or u.port or u.path not in ('', '/')
+                    or u.query or u.fragment or not match or not 0 <= int(match[1]) <= 999999):
+                raise ValueError('invalid_native_registry_address')
+            for source in entry['sources']:
+                previous = re.fullmatch(pattern, urlsplit(source['baseUrl']).hostname or '')
+                if previous and int(match[1]) >= int(previous[1]):
+                    source['baseUrl'] = 'https://' + u.hostname
+        if json.dumps(native, ensure_ascii=False) != before:
+            changes['aniyomi/media/index.min.json'] = json.dumps(native, ensure_ascii=False, separators=(',', ':')) + '\n'
     if readme != (root / 'README.md').read_text():
         changes['README.md'] = readme
     return changes

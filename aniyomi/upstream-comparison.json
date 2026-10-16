@@ -1,0 +1,90 @@
+{
+  "checked_at": "2026-10-16T04:45:12.700437+00:00",
+  "upstream_index": "https://dc-manhwa-29bc3f.espr.page/mangayomi/index.json",
+  "scope": "Mangayomi source parsers run against the same captured list response; not an exhaustive catalogue, chapter/image audit or Android playback test.",
+  "existing_aniyomi_manga_engines": "Unchanged; the list-parser comparisons below cover the published Mangayomi JavaScript sources, not an Android runtime execution.",
+  "sources": [
+    {
+      "name": "Blacktoon 웹툰",
+      "baseUrl": "https://blacktoon424.com",
+      "version": "1.0.3",
+      "sourceCodeUrl": "https://dc-manhwa-29bc3f.espr.page/mangayomi/manga/blacktoon.min.js?v=1.0.3",
+      "source_sha256": "c793c6f288422157deac9dfde3bb347b8ee74a3fe6b2982cb6890445a945a51f"
+    },
+    {
+      "name": "Goodtoon 웹툰",
+      "baseUrl": "https://goodtoon007.com",
+      "version": "1.0.1",
+      "sourceCodeUrl": "https://dc-manhwa-29bc3f.espr.page/mangayomi/manga/goodtoon.min.js?v=1.0.1",
+      "source_sha256": "86a1067223dc6a35b8027f19bdb2ae46985767e3fd9e52f24f79cd7b82ad0749"
+    },
+    {
+      "name": "Naver 웹툰",
+      "baseUrl": "https://comic.naver.com",
+      "version": "1.0.2",
+      "sourceCodeUrl": "https://dc-manhwa-29bc3f.espr.page/mangayomi/manga/naver.min.js?v=1.0.2",
+      "source_sha256": "51e2cdb0f2674e307698ec6b84fb123b406842c754fcfd90d532ed6d30820373"
+    },
+    {
+      "name": "11toon 만화",
+      "baseUrl": "https://www.11toon.com",
+      "version": "1.0.13",
+      "sourceCodeUrl": "https://dc-manhwa-29bc3f.espr.page/mangayomi/manga/toon11.min.js?v=1.0.13",
+      "source_sha256": "a0b8349dd756ef3db9842f4776fae3388e8ae5f880d31013c7e323cee4e47d8b"
+    },
+    {
+      "name": "Anilife",
+      "baseUrl": "https://anilife01.tv",
+      "version": "1.0.0",
+      "sourceCodeUrl": "https://dc-manhwa-29bc3f.espr.page/mangayomi/anime/anilife.min.js?v=1.0.0",
+      "source_sha256": "65291dc2be503852fd7217ec17b5f06e63999335841cf426aba6ad1a0d20b945"
+    },
+    {
+      "name": "애니24",
+      "baseUrl": "https://www.ohli24.net",
+      "version": "1.1.0",
+      "sourceCodeUrl": "https://dc-manhwa-29bc3f.espr.page/mangayomi/anime/ohli24.min.js?v=1.1.0",
+      "source_sha256": "d729f4bbc6bdaae98b887dda7d467afb1f7d68a97f7a81b1a986296c1d646b49"
+    }
+  ],
+  "list_comparisons": [
+    {
+      "site": "11toon",
+      "upstream_base": "https://www.11toon.com",
+      "personal_base": "https://11toon.com",
+      "captured_work_count": 101,
+      "same_work_paths": true,
+      "same_titles": true,
+      "same_order": true,
+      "same_thumbnail_urls": true,
+      "capture_sha256": "a37fa9ce3e16adba85096f679523817ce9f1b4cd195e2d3429b2581118a5603d"
+    },
+    {
+      "site": "goodtoon",
+      "upstream_base": "https://goodtoon007.com",
+      "personal_registry_base": "https://goodtoon007.com",
+      "captured_work_count": 63,
+      "same_work_paths": true,
+      "same_titles": true,
+      "same_order": true,
+      "same_thumbnail_urls": true,
+      "capture_sha256": "0717291ebeb8fc788d8ff673e742e838954a8bcb89e5ed9ab6104f2bb239f128"
+    },
+    {
+      "site": "blacktoon",
+      "upstream_base": "https://blacktoon424.com",
+      "personal_base": "https://blacktoon424.com",
+      "live_data_comparison": "unconfirmed: this environment returned an HTML Site Unavailable page for home and config.js"
+    }
+  ],
+  "differences": [
+    "Versions and source IDs differ between the repositories; they are separate extension implementations.",
+    "The personal Mangayomi repository adds a shared domain registry, cache protection, configurable tab rules and list cards. Default lists and filters can therefore differ even when the same underlying site is used.",
+    "www/non-www spellings are not evidence of a different content database. This check verified matching list data for Goodtoon and 11toon only."
+  ],
+  "new_native_sources": {
+    "ani24": "media",
+    "anilife": "media",
+    "naver": "manga"
+  }
+}

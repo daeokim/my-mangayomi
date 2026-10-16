@@ -7,6 +7,8 @@ export const PROFILES = {
   goodtoon: { label: "굿툰", pattern: /^(?:www\.)?goodtoon(\d+)\.com$/, floor: 7, seed: "https://goodtoon007.com", path: "/ongoing/", identity: /goodtoon|굿툰/i, cards: /href\s*=\s*["'][^"']*\/manga\/[^/"']+\/?["']/i },
   tvwiki: { label: "티비위키", pattern: /^(?:www\.)?tvwiki(\d+)\.net$/, floor: 53, seed: "https://tvwiki53.net", path: "/drama", identity: /tvwiki|티비위키/i, cards: /href\s*=\s*["'][^"']*\/(?:drama|movie|ent|ani|animation|entertainment)\/\d+\/?["']/i },
   tvroom: { label: "티비룸", pattern: /^(?:www\.)?tvroom(\d+)\.org$/, floor: 38, seed: "https://tvroom38.org", path: "/", identity: /tvroom|티비룸/i },
+  ani24: { label: "애니24", pattern: /^(?:www\.)?ohli(\d+)\.net$/, floor: 24, seed: "https://www.ohli24.net", path: "/ing", identity: /ohli24|애니24/i, cards: /class\s*=\s*["'][^"']*\bshow-item\b/i },
+  anilife: { label: "애니라이프", pattern: /^(?:www\.)?anilife(\d+)\.tv$/, floor: 1, seed: "https://anilife01.tv", path: "/api/anime?page=1&limit=1&sort=latest&v=catalog-media-2" },
 };
 const BLOCKED = /cf-chl-|challenge-platform|just a moment|verify (?:that )?you are human|checking your browser|captcha|access denied|domain (?:is )?for sale|parkingcrew|sedoparking/i;
 const MAX_BYTES = 256 * 1024;
@@ -109,6 +111,15 @@ export function hasTvroomCards(html) {
 export function assess(key, html, status) {
   if (status < 200 || status >= 300) return "HTTP " + status;
   if (BLOCKED.test(html)) return "보호 화면 또는 차단 응답";
+  if (key === 'anilife') {
+    try {
+      const data = JSON.parse(html);
+      if (!Array.isArray(data.items) || !data.items.length || !data.items.every(item =>
+        item && /^[A-Za-z0-9_-]+$/.test(String(item.id || '')) && typeof item.title === 'string' && item.title.trim() &&
+        typeof item.image === 'string' && /^(?:https:\/\/|\/)/.test(item.image)) || !Number.isInteger(data.pagination?.pages)) return "목록 구조 미확인";
+      return "";
+    } catch { return "목록 구조 미확인"; }
+  }
   if (!PROFILES[key].identity.test(html)) return "사이트 이름 미확인";
   if (!(key === 'tvroom' ? hasTvroomCards(html) : PROFILES[key].cards.test(html))) return "목록 구조 미확인";
   return "";
@@ -118,7 +129,11 @@ export async function probe(key, base, io = fetch, budget = {used:0}) {
   let url = base + PROFILES[key].path;
   try {
     for (let redirects = 0; redirects <= 2; redirects++) {
-      const {response,body} = await timedFetch(url,{redirect:"manual",headers:{"User-Agent":"Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 Chrome/143.0.0.0 Mobile Safari/537.36","Accept":"text/html,application/xhtml+xml","Referer":base+"/"}},io,budget);
+      const headers = key === 'anilife' ? {
+        "User-Agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36",
+        "Accept":"application/json, text/plain, */*", "Accept-Language":"ko-KR,ko;q=0.9,en;q=0.8", "Referer":base+"/tags", "Origin":base
+      } : {"User-Agent":"Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 Chrome/143.0.0.0 Mobile Safari/537.36","Accept":"text/html,application/xhtml+xml","Referer":base+"/"};
+      const {response,body} = await timedFetch(url,{redirect:"manual",headers},io,budget);
       if ([301,302,303,307,308].includes(response.status)) {
         const target = new URL(response.headers.get("Location") || "",url);
         if (target.username || target.password || !normalize(key,target.origin,0) || redirects === 2) return {ok:false,reason:"다른 사이트 이동 또는 과도한 이동"};
@@ -137,7 +152,7 @@ export async function probe(key, base, io = fetch, budget = {used:0}) {
 }
 export function scanCandidate(key, base, offset) {
   const p = PROFILES[key], n = domainNumber(key,base) + offset;
-  const host = key === "11toon" ? "11toon"+n+".com" : key === "goodtoon" ? "goodtoon"+String(n).padStart(3,"0")+".com" : key+n+(key === "tvwiki" ? ".net" : key === "tvroom" ? ".org" : ".com");
+  const host = key === "11toon" ? "11toon"+n+".com" : key === "goodtoon" ? "goodtoon"+String(n).padStart(3,"0")+".com" : key === "ani24" ? "ohli"+n+".net" : key === "anilife" ? "anilife"+String(n).padStart(2,"0")+".tv" : key+n+(key === "tvwiki" ? ".net" : key === "tvroom" ? ".org" : ".com");
   return "https://"+host;
 }
 export async function scanState(initial, io = fetch, now = new Date().toISOString(), keys = Object.keys(PROFILES), lookahead = 1) {
@@ -210,9 +225,9 @@ const headers = {"Cache-Control":"no-store","X-Content-Type-Options":"nosniff","
 function json(value,status=200) { return new Response(JSON.stringify(value),{status,headers:{...headers,"Content-Type":"application/json; charset=utf-8"}}); }
 export default {
   async scheduled(event,env) {
-    // Five hourly checks, staggered into separate invocations to limit CPU work.
-    const minute = new Date(event.scheduledTime).getUTCMinutes();
-    const key = Object.keys(PROFILES)[Math.floor(minute/10) % 5];
+    // Optional Worker schedule: rotate all sites in ten-minute slots.
+    const slot = Math.floor(event.scheduledTime / (10 * 60 * 1000));
+    const key = Object.keys(PROFILES)[slot % Object.keys(PROFILES).length];
     await runCheck(env,fetch,[key]);
   },
   async fetch(request,env) {
@@ -257,7 +272,7 @@ export default {
 };
 export const ADMIN_PAGE = `<!doctype html><html lang="ko"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Daeo 주소 관리</title><style>
 *{box-sizing:border-box}body{margin:0;background:#f3f5f8;color:#1c2735;font-family:system-ui,sans-serif}main{max-width:620px;margin:auto;padding:24px 18px}h1{font-size:26px;margin-bottom:8px}p{line-height:1.55;color:#556274}.panel,article{background:white;border:1px solid #dce2e9;border-radius:16px;padding:18px;margin:16px 0}label{display:block;margin:12px 0 6px}input{font-size:16px;padding:12px;border:1px solid #b6c2d1;border-radius:9px;width:100%}button{font-size:16px;min-height:46px;padding:10px 15px;margin:8px 6px 0 0;border:0;border-radius:9px;background:#2357d2;color:white;cursor:pointer}button.secondary{background:#e6edf9;color:#20426c}button:disabled{opacity:.45}h2{font-size:19px;margin:0 0 9px}.status{font-size:14px;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.55}.success{color:#14743b}.warning{color:#9a4900}#notice{white-space:pre-wrap;line-height:1.5}small{display:block;color:#556274;line-height:1.5;margin-top:9px}a{color:#2357d2}</style><main><h1>주소 관리</h1><p>망가요미 · 애니요미 공통 주소 목록<br>매시간 자동 점검 / 실패하면 이전 주소 유지</p><section class="panel"><label for="token">관리 키</label><input id="token" type="password" autocomplete="off" placeholder="Cloudflare에 저장한 관리 키"><small>키는 이 페이지의 메모리에서만 사용합니다. 새로 열면 다시 입력하세요.</small><button id="load">불러오기</button><button id="check" class="secondary">지금 점검</button><div id="notice" role="status" aria-live="polite"></div></section><div id="cards"></div><p><a href="/domains.json">공개 주소 목록</a> · 앱에서는 주소 직접 지정란을 비워 자동 갱신을 사용하세요.</p></main><script>
-let state=null;const el=id=>document.getElementById(id),labels={'11toon':'11툰',blacktoon:'블랙툰',goodtoon:'굿툰',tvwiki:'티비위키',tvroom:'티비룸'};
+let state=null;const el=id=>document.getElementById(id),labels={'11toon':'11툰',blacktoon:'블랙툰',goodtoon:'굿툰',tvwiki:'티비위키',tvroom:'티비룸',ani24:'애니24',anilife:'애니라이프'};
 function busy(value){document.querySelectorAll('button').forEach(b=>b.disabled=value)}
 async function api(path,body){const res=await fetch(path,{method:body===undefined?'GET':'POST',headers:{Authorization:'Bearer '+el('token').value,'Content-Type':'application/json'},...(body===undefined?{}:{body:JSON.stringify(body)})});const data=await res.json();if(!res.ok)throw Error(data.error||'요청 실패');return data}
 function stamp(v){return v?new Date(v).toLocaleString('ko-KR',{timeZone:'Asia/Seoul'}):'아직 없음'}

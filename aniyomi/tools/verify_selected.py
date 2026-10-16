@@ -39,7 +39,8 @@ def interpret_factory(method):
 for kind,names in EXPECTED.items():
     directory = ROOT / ('media' if kind == 'tvwiki' else kind)
     entries = json.loads((directory/'index.min.json').read_text())
-    entries = [e for e in entries if e['pkg'].endswith('.daeotvwiki') == (kind == 'tvwiki')]
+    package_suffix = {'manga': '.daeomanga', 'media': '.daemedia', 'tvwiki': '.daeotvwiki'}[kind]
+    entries = [e for e in entries if e['pkg'].endswith(package_suffix)]
     assert len(entries) == 1
     entry = entries[0]
     assert [s['name'] for s in entry['sources']] == names
@@ -145,4 +146,44 @@ for kind,names in EXPECTED.items():
         assert apk.get_android_resources().get_packages_names() == [entry['pkg']]
     assert (directory/'icon'/f"{entry['pkg']}.png").is_file()
     print(kind+': catalogue, APK metadata, factory, IDs/defaults and certificate PASS')
-print('Device installation and live reading/playback have not been tested.')
+for directory, suffix, class_name, expected_name, expected_id in [
+    ('media', 'daeoani24', 'Ani24', '애니24', '850164079243120201'),
+    ('media', 'daeoanilife', 'AniLife', '애니라이프', '850164079243120202'),
+    ('manga', 'daeonaver', 'Naver', '네이버 웹툰', '850164079243120301'),
+]:
+    entries = json.loads((ROOT/directory/'index.min.json').read_text())
+    entry, = [e for e in entries if e['pkg'].endswith('.'+suffix)]
+    source, = entry['sources']
+    assert (source['name'], source['id']) == (expected_name, expected_id)
+    apk = APK(str(ROOT/directory/'apk'/entry['apk']))
+    assert apk.get_package() == entry['pkg']
+    assert apk.get_androidversion_name() == entry['version']
+    assert int(apk.get_androidversion_code()) == entry['code']
+    assert apk.get_min_sdk_version() == '24'
+    cert, = apk.get_certificates_der_v2()
+    repo = json.loads((ROOT/directory/'repo.json').read_text())
+    assert hashlib.sha256(cert).hexdigest() == repo['meta']['signingKeyFingerprint']
+    namespace = '{http://schemas.android.com/apk/res/android}'
+    feature = 'tachiyomi.extension' if directory == 'manga' else 'tachiyomi.animeextension'
+    meta = {m.get(namespace+'name'):m.get(namespace+'value') for m in apk.get_android_manifest_xml().findall('.//meta-data')}
+    descriptor = 'L'+entry['pkg'].replace('.','/')+'/'+class_name+';'
+    assert meta[feature+'.class'] == entry['pkg']+'.'+class_name
+    assert meta[feature+'.nsfw'] == '0'
+    classes = {}
+    for raw in apk.get_all_dex():
+        assert raw[12:32] == hashlib.sha1(raw[32:]).digest()
+        assert struct.unpack_from('<I',raw,8)[0] == zlib.adler32(raw[12:]) & 0xffffffff
+        classes.update({c.get_name():c for c in DEX(raw).get_classes()})
+    clazz = classes[descriptor]
+    parent = 'Leu/kanade/tachiyomi/source/online/HttpSource;' if directory == 'manga' else 'Leu/kanade/tachiyomi/animesource/online/AnimeHttpSource;'
+    assert clazz.get_superclassname() == parent
+    getter = next(m for m in clazz.get_methods() if m.get_name() == 'getId')
+    values = [i.get_operands()[1][1] for i in getter.get_instructions() if i.get_name().startswith('const-wide')]
+    assert values == [int(expected_id)]
+    assert not any(c.startswith(('Leu/kanade/tachiyomi/source/', 'Leu/kanade/tachiyomi/animesource/', 'Lokhttp3/', 'Lkotlin/', 'Lorg/json/')) for c in classes)
+    assert (ROOT/directory/'icon'/f"{entry['pkg']}.png").is_file()
+    print(suffix+': standalone package, correct host API, source ID, manifest, DEX and certificate PASS')
+
+all_ids = [s['id'] for folder in ['manga', 'media'] for e in json.loads((ROOT/folder/'index.min.json').read_text()) for s in e['sources']]
+assert len(all_ids) == len(set(all_ids)), 'duplicate published source IDs'
+print('Device installation and full reading/playback have not been tested.')

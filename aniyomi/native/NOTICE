@@ -1,0 +1,8 @@
+Native source implementations use site protocols and selectors checked against the user-supplied DC Mangayomi repository on 2026-10-16.
+Upstream index: https://dc-manhwa-29bc3f.espr.page/mangayomi/index.json
+Ani24 1.1.0: mangayomi/anime/ohli24.min.js
+AniLife 1.0.0: mangayomi/anime/anilife.min.js
+Naver 1.0.2: mangayomi/manga/naver.min.js
+Exact upstream URLs and SHA-256 values are recorded in aniyomi/upstream-comparison.json.
+Original source code and site resources belong to their respective authors. This repository is an independent personal implementation.
+Compile-only host API attribution and Apache-2.0 license: api/NOTICE and api/LICENSE.
