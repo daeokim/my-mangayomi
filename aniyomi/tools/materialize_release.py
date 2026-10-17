@@ -92,7 +92,7 @@ def publish(changes):
         blob = api('/git/blobs', {'encoding': 'base64', 'content': base64.b64encode(binary).decode()})
         elements.append({'path': path, 'mode': '100644', 'type': 'blob', 'sha': blob['sha']})
     tree = api('/git/trees', {'base_tree': parent['tree']['sha'], 'tree': elements})
-    commit = api('/git/commits', {'message': 'Publish verified signed Daeo TVRoom APK', 'parents': [expected], 'tree': tree['sha']})
+    commit = api('/git/commits', {'message': 'Publish verified signed extension APKs', 'parents': [expected], 'tree': tree['sha']})
     api('/git/refs/heads/main', {'sha': commit['sha'], 'force': False}, 'PATCH')
     print('Signed APK commit:', commit['sha'])
 

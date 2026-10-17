@@ -26,7 +26,7 @@ jobs:
         run: >-
           bash aniyomi/native/gradlew -p aniyomi/native --no-daemon
           :tvwiki:assembleRelease :tvwiki:testReleaseUnitTest
-          :common:testReleaseUnitTest
+          :common:testReleaseUnitTest :cronet:testReleaseUnitTest
           :ani24:assembleRelease :ani24:testReleaseUnitTest
           :anilife:assembleRelease :anilife:testReleaseUnitTest
           :naver:assembleRelease :naver:testReleaseUnitTest

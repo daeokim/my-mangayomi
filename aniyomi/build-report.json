@@ -1,5 +1,5 @@
 {
-  "date": "2026-10-16",
+  "date": "2026-10-17",
   "origin": "Selected DC manga/TVRoom engines; independent native TVWiki, Ani24, AniLife and Naver extensions",
   "device_installation_tested": false,
   "live_reading_and_playback_tested": false,
@@ -23,7 +23,7 @@
     "Manga DEX assembled using verified official Apktool 3.0.3 Smali libraries",
     "Native registry skips main-thread network, validates HTTPS/site host, and bounds response size",
     "TVRoom 14.1004 preserves existing daemedia package, certificate and all source IDs",
-    "TVWiki 14.1001 has a distinct package and four unique source IDs; host API classes excluded from APK",
+    "TVWiki 14.1002 has a distinct package and four unique source IDs; host API classes excluded from APK",
     "TVWiki version 7 key decoding matches independent site decoder and a synthetic fixture",
     "Bounded live HLS prefix decrypts to ten valid MPEG-TS packet sync bytes",
     "Loopback HLS test verifies master/media playlists, keys, segments and HTTP Range forwarding",
@@ -33,7 +33,11 @@
     "AniLife first-party session, cookie, token retry and dedicated delivery header tested with synthetic TLS server",
     "Naver URL validation, Korean 23:00 release rollover, locked chapter metadata and ordered viewer image extraction tested",
     "New native APK signatures match the existing repository certificate",
-    "11toon 101 and Goodtoon 63 captured list entries match upstream work paths, titles, order and thumbnail URLs"
+    "11toon 101 and Goodtoon 63 captured list entries match upstream work paths, titles, order and thumbnail URLs",
+    "TVWiki, Ani24 and AniLife source clients use bundled native Cronet 143 with HTTP/2, QUIC and Brotli enabled",
+    "Four process ABI libraries match TVRoom 14.1004 byte-for-byte; Chromium licenses included in APK assets",
+    "Nine Cronet adapter tests cover cookies, POST, redirects and credential isolation, no-redirect clones, redirect body handling, streaming, cancellation and timeouts",
+    "Signed Cronet APK deltas reconstruct exact sealed outputs and are idempotent"
   ],
   "outputs": [
     {
@@ -65,11 +69,11 @@
     },
     {
       "kind": "tvwiki",
-      "file": "daeotvwiki-v14.1001.apk",
+      "file": "daeotvwiki-v14.1002.apk",
       "package": "eu.kanade.tachiyomi.animeextension.ko.daeotvwiki",
-      "version": "14.1001",
-      "size_bytes": 37583,
-      "sha256": "b2afb9a0c93fe4127c48696d030a0d008d80b444d02141d66c1f24e6191b4247",
+      "version": "14.1002",
+      "size_bytes": 25950470,
+      "sha256": "8e0714e8afc556baa31abfe1b5449a0b879459690411a40717343acb4ef7dd9e",
       "source_names": [
         "티비위키 영화",
         "티비위키 드라마",
@@ -79,22 +83,22 @@
     },
     {
       "kind": "ani24",
-      "file": "daeoani24-v14.1001.apk",
+      "file": "daeoani24-v14.1002.apk",
       "package": "eu.kanade.tachiyomi.animeextension.ko.daeoani24",
-      "version": "14.1001",
-      "size_bytes": 37583,
-      "sha256": "49448d2fca2c5929a6163babe9fb00dbfe41e3ff1b40fc2e3b486e46f9ccd473",
+      "version": "14.1002",
+      "size_bytes": 25950470,
+      "sha256": "216a2ea5f3f10bfcdd420828c38a8ad5c1acd59ba6e7633cb84e558c629f0aac",
       "source_names": [
         "애니24"
       ]
     },
     {
       "kind": "anilife",
-      "file": "daeoanilife-v14.1001.apk",
+      "file": "daeoanilife-v14.1002.apk",
       "package": "eu.kanade.tachiyomi.animeextension.ko.daeoanilife",
-      "version": "14.1001",
-      "size_bytes": 37583,
-      "sha256": "03c4bc66c6e24a250f1227c223154bb8b254d75052730cdeccce2128e5b54531",
+      "version": "14.1002",
+      "size_bytes": 25950470,
+      "sha256": "e5cba678c9824e06787ebcbc114bf9aa01ef47e5a87f17c550ba6f02d25df970",
       "source_names": [
         "애니라이프"
       ]
@@ -122,9 +126,10 @@
   "test_results": {
     "existing_node_tests_passed": 147,
     "metadata_python_tests_passed": 9,
-    "native_tests_passed": 24,
+    "native_tests_passed": 48,
     "native_tests_failed": 0,
-    "native_tvwiki_tests_previous_release_passed": 16
+    "native_tests_skipped": 1,
+    "cronet_adapter_tests_passed": 9
   },
   "live_new_sources_protocol_tested": {
     "ani24": [
@@ -149,5 +154,28 @@
       "free chapter image list"
     ]
   },
-  "comparison_report": "aniyomi/upstream-comparison.json"
+  "comparison_report": "aniyomi/upstream-comparison.json",
+  "network_transport": {
+    "engine": "Cronet Embedded",
+    "maven_version": "143.7445.0",
+    "native_version": "143.0.7445.0",
+    "embedded_aar_sha256": "afdd7af7568e9758e3690c3a4a228f30993ac3e4ef0f94c72bb68503c0167697",
+    "applied_to": [
+      "tvwiki",
+      "ani24",
+      "anilife"
+    ],
+    "abis": [
+      "arm64-v8a",
+      "armeabi-v7a",
+      "x86",
+      "x86_64"
+    ],
+    "scope": "Source client requests and TVWiki loopback remote HLS requests; external players and host image loaders retain their own transports",
+    "tls_certificate_verification": true,
+    "host_okhttp_dns_doh_proxy_inherited": false,
+    "android_runtime_tested": false,
+    "wg_disabled_device_tested": false,
+    "prior_live_protocol_tests": "2026-10-16 tests used the previous host OkHttp transport; Cronet native runtime and WG-off access remain unverified"
+  }
 }

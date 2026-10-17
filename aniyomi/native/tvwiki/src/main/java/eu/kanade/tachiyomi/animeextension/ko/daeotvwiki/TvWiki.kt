@@ -1,6 +1,7 @@
 package eu.kanade.tachiyomi.animeextension.ko.daeotvwiki
 
 import eu.kanade.tachiyomi.animesource.AnimeSourceFactory
+import daeo.extensions.common.CronetClient
 import eu.kanade.tachiyomi.animesource.model.*
 import eu.kanade.tachiyomi.animesource.online.AnimeHttpSource
 import okhttp3.*
@@ -42,6 +43,7 @@ internal object TvWikiDomain {
 }
 
 class TvWiki(override val name: String, private val category: String, override val id: Long) : AnimeHttpSource() {
+    override val client: OkHttpClient by lazy { CronetClient.create(super.client, "eu.kanade.tachiyomi.animeextension.ko.daeotvwiki") }
     override fun headersBuilder() = super.headersBuilder().set("User-Agent", "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1")
     override val lang = "ko"
     override val supportsLatest = true

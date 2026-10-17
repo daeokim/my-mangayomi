@@ -7,6 +7,30 @@
       "patch_sha256": "f632363fd405e6fc3c104a09798101e9fcfe4bc26727fcddfc8768ccc3046c3e",
       "target": "aniyomi/media/apk/daeotvroom-v14.1004.apk",
       "sha256": "9077e3a952dde34d8766481e732b7a599102014d9c08b8b4bd750d45f2d6c7c3"
+    },
+    {
+      "source": "aniyomi/media/apk/daeotvroom-v14.1004.apk",
+      "source_sha256": "9077e3a952dde34d8766481e732b7a599102014d9c08b8b4bd750d45f2d6c7c3",
+      "patch": "aniyomi/releases/tvwiki-14.1002.bsdiff",
+      "patch_sha256": "193670070f297b2caaa2d30e9d7c0f41419cd0594a00d3e1dd3c6153f8d74c5b",
+      "target": "aniyomi/media/apk/daeotvwiki-v14.1002.apk",
+      "sha256": "8e0714e8afc556baa31abfe1b5449a0b879459690411a40717343acb4ef7dd9e"
+    },
+    {
+      "source": "aniyomi/media/apk/daeotvroom-v14.1004.apk",
+      "source_sha256": "9077e3a952dde34d8766481e732b7a599102014d9c08b8b4bd750d45f2d6c7c3",
+      "patch": "aniyomi/releases/ani24-14.1002.bsdiff",
+      "patch_sha256": "a613bc325a78d3c76ab61bcf1a9dbc80b058d47c8ac3ed1f4f40517f5b4e9ab6",
+      "target": "aniyomi/media/apk/daeoani24-v14.1002.apk",
+      "sha256": "216a2ea5f3f10bfcdd420828c38a8ad5c1acd59ba6e7633cb84e558c629f0aac"
+    },
+    {
+      "source": "aniyomi/media/apk/daeotvroom-v14.1004.apk",
+      "source_sha256": "9077e3a952dde34d8766481e732b7a599102014d9c08b8b4bd750d45f2d6c7c3",
+      "patch": "aniyomi/releases/anilife-14.1002.bsdiff",
+      "patch_sha256": "29a6ae130e2a645343d13590757911723343785f6569aa821c872fc6a2125928",
+      "target": "aniyomi/media/apk/daeoanilife-v14.1002.apk",
+      "sha256": "e5cba678c9824e06787ebcbc114bf9aa01ef47e5a87f17c550ba6f02d25df970"
     }
   ]
 }

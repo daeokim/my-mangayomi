@@ -1,5 +1,6 @@
 package eu.kanade.tachiyomi.animeextension.ko.daeoanilife
 
+import daeo.extensions.common.CronetClient
 import okhttp3.*
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.json.JSONObject
@@ -26,7 +27,7 @@ internal class AniLifeDelivery {
         require(Regex("/api/playback/[A-Za-z0-9_-]+/[A-Za-z0-9_-]+").matches(path)) { "애니라이프 회차 주소 오류" }
         val parts = path.split('/'); val referer = "$origin/content/${parts[3]}/${parts[4]}"
         // Never follow a redirect with first-party tokens or session cookies attached.
-        val client = upstream.newBuilder().followRedirects(false).followSslRedirects(false).callTimeout(30, TimeUnit.SECONDS).build()
+        val client = CronetClient.withoutRedirects(upstream).newBuilder().callTimeout(30, TimeUnit.SECONDS).build()
         var failure = "영상 주소를 받지 못했습니다."
         repeat(2) { attempt ->
             val s = session(client, origin, referer, headers)

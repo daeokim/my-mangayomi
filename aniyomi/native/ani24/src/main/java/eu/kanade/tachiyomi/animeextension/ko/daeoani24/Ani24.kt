@@ -2,6 +2,7 @@ package eu.kanade.tachiyomi.animeextension.ko.daeoani24
 
 import daeo.extensions.common.MediaPlaylist
 import daeo.extensions.common.SiteDomain
+import daeo.extensions.common.CronetClient
 import eu.kanade.tachiyomi.animesource.model.*
 import eu.kanade.tachiyomi.animesource.online.AnimeHttpSource
 import okhttp3.*
@@ -17,6 +18,7 @@ import java.util.TimeZone
 private val domain = SiteDomain("ani24", "https://www.ohli24.net", Regex("(?:www\\.)?ohli(\\d+)\\.net"))
 
 class Ani24 : AnimeHttpSource() {
+    override val client: OkHttpClient by lazy { CronetClient.create(super.client, "eu.kanade.tachiyomi.animeextension.ko.daeoani24") }
     override val id: Long get() = 850164079243120201L
     override val name = "애니24"
     override val lang = "ko"

@@ -15,6 +15,23 @@ EXPECTED = {'manga':['11toon 만화','Blacktoon 웹툰','Goodtoon 웹툰'],
             'media':['DC 영화','DC 드라마','DC 예능','DC 애니'],
             'tvwiki':['티비위키 영화','티비위키 드라마','티비위키 예능','티비위키 애니']}
 
+def verify_cronet(apk, classes, source_class):
+    import zipfile
+    with zipfile.ZipFile(ROOT/'media/apk/daeotvroom-v14.1004.apk') as original:
+        expected = {abi: hashlib.sha256(original.read(f'lib/{abi}/libcronet.143.0.7445.0.so')).hexdigest()
+                    for abi in ['arm64-v8a','armeabi-v7a','x86','x86_64']}
+    for abi, digest in expected.items():
+        assert hashlib.sha256(apk.get_file(f'lib/{abi}/libcronet.143.0.7445.0.so')).hexdigest() == digest
+    assert apk.get_file('assets/cronet-LICENSE.txt') == (ROOT/'native/cronet/src/main/assets/cronet-LICENSE.txt').read_bytes()
+    assert 'Ldaeo/extensions/common/CronetClient;' in classes
+    assert 'Ldaeo/extensions/common/CronetClient$Transport;' in classes
+    assert 'Lorg/chromium/net/CronetEngine;' in classes
+    assert 'Lorg/chromium/net/impl/NativeCronetEngineBuilderWithLibraryLoaderImpl;' in classes
+    assert any(m.get_name() == 'getClient' for m in source_class.get_methods())
+    strings = [value for raw in apk.get_all_dex() for value in DEX(raw).get_strings()]
+    assert apk.get_package() in strings
+    assert 'Cronet native initialization failed; update the extension and restart Aniyomi' in strings
+
 def interpret_factory(method):
     """Execute only the tiny registration method; never execute source/network code."""
     registers = {}
@@ -77,6 +94,7 @@ for kind,names in EXPECTED.items():
         assert not any(c.startswith(('Leu/kanade/tachiyomi/animesource/', 'Lokhttp3/', 'Lkotlin/')) for c in classes)
         assert '/api/create_session.php' in strings
         assert (directory/'icon'/f"{entry['pkg']}.png").is_file()
+        verify_cronet(apk, classes, classes[prefix+'TvWiki;'])
         print('tvwiki: separate package, four unique IDs, runtime registry, local proxy, host-only API and certificate PASS')
         continue
     owner,caller,obsolete = ('Lr1;','j','https://wankyo83.github.io/tokki-traffic-light/domains.json') if kind == 'manga' else ('Lqb;','S','https://t.me/s/tvroom8282')
@@ -182,6 +200,11 @@ for directory, suffix, class_name, expected_name, expected_id in [
     assert values == [int(expected_id)]
     assert not any(c.startswith(('Leu/kanade/tachiyomi/source/', 'Leu/kanade/tachiyomi/animesource/', 'Lokhttp3/', 'Lkotlin/', 'Lorg/json/')) for c in classes)
     assert (ROOT/directory/'icon'/f"{entry['pkg']}.png").is_file()
+    if directory == 'media':
+        verify_cronet(apk, classes, clazz)
+    else:
+        assert 'Ldaeo/extensions/common/CronetClient;' not in classes
+        assert not any(c.startswith('Lorg/chromium/') for c in classes)
     print(suffix+': standalone package, correct host API, source ID, manifest, DEX and certificate PASS')
 
 all_ids = [s['id'] for folder in ['manga', 'media'] for e in json.loads((ROOT/folder/'index.min.json').read_text()) for s in e['sources']]

@@ -6,3 +6,10 @@ Naver 1.0.2: mangayomi/manga/naver.min.js
 Exact upstream URLs and SHA-256 values are recorded in aniyomi/upstream-comparison.json.
 Original source code and site resources belong to their respective authors. This repository is an independent personal implementation.
 Compile-only host API attribution and Apache-2.0 license: api/NOTICE and api/LICENSE.
+
+TVWiki/Ani24/AniLife 14.1002 bundle official Google Maven Cronet Embedded
+143.7445.0 (Chromium native version 143.0.7445.0), matching TVRoom 14.1004's
+four native libraries. Maven coordinates: org.chromium.net:cronet-embedded:143.7445.0.
+Chromium and bundled dependency licenses are included verbatim in each APK as
+assets/cronet-LICENSE.txt, sourced from:
+https://storage.googleapis.com/chromium-cronet/android/143.0.7445.0/Release/cronet/LICENSE

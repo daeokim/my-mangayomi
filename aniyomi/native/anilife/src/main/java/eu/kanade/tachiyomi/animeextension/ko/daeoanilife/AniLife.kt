@@ -1,6 +1,7 @@
 package eu.kanade.tachiyomi.animeextension.ko.daeoanilife
 
 import daeo.extensions.common.SiteDomain
+import daeo.extensions.common.CronetClient
 import eu.kanade.tachiyomi.animesource.model.*
 import eu.kanade.tachiyomi.animesource.online.AnimeHttpSource
 import okhttp3.*
@@ -13,6 +14,7 @@ import java.util.TimeZone
 private val domain = SiteDomain("anilife", "https://anilife01.tv", Regex("(?:www\\.)?anilife(\\d+)\\.tv"))
 
 class AniLife : AnimeHttpSource() {
+    override val client: OkHttpClient by lazy { CronetClient.create(super.client, "eu.kanade.tachiyomi.animeextension.ko.daeoanilife") }
     override val id: Long get() = 850164079243120202L
     override val name = "애니라이프"
     override val lang = "ko"

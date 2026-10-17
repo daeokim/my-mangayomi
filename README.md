@@ -11,22 +11,28 @@
 | Aniyomi | 만화 확장 앱 저장소 | https://daeokim.github.io/my-mangayomi/aniyomi/manga/index.min.json |
 | Aniyomi | 애니메이션 확장 앱 저장소 | https://daeokim.github.io/my-mangayomi/aniyomi/media/index.min.json |
 
-Aniyomi는 **Daeo Manga 1.4.1003**, **Daeo TVRoom 14.1004**, **Daeo TVWiki 14.1001**을 설치합니다.
+Aniyomi는 **Daeo Manga 1.4.1003**, **Daeo TVRoom 14.1004**, **Daeo TVWiki 14.1002**을 설치합니다.
 만화는 11툰·블랙툰·굿툰, 영상은 티비룸 기반 DC 영화·드라마·예능·애니입니다.
 티비위키는 별도 APK로 영화·드라마·예능·애니 소스를 제공합니다. 앱의 성인 콘텐츠 소스 설정을 켜야 확장이 표시될 수 있습니다.
 Daeo TVRoom은 기존 Daeo Media와 패키지·서명·소스 ID가 같으므로 **기존 앱 위에 업데이트**합니다.
 Daeo TVWiki는 다른 패키지와 고유 소스 ID를 사용하므로 티비룸과 동시에 설치할 수 있습니다.
 
 - [티비룸 APK 14.1004](https://daeokim.github.io/my-mangayomi/aniyomi/media/apk/daeotvroom-v14.1004.apk)
-- [티비위키 APK 14.1001](https://daeokim.github.io/my-mangayomi/aniyomi/media/apk/daeotvwiki-v14.1001.apk)
+- [티비위키 APK 14.1002](https://daeokim.github.io/my-mangayomi/aniyomi/media/apk/daeotvwiki-v14.1002.apk)
 
 추가 소스는 아래의 별도 APK를 설치합니다. 기존 Daeo Manga·TVRoom·TVWiki와 함께 사용할 수 있습니다.
 
 | 소스 | 설치할 저장소 | 버전 | APK |
 |---|---|---|---|
-| 애니24 | 애니메이션 확장 앱 저장소 | 14.1001 | [다운로드](https://daeokim.github.io/my-mangayomi/aniyomi/media/apk/daeoani24-v14.1001.apk) |
-| 애니라이프 | 애니메이션 확장 앱 저장소 | 14.1001 | [다운로드](https://daeokim.github.io/my-mangayomi/aniyomi/media/apk/daeoanilife-v14.1001.apk) |
+| 애니24 | 애니메이션 확장 앱 저장소 | 14.1002 | [다운로드](https://daeokim.github.io/my-mangayomi/aniyomi/media/apk/daeoani24-v14.1002.apk) |
+| 애니라이프 | 애니메이션 확장 앱 저장소 | 14.1002 | [다운로드](https://daeokim.github.io/my-mangayomi/aniyomi/media/apk/daeoanilife-v14.1002.apk) |
 | 네이버 웹툰 | 만화 확장 앱 저장소 | 1.4.1001 | [다운로드](https://daeokim.github.io/my-mangayomi/aniyomi/manga/apk/daeonaver-v1.4.1001.apk) |
+
+티비위키·애니24·애니라이프 **14.1002**는 티비룸 14.1004와 같은 Chromium Cronet 143 엔진을 포함합니다.
+목록·상세·회차·세션 API와 확장이 직접 읽는 HLS 목록을 Cronet으로 요청합니다. HTTP/2·QUIC·Brotli를 켜고 TLS 인증서 검증을 유지합니다.
+기존 패키지·서명·소스 ID를 유지하므로 삭제 없이 업데이트할 수 있습니다. 엔진 포함으로 APK 용량이 늘어납니다.
+Aniyomi 자체 이미지 로더와 외부 플레이어의 연결 방식은 별개이며, 앱의 OkHttp용 DNS/DoH·프록시 설정은 이 Cronet 연결에 자동 적용되지 않습니다.
+통신사·IP 차단까지 해결되는 것은 아니므로 WG를 끈 휴대폰에서 목록·회차·재생을 확인해야 합니다. 실기기 WG 해제 검증은 아직 수행하지 않았습니다.
 
 확장 목록을 새로고침한 뒤 설치합니다. 네이버는 정식 웹툰·베스트도전·도전만화와 검색·요일·장르 필터를 지원합니다.
 로그인·연령 확인·구매가 필요한 네이버 회차는 제한 안내를 표시합니다. 새 세 소스의 고유 ID는 기존 다른 확장과 별개이므로 다른 확장의 보관함을 자동으로 이전하지 않습니다.
