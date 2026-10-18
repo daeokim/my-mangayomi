@@ -11,6 +11,8 @@ import re
 import subprocess
 import urllib.request
 from urllib.parse import urlsplit
+from category_sources import build_categories
+from build_sources import build_anime
 
 PROFILES = {
     '11toon': ('javascript/11toon.js', 'index.json', r'(?:www\.)?11toon\d*\.com'),
@@ -20,15 +22,20 @@ PROFILES = {
     'tvroom': ('javascript/anime/tvroom.js', 'anime_index.json', r'(?:www\.)?tvroom\d+\.org'),
 }
 
+ANIME_PROFILES = {
+    'ani24': ('javascript/anime/ani24.js', 'anime_index.json', r'(?:www\.)?ohli\d+\.net'),
+    'anilife': ('javascript/anime/anilife.js', 'anime_index.json', r'(?:www\.)?anilife\d+\.tv'),
+}
+
 def origin(key, value):
     if not isinstance(value, str):
         raise ValueError('invalid_registry_address')
     u = urlsplit(value)
     if (u.scheme != 'https' or u.username or u.password or u.port or u.query or u.fragment
-            or u.path not in ('', '/') or not re.fullmatch(PROFILES[key][2], u.hostname or '')):
+            or u.path not in ('', '/') or not re.fullmatch((PROFILES | ANIME_PROFILES)[key][2], u.hostname or '')):
         raise ValueError('invalid_registry_address')
     host = re.sub(r'^www\.', '', u.hostname)
-    if int(re.search(r'(\d*)\.(?:com|net|org)$', host)[1] or 0) > 999999:
+    if int(re.search(r'(\d*)\.(?:com|net|org|tv)$', host)[1] or 0) > 999999:
         raise ValueError('invalid_registry_number')
     return 'https://' + host
 
@@ -47,8 +54,10 @@ def build_changes(root):
     originals = {name: json.dumps(value, ensure_ascii=False) for name, value in catalogs.items()}
     readme = (root / 'README.md').read_text()
     changes = {}
-    for key, (source, catalog, _) in PROFILES.items():
-        record = state['domains'][key]
+    for key, (source, catalog, _) in (PROFILES | ANIME_PROFILES).items():
+        if key in ANIME_PROFILES and not (root / source).is_file():
+            continue
+        record = state['domains'].get(key, {})
         # A failed scan keeps the last confirmed address. Unconfirmed seeds and
         # temporary operator pins must not rewrite extension defaults.
         if (not record.get('lastConfirmedAt') or key in state.get('control', {}).get('overrides', {})):
@@ -65,8 +74,8 @@ def build_changes(root):
         if not base or not version or version[1] != entry['version']:
             raise ValueError('source_metadata_mismatch')
         old = origin(key, base[1])
-        old_number = int(re.search(r'(\d*)\.(?:com|net|org)$', old)[1] or 0)
-        new_number = int(re.search(r'(\d*)\.(?:com|net|org)$', target)[1] or 0)
+        old_number = int(re.search(r'(\d*)\.(?:com|net|org|tv)$', old)[1] or 0)
+        new_number = int(re.search(r'(\d*)\.(?:com|net|org|tv)$', target)[1] or 0)
         if new_number < old_number:
             continue
         new_version = version[1]
@@ -89,10 +98,14 @@ def build_changes(root):
         entry['baseUrl'] = target
         entry['version'] = new_version
         row = f"| {entry['name']} | {new_version} | {target} | {entry['appMinVerReq']} |"
-        pattern = r'^\| ' + re.escape(entry['name']) + r' \| [^\n]+$'
+        # Names can also appear in the Aniyomi APK table. Match only the JS
+        # table's version column, never replace the first same-name row.
+        pattern = r'^\| ' + re.escape(entry['name']) + r' \| \d+\.\d+\.\d+ \| [^\n]+$'
         readme, count = re.subn(pattern, lambda _: row, readme, count=1, flags=re.M)
         if count != 1:
             raise ValueError('readme_source_row_missing')
+    readme = build_categories(root, changes, catalogs['anime_index.json'], readme)
+    build_anime(root, changes, catalogs['anime_index.json'])
     for name, entries in catalogs.items():
         if json.dumps(entries, ensure_ascii=False) != originals[name]:
             changes[name] = json.dumps(entries, ensure_ascii=False, indent=2) + '\n'

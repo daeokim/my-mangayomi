@@ -5,6 +5,7 @@ const vm = require("node:vm");
 const { test } = require("node:test");
 
 require("./local-hls.test.cjs");
+require("./media-sources.test.cjs");
 
 const root = path.resolve(__dirname, "..");
 const catalogs = ["index.json", "anime_index.json"].map(function(file) {
@@ -45,7 +46,7 @@ function loadExtension(entry, overrides) {
     "\nglobalThis.extension = new DefaultExtension(); globalThis.metadata = mangayomiSources[0];", sandbox);
   const extension = sandbox.extension;
   extension.source = { baseUrl: entry.baseUrl };
-  if (entry.name === "티비위키") {
+  if (entry.name.startsWith("티비위키")) {
     extension._get = async function() { return (await request()).body; };
   }
   return {
@@ -87,7 +88,7 @@ test("catalogs have unique exact IDs and valid source metadata", function() {
 for (const entry of catalogs.flatMap(c => c.entries)) {
   test(entry.name + ": automatic lookup uses the personal common registry", async function() {
     const requests = [], data = { domains: {} };
-    const key = entry.name === "11toon 만화" ? "11toon" : entry.name === "굿툰" ? "goodtoon" : entry.name === "블랙툰" ? "blacktoon" : entry.name === "티비위키" ? "tvwiki" : "tvroom";
+    const key = entry.name === "11toon 만화" ? "11toon" : entry.name === "굿툰" ? "goodtoon" : entry.name === "블랙툰" ? "blacktoon" : entry.name.startsWith("티비위키") ? "tvwiki" : entry.name === "애니24" ? "ani24" : entry.name === "애니라이프" ? "anilife" : "tvroom";
     data.domains[key] = {baseUrl: entry.baseUrl};
     const loaded = loadExtension(entry, {Client: class { async get(url) { requests.push(url); return {statusCode:200,body:JSON.stringify(data)}; } }});
     if (key === "tvwiki") loaded.extension._get = async url => { requests.push(url); return JSON.stringify(data); };
