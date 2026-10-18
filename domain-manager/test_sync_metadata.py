@@ -2,6 +2,7 @@ import io
 import json
 from pathlib import Path
 import tempfile
+import shutil
 import unittest
 from unittest.mock import patch
 import sync_metadata as sync
@@ -34,6 +35,36 @@ class MetadataTests(unittest.TestCase):
 
     def save_state(self):
         (self.root / 'domains.json').write_text(json.dumps(self.state))
+
+    def test_generated_categories_and_new_anime_follow_atomic_domain_updates(self):
+        repo = Path(__file__).resolve().parents[1]
+        # Real catalogs and templates exercise standalone generation and preserve IDs.
+        for name in ('anime_index.json', 'index.json', 'README.md', 'domains.json'):
+            shutil.copyfile(repo / name, self.root / name)
+        shutil.copytree(repo / 'javascript', self.root / 'javascript', dirs_exist_ok=True)
+        state = json.loads((self.root / 'domains.json').read_text())
+        catalog = json.loads((self.root / 'anime_index.json').read_text())
+        ids = [e['id'] for e in catalog]
+        for key, host in [('tvroom', 'https://tvroom999.org'), ('ani24', 'https://ohli999.net'), ('anilife', 'https://anilife999.tv')]:
+            state['domains'][key].update(baseUrl=host, lastConfirmedAt='2026-10-18T16:00:00Z')
+        (self.root / 'domains.json').write_text(json.dumps(state))
+        changes = sync.build_changes(self.root)
+        updated = json.loads(changes['anime_index.json'])
+        self.assertEqual([e['id'] for e in updated], ids)
+        for entry in updated:
+            if entry['name'].startswith('티비룸'):
+                self.assertEqual(entry['baseUrl'], 'https://tvroom999.org')
+                self.assertEqual(entry['version'], sync.bump(catalog[0]['version']))
+                path = entry['sourceCodeUrl'].split('/my-mangayomi/')[1]
+                self.assertIn('https://tvroom999.org', changes[path])
+                self.assertIn(entry['version'], changes[path])
+        self.assertIn('https://ohli999.net', changes['javascript/anime/ani24.js'])
+        self.assertIn('https://anilife999.tv', changes['javascript/anime/anilife.js'])
+        self.assertIn('| 애니24 | 애니메이션 확장 앱 저장소 | 14.1002 |', changes['README.md'])
+        self.assertIn('| 애니라이프 | 애니메이션 확장 앱 저장소 | 14.1002 |', changes['README.md'])
+        for path, text in changes.items():
+            (self.root / path).write_text(text)
+        self.assertEqual(sync.build_changes(self.root), {})
 
     def test_native_catalog_updates_only_confirmed_nonregressing_addresses(self):
         p = self.root / 'aniyomi/media/index.min.json'
