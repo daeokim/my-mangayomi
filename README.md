@@ -48,15 +48,15 @@ Aniyomi 자체 이미지 로더와 외부 플레이어의 연결 방식은 별�
 | 굿툰 | 0.1.15 | https://goodtoon008.com | 0.9.2 |
 | 블랙툰 | 0.1.19 | https://blacktoon425.com | 0.9.2 |
 | 티비룸 | 0.1.31 | https://tvroom40.org | 0.9.9 |
-| 티비위키 | 0.1.17 | https://tvwiki54.net | 0.9.9 |
+| 티비위키 | 0.1.18 | https://tvwiki55.net | 0.9.9 |
 | 티비룸 · 예능 | 0.1.31 | https://tvroom40.org | 0.9.9 |
 | 티비룸 · 영화 | 0.1.31 | https://tvroom40.org | 0.9.9 |
 | 티비룸 · 드라마 | 0.1.31 | https://tvroom40.org | 0.9.9 |
 | 티비룸 · 애니 | 0.1.31 | https://tvroom40.org | 0.9.9 |
-| 티비위키 · 예능 | 0.1.17 | https://tvwiki54.net | 0.9.9 |
-| 티비위키 · 영화 | 0.1.17 | https://tvwiki54.net | 0.9.9 |
-| 티비위키 · 드라마 | 0.1.17 | https://tvwiki54.net | 0.9.9 |
-| 티비위키 · 애니 | 0.1.17 | https://tvwiki54.net | 0.9.9 |
+| 티비위키 · 예능 | 0.1.18 | https://tvwiki55.net | 0.9.9 |
+| 티비위키 · 영화 | 0.1.18 | https://tvwiki55.net | 0.9.9 |
+| 티비위키 · 드라마 | 0.1.18 | https://tvwiki55.net | 0.9.9 |
+| 티비위키 · 애니 | 0.1.18 | https://tvwiki55.net | 0.9.9 |
 | 애니24 | 0.1.0 | https://ohli24.net | 0.9.9 |
 | 애니라이프 | 0.1.0 | https://anilife01.tv | 0.9.9 |
 
