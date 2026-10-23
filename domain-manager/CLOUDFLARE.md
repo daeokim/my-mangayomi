@@ -41,7 +41,7 @@ TVRoom 현재 주소 연결 실패 및 tvroom42 HTTP 403을 기록했다. 이는
    GITHUB_REPOSITORY=daeokim/my-mangayomi, GITHUB_BRANCH=main은 wrangler.jsonc에 있다.
    ADMIN_TOKEN은 기존 웹 관리자 기능을 쓸 때만 별도로 24자 이상 난수를 Secret으로 등록한다.
    cron에는 ADMIN_TOKEN이 필요 없으며 관리자 endpoint는 없으면 계속 차단된다.
-4. `npx wrangler deploy` 후 Workers & Pages → daeo-domain-manager → Settings → Triggers에서
+4. `npx wrangler deploy` 후 Workers & Pages → my-mangayomi → Settings → Triggers에서
    `*/10 * * * *`를 확인한다. Wrangler로 관리하므로 이후 cron도 wrangler.jsonc로만 변경한다.
    Logs/Observability의 scheduled 실행에서 checker=cloudflare, site, status, lastConfirmedAt을
    확인한다. 세 대상의 실제 목록 확인과 domains.json 커밋을 확인한 뒤 다음 단계로 간다.
