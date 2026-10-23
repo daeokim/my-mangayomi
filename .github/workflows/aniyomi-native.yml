@@ -2,18 +2,20 @@ name: Aniyomi extensions build and tests
 on:
   push:
     branches: [main]
-    paths: ['aniyomi/native/**', '.github/workflows/aniyomi-native.yml']
+    paths: ['aniyomi/native/**', 'aniyomi/tools/**', '.github/workflows/aniyomi-native.yml']
   pull_request:
-    paths: ['aniyomi/native/**', '.github/workflows/aniyomi-native.yml']
+    paths: ['aniyomi/native/**', 'aniyomi/tools/**', '.github/workflows/aniyomi-native.yml']
   workflow_dispatch:
 permissions:
   contents: read
 jobs:
   build:
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
       - uses: actions/setup-java@v5
         with:
           distribution: temurin
@@ -21,7 +23,12 @@ jobs:
       - name: Verify preinstalled Android SDK 35
         run: |
           test -f "$ANDROID_HOME/platforms/android-35/android.jar"
-          test -x "$ANDROID_HOME/build-tools/35.0.0/aapt2"
+          test -x "$ANDROID_HOME/build-tools/35.0.0/apksigner"
+          test -x "$ANDROID_HOME/build-tools/35.0.0/zipalign"
+      - name: Install APK inspection dependency
+        run: python -m pip install 'androguard==4.1.3'
+      - name: Verify immutable release preparation
+        run: python -m unittest discover -s aniyomi/tools -p 'test_signed_release.py' -v
       - name: Build and test
         run: >-
           bash aniyomi/native/gradlew -p aniyomi/native --no-daemon
@@ -30,9 +37,98 @@ jobs:
           :ani24:assembleRelease :ani24:testReleaseUnitTest
           :anilife:assembleRelease :anilife:testReleaseUnitTest
           :naver:assembleRelease :naver:testReleaseUnitTest
+      # These unsigned inputs are private CI artifacts, never Pages contents.
       - uses: actions/upload-artifact@v4
         with:
           name: native-unsigned-build-and-tests
           path: |
             aniyomi/native/*/build/outputs/apk/release/*-unsigned.apk
             aniyomi/native/*/build/reports/tests/testReleaseUnitTest/
+  publish:
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    concurrency:
+      group: extension-signing-main
+      cancel-in-progress: false
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: actions/download-artifact@v4
+        with:
+          name: native-unsigned-build-and-tests
+          path: aniyomi/native
+      - name: Install APK inspection dependency
+        run: python -m pip install 'androguard==4.1.3'
+      - name: Restore historical binary inputs (read-only, hash pinned)
+        run: python aniyomi/tools/materialize_release.py
+      - name: Sign, verify all six extensions, and atomically publish new files
+        env:
+          EXT_SIGNING_KEYSTORE_BASE64: ${{ secrets.EXT_SIGNING_KEYSTORE_BASE64 }}
+          EXT_SIGNING_STORE_PASSWORD: ${{ secrets.EXT_SIGNING_STORE_PASSWORD }}
+          EXT_SIGNING_KEY_ALIAS: ${{ secrets.EXT_SIGNING_KEY_ALIAS }}
+          EXT_SIGNING_KEY_PASSWORD: ${{ secrets.EXT_SIGNING_KEY_PASSWORD }}
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: python aniyomi/tools/signed_release.py
+  deploy:
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    needs: publish
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    # If a newer Pages run replaces a pending deploy, it too checks out latest
+    # main AFTER acquiring this lock, so it includes the committed signed APKs.
+    concurrency:
+      group: pages-and-domain-registry
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      # GITHUB_TOKEN commits do not trigger another push workflow: deploy here.
+      # New job and clean checkout exclude unsigned inputs and signing temp files.
+      - name: Checkout the verified published tree in a clean directory
+        uses: actions/checkout@v6
+        with:
+          ref: main
+          path: published
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          package-manager-cache: false
+      - name: Verify published domain and catalog metadata
+        working-directory: published
+        run: |
+          node --test domain-manager/*.test.mjs domain-manager/test.mjs
+          python -m unittest discover -s domain-manager -p 'test_sync_metadata.py'
+      - name: Prepare the public site from committed files only
+        working-directory: published
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import shutil
+          shutil.copytree('.', '_site', ignore=shutil.ignore_patterns('.git', '.github', '_site', '__pycache__'))
+          Path('_site/.nojekyll').touch()
+          PY
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: published/_site
+          retention-days: 1
+      - name: Deploy verified signed extensions
+        id: deployment
+        uses: actions/deploy-pages@v4
