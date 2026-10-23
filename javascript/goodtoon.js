@@ -1,14 +1,14 @@
 const mangayomiSources = [{
   name: "굿툰",
   lang: "ko",
-  baseUrl: "https://goodtoon008.com",
+  baseUrl: "https://goodtoon009.com",
   apiUrl: "",
   iconUrl: "https://dc-toki-mangayomi-manga.pages.dev/icon/ko.goodtoon.png",
   typeSource: "single",
   itemType: 0,
   isNsfw: true,
   hasCloudflare: false,
-  version: "0.1.15",
+  version: "0.1.16",
   dateFormat: "yy.MM.dd",
   dateFormatLocale: "ko_KR",
   pkgPath: "manga/src/ko/goodtoon.js"
@@ -176,7 +176,7 @@ class DefaultExtension extends MProvider {
     const originalGetDetail = DefaultExtension.prototype.getDetail.bind(this);
     this.getDetail = async (url) => dcApplySiteOrderEpisodeNumbers(await originalGetDetail(url));
     this.signalUrl = "https://daeokim.github.io/my-mangayomi/domains.json";
-    this.fallbackBaseUrl = "https://goodtoon008.com";
+    this.fallbackBaseUrl = "https://goodtoon009.com";
     this.searchUserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36";
     this.userAgent = "Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Mobile Safari/537.36";
     this.imageAccept = "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8";
@@ -277,7 +277,7 @@ class DefaultExtension extends MProvider {
 
   async _resolveBaseUrl() {
     const manual = this._text(this._preference("goodtoon_domain_url", "")).trim();
-    if (manual && !this._isAllowedBaseUrl(manual)) throw new Error("굿툰 수동 주소 형식이 잘못됐습니다. https://goodtoon008.com 같은 주소를 입력하거나, 자동 주소를 사용하려면 입력란을 비우세요.");
+    if (manual && !this._isAllowedBaseUrl(manual)) throw new Error("굿툰 수동 주소 형식이 잘못됐습니다. https://goodtoon009.com 같은 주소를 입력하거나, 자동 주소를 사용하려면 입력란을 비우세요.");
     if (this._isAllowedBaseUrl(manual)) return this._trimSlash(manual);
     try {
       const response = await new Client({ persistentConnection: false, noProxy: true, timeout: 8, connectTimeout: 5 }).get(this.signalUrl, {
@@ -289,11 +289,11 @@ class DefaultExtension extends MProvider {
         const data = JSON.parse(response.body);
         const candidate = data && data.domains && data.domains.goodtoon ? data.domains.goodtoon.baseUrl : "";
         // The configured 007 migration must not be undone by a stale 006 signal.
-        if (this._isAllowedBaseUrl(candidate) && Number((candidate.match(/goodtoon(\d+)\.com/i) || [])[1]) >= 8) { new SharedPreferences().setString("goodtoon_registry_last_base_v1", this._trimSlash(candidate)); return this._trimSlash(candidate); }
+        if (this._isAllowedBaseUrl(candidate) && Number((candidate.match(/goodtoon(\d+)\.com/i) || [])[1]) >= 9) { new SharedPreferences().setString("goodtoon_registry_last_base_v1", this._trimSlash(candidate)); return this._trimSlash(candidate); }
       }
     } catch (_) {}
     const saved = this._text(this._preference("goodtoon_registry_last_base_v1", "")).trim();
-    if (this._isAllowedBaseUrl(saved) && Number((saved.match(/goodtoon(\d+)\.com/i) || [])[1]) >= 8) return this._trimSlash(saved);
+    if (this._isAllowedBaseUrl(saved) && Number((saved.match(/goodtoon(\d+)\.com/i) || [])[1]) >= 9) return this._trimSlash(saved);
     const configured = this.source && this.source.baseUrl ? this.source.baseUrl : "";
     return this._isAllowedBaseUrl(configured) ? this._trimSlash(configured) : this.fallbackBaseUrl;
   }
