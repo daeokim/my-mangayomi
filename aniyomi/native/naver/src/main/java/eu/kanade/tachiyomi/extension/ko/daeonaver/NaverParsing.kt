@@ -41,7 +41,21 @@ internal object NaverParsing {
         NaverChapter("/${p.type}/detail?titleId=${p.titleId}&no=$no", no.toFloat(), "$no - " + (if (a.optBoolean("thumbnailLock")) "🔒 " else "") + a.optString("subtitle"), date(a.optString("serviceDateDescription"), now))
     }.orEmpty()
     fun date(value: String, now: Long): Long {
-        if (value.contains(':')) return now
+        if (value.contains(':')) {
+            val time = Regex("^(\\d{1,2}):(\\d{2})$").matchEntire(value.trim()) ?: return 0
+            return runCatching {
+                val published = Calendar.getInstance(TimeZone.getTimeZone("Asia/Seoul"), Locale.KOREA).apply {
+                    isLenient = false
+                    timeInMillis = now
+                    set(Calendar.HOUR_OF_DAY, time.groupValues[1].toInt())
+                    set(Calendar.MINUTE, time.groupValues[2].toInt())
+                    set(Calendar.SECOND, 0)
+                    set(Calendar.MILLISECOND, 0)
+                }
+                if (published.timeInMillis > now) published.add(Calendar.DAY_OF_MONTH, -1)
+                published.timeInMillis
+            }.getOrDefault(0)
+        }
         val m = Regex("^(\\d{4}|\\d{2})\\.(\\d{2})\\.(\\d{2})").find(value) ?: return 0
         val year = m.groupValues[1].let { if (it.length == 2) "20$it" else it }
         return runCatching { SimpleDateFormat("yyyy-MM-dd", Locale.KOREA).apply { isLenient = false; timeZone = TimeZone.getTimeZone("Asia/Seoul") }.parse("$year-${m.groupValues[2]}-${m.groupValues[3]}")!!.time }.getOrDefault(0)
