@@ -17,3 +17,5 @@ jobs:
           package-manager-cache: false
       - run: node --test domain-manager/*.test.mjs domain-manager/test.mjs
       - run: python -m unittest discover -s domain-manager -p 'test_sync_metadata.py'
+      - name: Compare production and browser headers from the same runner (read only)
+        run: node domain-manager/compare-headers.mjs
