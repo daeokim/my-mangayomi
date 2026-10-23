@@ -99,7 +99,7 @@ for (const entry of catalogs.flatMap(c => c.entries)) {
 }
 for (const spec of [
   {name:"11toon 만화",key:"11toon",url:"https://11toon999.com"},
-  {name:"굿툰",key:"goodtoon",url:"https://goodtoon008.com"},
+  {name:"굿툰",key:"goodtoon",url:"https://goodtoon999.com"},
   {name:"티비룸",key:"tvroom",url:"https://tvroom999.org"}
 ]) {
   test(spec.name + ": last automatic address survives a registry outage", async function() {
