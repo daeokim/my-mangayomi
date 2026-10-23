@@ -100,6 +100,32 @@ class AniLifeDomainTest {
         assertTrue(seen.filter { it.url.host != "anilife01.tv" }.all { it.header("X-Anilife-Playback") == null })
         assertEquals("https://anilife03.tv", domain.current)
     }
+    @Test fun onlyFiveCandidatesAreProbedAndForeignRedirectIsNotFollowed() {
+        val store = Store(); val domain = AniLifeDomain(store); val seen = mutableListOf<String>()
+        val transport = OkHttpClient.Builder().addInterceptor {
+            val request = it.request(); seen += request.url.host
+            if (request.url.host == "daeokim.github.io") reply(request, 503, "{}")
+            else reply(request, 302, "").newBuilder().header("Location", "https://evil.test/api/anime").build()
+        }.build()
+        // The raw candidate transport returns forbidden redirects.
+        assertNull(domain.recover(transport, domain.current))
+        assertEquals((2..6).map { "anilife0$it.tv" }, seen.filter { it != "daeokim.github.io" })
+        assertNull(store.value); assertEquals(AniLifeDomain.SEED, domain.current)
+    }
+    @Test fun validatedForwardRedirectPersistsFinalOrigin() {
+        val store = Store(); val domain = AniLifeDomain(store)
+        val transport = OkHttpClient.Builder().addInterceptor {
+            val request = it.request()
+            when (request.url.host) {
+                "daeokim.github.io" -> reply(request, 503, "{}")
+                "anilife02.tv" -> reply(request, 302, "").newBuilder().header("Location", "https://anilife03.tv" + AniLifeDomain.CATALOG).build()
+                "anilife03.tv" -> reply(request, 200, catalog)
+                else -> error("unexpected origin")
+            }
+        }.build()
+        assertEquals("https://anilife03.tv", domain.recover(transport, domain.current))
+        assertEquals("https://anilife03.tv", AniLifeDomain(store).current)
+    }
     @Test fun missingChapter404DoesNotStartDomainScanning() {
         val domain = AniLifeDomain(Store()); var calls = 0
         val transport = OkHttpClient.Builder().addInterceptor { calls++; reply(it.request(), 404, "missing") }.build()

@@ -91,7 +91,7 @@ internal class AniLifeDomain(private val store: LifeDomainStore) {
             client.newCall(request).execute().use { response ->
                 if (response.code in listOf(301, 302, 303, 307, 308)) {
                     val target = response.header("Location")?.let(url::resolve) ?: return false
-                    val targetOrigin = origin(target) ?: return false
+                    val targetOrigin = AniLifeDomain.origin(target) ?: return false
                     if (hop == 2 || number(targetOrigin) < number(origin)) return false
                     url = target; return@use
                 }
