@@ -31,7 +31,10 @@ META-INF 서명을 제거한 뒤 zipalign(16KiB native alignment), apksigner v2/
 진행 중 native/tools 변경, 이미 사용 중인 파일명은 게시를 중단한다.
 main의 업데이트는 force=false이며 주소와 충돌하면 최신 상태에서 최대 3회 재시도한다.
 GITHUB_TOKEN 커밋은 push 이벤트를 재발생시키지 않으므로 동일 작업에서 깨끗한 새 checkout의
-커밋된 파일만 Pages에 배포한다. Pages/주소 작업과 같은 concurrency 그룹을 사용한다.
+커밋된 파일만 별도 deploy job에서 Pages에 배포한다. 서명 게시에는 별도 직렬화 그룹을,
+Pages job에는 주소 작업과 같은 concurrency 그룹을 사용한다. GitHub의 단일 pending 제한으로
+대기 중 Pages job이 최신 주소 작업에 대체돼도, 대체 작업은 lock 획득 후 최신 main을 checkout해
+이미 커밋된 새 APK를 포함한다. 주소 실행 때문에 아직 커밋하지 않은 서명 작업이 취소되지 않는다.
 
 새 APK는 최대 약 25MB이며 GitHub의 일반 파일 저장 범위 안이다. 새 서명 결과를 완전한
 불변 APK로 추가하므로 새 델타는 필요 없다. 중복 저장 공간은 늘지만 델타 연쇄·옛 서명 의존을

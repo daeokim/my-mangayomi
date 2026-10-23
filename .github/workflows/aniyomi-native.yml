@@ -8,10 +8,6 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
-# Same lock as the Pages/domain publisher; registry commits cannot interleave.
-concurrency:
-  group: ${{ github.event_name == 'pull_request' && format('extension-pr-{0}', github.event.number) || 'pages-and-domain-registry' }}
-  cancel-in-progress: false
 jobs:
   build:
     runs-on: ubuntu-24.04
@@ -53,13 +49,11 @@ jobs:
     needs: build
     runs-on: ubuntu-24.04
     timeout-minutes: 30
+    concurrency:
+      group: extension-signing-main
+      cancel-in-progress: false
     permissions:
       contents: write
-      pages: write
-      id-token: write
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v6
         with:
@@ -86,9 +80,26 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
           GITHUB_REPOSITORY: ${{ github.repository }}
         run: python aniyomi/tools/signed_release.py
+  deploy:
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    needs: publish
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    # If a newer Pages run replaces a pending deploy, it too checks out latest
+    # main AFTER acquiring this lock, so it includes the committed signed APKs.
+    concurrency:
+      group: pages-and-domain-registry
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
       # GITHUB_TOKEN commits do not trigger another push workflow: deploy here.
-      # A fresh checkout prevents unsigned builds or temporary signing files
-      # from entering the public site.
+      # New job and clean checkout exclude unsigned inputs and signing temp files.
       - name: Checkout the verified published tree in a clean directory
         uses: actions/checkout@v6
         with:

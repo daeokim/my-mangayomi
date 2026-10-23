@@ -323,7 +323,7 @@ def publish(catalogs, changes, state):
             elements.append({'path': path, 'mode': '100644', 'type': 'blob', 'sha': blob['sha']})
         base = api('/git/commits/' + parent)
         tree = api('/git/trees', {'base_tree': base['tree']['sha'], 'tree': elements})
-        commit = api('/git/commits', {'message': 'Publish six verified Dtoon extensions [skip ci]', 'parents': [parent], 'tree': tree['sha']})
+        commit = api('/git/commits', {'message': 'Publish six verified Dtoon extensions', 'parents': [parent], 'tree': tree['sha']})
         try:
             api('/git/refs/heads/main', {'sha': commit['sha'], 'force': False}, 'PATCH')
         except urllib.error.HTTPError as error:
