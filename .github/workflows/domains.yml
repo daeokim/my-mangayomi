@@ -49,7 +49,7 @@ jobs:
           node-version: '24'
           package-manager-cache: false
       - name: Verify domain validation and conflict handling
-        run: node --test domain-manager/test.mjs domain-manager/actions.test.mjs domain-manager/status.test.mjs
+        run: node --test domain-manager/*.test.mjs domain-manager/test.mjs
       - name: Verify metadata synchronization
         run: python -m unittest discover -s domain-manager -p 'test_sync_metadata.py'
       - name: Check addresses and save the shared registry
@@ -58,6 +58,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           CHECK_SITE: ${{ inputs.site || 'all' }}
+          DOMAIN_CHECK_BACKEND: ${{ vars.DOMAIN_CHECK_BACKEND || 'actions' }}
         run: node domain-manager/actions.mjs
       # GITHUB_TOKEN commits do not start the branch-based Pages publisher.
       # Deploy explicitly in this workflow, including the just-saved registry.

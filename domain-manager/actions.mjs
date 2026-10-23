@@ -27,7 +27,18 @@ export function renderSummary(result,keys) {
     '[휴대폰 상태 화면](https://daeokim.github.io/my-mangayomi/domain-manager/)','');
   return lines.join('\n');
 }
+export function checkBackend(value = 'actions') {
+  if (!['actions','cloudflare'].includes(value)) throw new Error('unknown_domain_check_backend');
+  return value;
+}
 export async function runActions(env = process.env,io = fetch) {
+  const backend = checkBackend(env.DOMAIN_CHECK_BACKEND || 'actions');
+  if (backend === 'cloudflare') {
+    const summary = '# 주소 점검 주체: Cloudflare Worker\n\nActions는 주소 점검/저장을 생략하고 최신 registry의 metadata/Pages 배포를 계속합니다.\n';
+    if (env.GITHUB_STEP_SUMMARY) await appendFile(env.GITHUB_STEP_SUMMARY,summary,'utf8');
+    console.log(summary);
+    return {skipped:true,backend};
+  }
   if (!env.GITHUB_TOKEN) throw new Error('github_secret_missing');
   const keys=selectedKeys(env.CHECK_SITE || 'all');
   const result=await runCheck({...env,GITHUB_REPOSITORY:env.GITHUB_REPOSITORY || 'daeokim/my-mangayomi',GITHUB_BRANCH:'main'},io,keys,10);

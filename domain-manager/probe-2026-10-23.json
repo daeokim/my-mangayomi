@@ -1,0 +1,302 @@
+{
+  "checkedAt": "2026-10-23T12:33:03.878276+00:00",
+  "origin": "Codex task host (not GitHub Actions; not Cloudflare Worker)",
+  "registry": {
+    "goodtoon": {
+      "baseUrl": "https://www.goodtoon008.com",
+      "status": "protected",
+      "lastConfirmedAt": "2026-10-20T11:34:00.854Z",
+      "lastCheckedAt": "2026-10-23T11:36:29.871Z",
+      "reason": "HTTP 403",
+      "scanOffset": 3,
+      "attempts": [
+        {
+          "baseUrl": "https://www.goodtoon008.com",
+          "ok": false,
+          "reason": "HTTP 403"
+        },
+        {
+          "baseUrl": "https://goodtoon010.com",
+          "ok": false,
+          "reason": "연결 실패 또는 시간 초과"
+        },
+        {
+          "baseUrl": "https://goodtoon011.com",
+          "ok": false,
+          "reason": "연결 실패 또는 시간 초과"
+        },
+        {
+          "baseUrl": "https://goodtoon012.com",
+          "ok": false,
+          "reason": "연결 실패 또는 시간 초과"
+        },
+        {
+          "baseUrl": "https://goodtoon013.com",
+          "ok": false,
+          "reason": "연결 실패 또는 시간 초과"
+        },
+        {
+          "baseUrl": "https://goodtoon014.com",
+          "ok": false,
+          "reason": "연결 실패 또는 시간 초과"
+        },
+        {
+          "baseUrl": "https://goodtoon015.com",
+          "ok": false,
+          "reason": "연결 실패 또는 시간 초과"
+        },
+        {
+          "baseUrl": "https://goodtoon016.com",
+          "ok": false,
+          "reason": "연결 실패 또는 시간 초과"
+        },
+        {
+          "baseUrl": "https://goodtoon017.com",
+          "ok": false,
+          "reason": "연결 실패 또는 시간 초과"
+        },
+        {
+          "baseUrl": "https://goodtoon018.com",
+          "ok": false,
+          "reason": "연결 실패 또는 시간 초과"
+        },
+        {
+          "baseUrl": "https://goodtoon009.com",
+          "ok": false,
+          "reason": "연결 실패 또는 시간 초과"
+        }
+      ],
+      "currentCheck": {
+        "baseUrl": "https://www.goodtoon008.com",
+        "ok": false,
+        "reason": "HTTP 403",
+        "checked": true
+      },
+      "consecutiveFailures": 12
+    },
+    "tvroom": {
+      "baseUrl": "https://tvroom40.org",
+      "status": "protected",
+      "lastConfirmedAt": "2026-10-14T07:17:21Z",
+      "lastCheckedAt": "2026-10-23T11:36:29.871Z",
+      "reason": "연결 실패 또는 시간 초과",
+      "scanOffset": 4,
+      "lastConfirmedBy": "external-http-check",
+      "attempts": [
+        {
+          "baseUrl": "https://tvroom42.org",
+          "ok": false,
+          "reason": "HTTP 403"
+        },
+        {
+          "baseUrl": "https://tvroom40.org",
+          "ok": false,
+          "reason": "연결 실패 또는 시간 초과"
+        },
+        {
+          "baseUrl": "https://tvroom43.org",
+          "ok": false,
+          "reason": "연결 실패 또는 시간 초과"
+        },
+        {
+          "baseUrl": "https://tvroom44.org",
+          "ok": false,
+          "reason": "연결 실패 또는 시간 초과"
+        },
+        {
+          "baseUrl": "https://tvroom45.org",
+          "ok": false,
+          "reason": "연결 실패 또는 시간 초과"
+        },
+        {
+          "baseUrl": "https://tvroom46.org",
+          "ok": false,
+          "reason": "연결 실패 또는 시간 초과"
+        },
+        {
+          "baseUrl": "https://tvroom47.org",
+          "ok": false,
+          "reason": "연결 실패 또는 시간 초과"
+        },
+        {
+          "baseUrl": "https://tvroom48.org",
+          "ok": false,
+          "reason": "연결 실패 또는 시간 초과"
+        },
+        {
+          "baseUrl": "https://tvroom49.org",
+          "ok": false,
+          "reason": "연결 실패 또는 시간 초과"
+        },
+        {
+          "baseUrl": "https://tvroom50.org",
+          "ok": false,
+          "reason": "연결 실패 또는 시간 초과"
+        },
+        {
+          "baseUrl": "https://tvroom41.org",
+          "ok": false,
+          "reason": "연결 실패 또는 시간 초과"
+        }
+      ],
+      "currentCheck": {
+        "baseUrl": "https://tvroom40.org",
+        "ok": false,
+        "reason": "연결 실패 또는 시간 초과",
+        "checked": true
+      },
+      "consecutiveFailures": 31
+    },
+    "anilife": {
+      "baseUrl": "https://anilife01.tv",
+      "status": "protected",
+      "lastConfirmedAt": "2026-10-16T04:29:25.597Z",
+      "lastCheckedAt": "2026-10-23T11:36:29.871Z",
+      "lastConfirmedBy": "external-http-check",
+      "reason": "HTTP 403",
+      "scanOffset": 9,
+      "consecutiveFailures": 28,
+      "attempts": [
+        {
+          "baseUrl": "https://anilife01.tv",
+          "ok": false,
+          "reason": "HTTP 403"
+        },
+        {
+          "baseUrl": "https://anilife09.tv",
+          "ok": false,
+          "reason": "연결 실패 또는 시간 초과"
+        },
+        {
+          "baseUrl": "https://anilife10.tv",
+          "ok": false,
+          "reason": "연결 실패 또는 시간 초과"
+        },
+        {
+          "baseUrl": "https://anilife11.tv",
+          "ok": false,
+          "reason": "연결 실패 또는 시간 초과"
+        },
+        {
+          "baseUrl": "https://anilife02.tv",
+          "ok": false,
+          "reason": "HTTP 404"
+        },
+        {
+          "baseUrl": "https://anilife03.tv",
+          "ok": false,
+          "reason": "연결 실패 또는 시간 초과"
+        },
+        {
+          "baseUrl": "https://anilife04.tv",
+          "ok": false,
+          "reason": "연결 실패 또는 시간 초과"
+        },
+        {
+          "baseUrl": "https://anilife05.tv",
+          "ok": false,
+          "reason": "연결 실패 또는 시간 초과"
+        },
+        {
+          "baseUrl": "https://anilife06.tv",
+          "ok": false,
+          "reason": "연결 실패 또는 시간 초과"
+        },
+        {
+          "baseUrl": "https://anilife07.tv",
+          "ok": false,
+          "reason": "연결 실패 또는 시간 초과"
+        },
+        {
+          "baseUrl": "https://anilife08.tv",
+          "ok": false,
+          "reason": "연결 실패 또는 시간 초과"
+        }
+      ],
+      "currentCheck": {
+        "baseUrl": "https://anilife01.tv",
+        "ok": false,
+        "reason": "HTTP 403",
+        "checked": true
+      }
+    }
+  },
+  "requests": [
+    {
+      "site": "goodtoon",
+      "url": "https://www.goodtoon008.com/ongoing/",
+      "profile": "minimal",
+      "status": 200,
+      "finalUrl": "https://www.goodtoon008.com/ongoing/",
+      "server": "envoy",
+      "cfMitigated": null,
+      "bodySha256": "46a133189ce919a7d4d730218edd91626b298a17f3d7f823719fddd8a6fc285e",
+      "title": "GoodToon | 무료 웹툰 — 웹툰"
+    },
+    {
+      "site": "goodtoon",
+      "url": "https://www.goodtoon008.com/ongoing/",
+      "profile": "browser",
+      "status": 200,
+      "finalUrl": "https://www.goodtoon008.com/ongoing/",
+      "server": "envoy",
+      "cfMitigated": null,
+      "bodySha256": "46a133189ce919a7d4d730218edd91626b298a17f3d7f823719fddd8a6fc285e",
+      "title": "GoodToon | 무료 웹툰 — 웹툰",
+      "validationBodySha256": "46a133189ce919a7d4d730218edd91626b298a17f3d7f823719fddd8a6fc285e",
+      "validationFinalUrl": "https://www.goodtoon008.com/ongoing/",
+      "validationStatus": 200
+    },
+    {
+      "site": "tvroom",
+      "url": "https://tvroom40.org/",
+      "profile": "minimal",
+      "status": 200,
+      "finalUrl": "https://tvroom42.org/",
+      "server": "envoy",
+      "cfMitigated": null,
+      "bodySha256": "1c20ba94631ae131fa1d7fb7ba9e8acea5046085dba021434959aff3703193e2",
+      "title": "최신 무료 영화·드라마·예능·애니 다시보기 - 티비룸"
+    },
+    {
+      "site": "tvroom",
+      "url": "https://tvroom40.org/",
+      "profile": "browser",
+      "status": 200,
+      "finalUrl": "https://tvroom42.org/",
+      "server": "envoy",
+      "cfMitigated": null,
+      "bodySha256": "07518d4f79397b57fa6a03916e4ac82c822069ec6b469a297dd84c526799a5f6",
+      "title": "최신 무료 영화·드라마·예능·애니 다시보기 - 티비룸",
+      "validationBodySha256": "f33e2562f84d4f5919e94fc62a8754e328ad2e96088f1fbd269473af26645cc8",
+      "validationFinalUrl": "https://tvroom42.org/",
+      "validationStatus": 200
+    },
+    {
+      "site": "anilife",
+      "url": "https://anilife01.tv/api/anime?page=1&limit=1&sort=latest&v=catalog-media-2",
+      "profile": "minimal",
+      "status": 200,
+      "finalUrl": "https://anilife01.tv/api/anime?page=1&limit=1&sort=latest&v=catalog-media-2",
+      "server": "envoy",
+      "cfMitigated": null,
+      "bodySha256": "1f8b01b79f32793e5e34c582cdb96a79896c955d4537035d4a74721ea5e610ef",
+      "title": "{\"items\":[{\"id\":\"21376\",\"legacyId\":null,\"title\":\"아따맘마 리마스터5\",\"titleOriginal\":\"아따맘마 리마스터5\",\"titleJp\":null,\"image\":\"/anime"
+    },
+    {
+      "site": "anilife",
+      "url": "https://anilife01.tv/api/anime?page=1&limit=1&sort=latest&v=catalog-media-2",
+      "profile": "browser",
+      "status": 200,
+      "finalUrl": "https://anilife01.tv/api/anime?page=1&limit=1&sort=latest&v=catalog-media-2",
+      "server": "envoy",
+      "cfMitigated": null,
+      "bodySha256": "1f8b01b79f32793e5e34c582cdb96a79896c955d4537035d4a74721ea5e610ef",
+      "title": "{\"items\":[{\"id\":\"21376\",\"legacyId\":null,\"title\":\"아따맘마 리마스터5\",\"titleOriginal\":\"아따맘마 리마스터5\",\"titleJp\":null,\"image\":\"/anime",
+      "validationBodySha256": "1f8b01b79f32793e5e34c582cdb96a79896c955d4537035d4a74721ea5e610ef",
+      "validationFinalUrl": "https://anilife01.tv/api/anime?page=1&limit=1&sort=latest&v=catalog-media-2",
+      "validationStatus": 200
+    }
+  ],
+  "validationCheckedAt": "2026-10-23T12:34:54.134558+00:00"
+}
