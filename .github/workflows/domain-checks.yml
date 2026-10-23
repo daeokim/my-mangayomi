@@ -1,0 +1,19 @@
+name: Domain validation
+on:
+  pull_request:
+    paths: ['domain-manager/**', 'domains.json', '.github/workflows/domains.yml', '.github/workflows/domain-checks.yml']
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          package-manager-cache: false
+      - run: node --test domain-manager/*.test.mjs domain-manager/test.mjs
+      - run: python -m unittest discover -s domain-manager -p 'test_sync_metadata.py'

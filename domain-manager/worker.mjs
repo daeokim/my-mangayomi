@@ -223,12 +223,24 @@ async function authorized(request,env) {
 }
 const headers = {"Cache-Control":"no-store","X-Content-Type-Options":"nosniff","Referrer-Policy":"no-referrer"};
 function json(value,status=200) { return new Response(JSON.stringify(value),{status,headers:{...headers,"Content-Type":"application/json; charset=utf-8"}}); }
+export function scheduledKey(scheduledTime) {
+  if (!Number.isFinite(scheduledTime) || scheduledTime < 0) throw new Error("scheduled_time");
+  const keys = Object.keys(PROFILES);
+  return keys[Math.floor(scheduledTime / (10 * 60 * 1000)) % keys.length];
+}
+export async function runScheduled(event, env, io = fetch) {
+  const key = scheduledKey(event.scheduledTime);
+  const result = await runCheck(env, io, [key]);
+  const domain = result.state.domains[key];
+  // Public diagnostics only; never log environment, headers, or tokens.
+  console.log(JSON.stringify({checker:"cloudflare",site:key,skipped:result.skipped,
+    baseUrl:domain.baseUrl,status:domain.status,lastCheckedAt:domain.lastCheckedAt,
+    lastConfirmedAt:domain.lastConfirmedAt,reason:domain.reason}));
+  return result;
+}
 export default {
   async scheduled(event,env) {
-    // Optional Worker schedule: rotate all sites in ten-minute slots.
-    const slot = Math.floor(event.scheduledTime / (10 * 60 * 1000));
-    const key = Object.keys(PROFILES)[slot % Object.keys(PROFILES).length];
-    await runCheck(env,fetch,[key]);
+    await runScheduled(event,env);
   },
   async fetch(request,env) {
     const url = new URL(request.url);
