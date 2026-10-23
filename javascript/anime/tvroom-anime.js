@@ -2,14 +2,14 @@
 const mangayomiSources = [{
   name: "티비룸 · 애니",
   lang: "ko",
-  baseUrl: "https://tvroom40.org",
+  baseUrl: "https://tvroom42.org",
   apiUrl: "",
   iconUrl: "https://dc-toki-mangayomi-media.pages.dev/icon/ko.media.png",
   typeSource: "single",
   itemType: 1,
   isNsfw: false,
   hasCloudflare: false,
-  version: "0.1.31",
+  version: "0.1.32",
   dateFormat: "",
   dateFormatLocale: "",
   pkgPath: "anime/src/ko/tvroom-anime.js",
@@ -264,7 +264,7 @@ class TvCategoryEngine extends MProvider {
     this.getDetail = async (url) => dcApplySiteOrderEpisodeNumbers(await originalGetDetail(url));
     this.signalUrl = "https://daeokim.github.io/my-mangayomi/domains.json";
     this.auxiliarySignalUrl = "https://wankyo83.github.io/tokki-traffic-light/domains.json";
-    this.fallbackBaseUrl = "https://tvroom40.org";
+    this.fallbackBaseUrl = "https://tvroom42.org";
     this.assetBaseUrl = "https://dc-toki-mangayomi-media.pages.dev";
     this.userAgent = "Mozilla/5.0 (Linux; Android 13; Pixel 7 Build/TQ3A.230805.001; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/143.0.0.0 Mobile Safari/537.36";
     this.popularRulePreference = "tvroom_popular_rule_v1";
@@ -708,7 +708,7 @@ class TvCategoryEngine extends MProvider {
     return [separator("top"), header("usage", "필터 탭에서 콘텐츠 종류를 먼저 선택하세요. 국가와 정렬은 생략하면 전체·시간순으로 처리합니다."), this._select("contentType", "콘텐츠 종류", choices(this.contentOptions)), this._select("country", "국가", choices(this.countryOptions)), this._select("order", "정렬", choices(this.orderOptions)), separator("save"), header("defaultHelp", "기본 인기: 메인 추천 · 기본 최신: 카테고리별 최신 12개"), header("cardHelp", "목록 카드는 Popular/Latest 1번에만 표시되며 필터 결과와 통합 검색에서는 숨깁니다."), header("popularSummary", "현재 Popular: " + this._ruleSummary(popular)), header("latestSummary", "현재 Latest: " + this._ruleSummary(latest)), this._select("tabRuleAction", "Popular/Latest 규칙", [option("저장하지 않음 (필터 결과만 보기)", "0"), option("현재 조건을 Popular 탭에 저장", "1"), option("현재 조건을 Latest 탭에 저장", "2"), option("Popular 탭을 기본값으로 복원", "3"), option("Latest 탭을 기본값으로 복원", "4"), option("두 탭 모두 기본값으로 복원", "5")])];
   }
   getSourcePreferences() {
-    return [{ key: "tvroom_playback_route_v2", listPreference: { title: "영상 재생 경로", summary: "기본값은 공식 0.9.9의 휴대폰 내부 중계를 사용합니다. 중계 실패 원인을 표시하며 조용히 직접 재생으로 전환하지 않습니다. 문제가 있으면 자동 (복구 허용)을 선택하세요.", valueIndex: 0, entries: ["휴대폰 중계 (0.9.9 기본)", "자동 (복구 허용)", "기존 외부 재생"], entryValues: ["device", "auto", "external"] } }, { key: "tvroom_anime_title_language_v2", listPreference: { title: "애니 작품 제목 언어", summary: "애니 작품은 한국어와 일본어 중에서 선택합니다. 변경 후 현재 화면을 새로고침하세요. 영화·드라마·예능·시사 등은 한국어 제목을 유지합니다.", valueIndex: 0, entries: ["한국어", "일본어"], entryValues: ["ko", "ja"] } }, { key: "tvroom_domain_url", editTextPreference: { title: "티비룸 주소 직접 지정 (선택)", summary: "빈 값이면 개인 공통 주소 목록을 사용합니다. 주소는 서버에서 자동 점검합니다.", value: "", dialogTitle: "https://tvroom40.org", dialogMessage: "자동 주소를 사용하려면 빈 값으로 두세요." } }, { key: "tvroom_custom_card_json_url", editTextPreference: { title: "커스텀 목록 카드 (선택)", summary: "공개 JSON 주소 1개로 요일별 카드 7장을 설정합니다. 360×540 GIF를 권장하며 용량·프레임 제한은 없습니다.", value: "", dialogTitle: "커스텀 목록 카드 JSON 주소", dialogMessage: "Google Drive 공개 공유 링크 또는 직접 JSON 주소를 넣으세요. 개인 카드를 설정하면 공용 이벤트 카드는 표시되지 않습니다. 빈 값이면 공용 이벤트 또는 기본 미디어 요일 카드를 사용합니다." } }];
+    return [{ key: "tvroom_playback_route_v2", listPreference: { title: "영상 재생 경로", summary: "기본값은 공식 0.9.9의 휴대폰 내부 중계를 사용합니다. 중계 실패 원인을 표시하며 조용히 직접 재생으로 전환하지 않습니다. 문제가 있으면 자동 (복구 허용)을 선택하세요.", valueIndex: 0, entries: ["휴대폰 중계 (0.9.9 기본)", "자동 (복구 허용)", "기존 외부 재생"], entryValues: ["device", "auto", "external"] } }, { key: "tvroom_anime_title_language_v2", listPreference: { title: "애니 작품 제목 언어", summary: "애니 작품은 한국어와 일본어 중에서 선택합니다. 변경 후 현재 화면을 새로고침하세요. 영화·드라마·예능·시사 등은 한국어 제목을 유지합니다.", valueIndex: 0, entries: ["한국어", "일본어"], entryValues: ["ko", "ja"] } }, { key: "tvroom_domain_url", editTextPreference: { title: "티비룸 주소 직접 지정 (선택)", summary: "빈 값이면 개인 공통 주소 목록을 사용합니다. 주소는 서버에서 자동 점검합니다.", value: "", dialogTitle: "https://tvroom42.org", dialogMessage: "자동 주소를 사용하려면 빈 값으로 두세요." } }, { key: "tvroom_custom_card_json_url", editTextPreference: { title: "커스텀 목록 카드 (선택)", summary: "공개 JSON 주소 1개로 요일별 카드 7장을 설정합니다. 360×540 GIF를 권장하며 용량·프레임 제한은 없습니다.", value: "", dialogTitle: "커스텀 목록 카드 JSON 주소", dialogMessage: "Google Drive 공개 공유 링크 또는 직접 JSON 주소를 넣으세요. 개인 카드를 설정하면 공용 이벤트 카드는 표시되지 않습니다. 빈 값이면 공용 이벤트 또는 기본 미디어 요일 카드를 사용합니다." } }];
   }
 }
 

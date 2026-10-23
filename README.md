@@ -47,12 +47,12 @@ Aniyomi 자체 이미지 로더와 외부 플레이어의 연결 방식은 별�
 | 11toon 만화 | 0.1.16 | https://11toon.com | 0.9.2 |
 | 굿툰 | 0.1.15 | https://goodtoon008.com | 0.9.2 |
 | 블랙툰 | 0.1.19 | https://blacktoon425.com | 0.9.2 |
-| 티비룸 | 0.1.31 | https://tvroom40.org | 0.9.9 |
+| 티비룸 | 0.1.32 | https://tvroom42.org | 0.9.9 |
 | 티비위키 | 0.1.18 | https://tvwiki55.net | 0.9.9 |
-| 티비룸 · 예능 | 0.1.31 | https://tvroom40.org | 0.9.9 |
-| 티비룸 · 영화 | 0.1.31 | https://tvroom40.org | 0.9.9 |
-| 티비룸 · 드라마 | 0.1.31 | https://tvroom40.org | 0.9.9 |
-| 티비룸 · 애니 | 0.1.31 | https://tvroom40.org | 0.9.9 |
+| 티비룸 · 예능 | 0.1.32 | https://tvroom42.org | 0.9.9 |
+| 티비룸 · 영화 | 0.1.32 | https://tvroom42.org | 0.9.9 |
+| 티비룸 · 드라마 | 0.1.32 | https://tvroom42.org | 0.9.9 |
+| 티비룸 · 애니 | 0.1.32 | https://tvroom42.org | 0.9.9 |
 | 티비위키 · 예능 | 0.1.18 | https://tvwiki55.net | 0.9.9 |
 | 티비위키 · 영화 | 0.1.18 | https://tvwiki55.net | 0.9.9 |
 | 티비위키 · 드라마 | 0.1.18 | https://tvwiki55.net | 0.9.9 |
