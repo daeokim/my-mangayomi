@@ -1,0 +1,32 @@
+{
+  "eu.kanade.tachiyomi.animeextension.ko.daemedia": {
+    "code": 1005,
+    "inputDigest": "9077e3a952dde34d8766481e732b7a599102014d9c08b8b4bd750d45f2d6c7c3",
+    "sha256": "1b18360d186558c4f4c8f137fb0cd595fede5e8086a31e41f3ba2a6e9ac8bcc8"
+  },
+  "eu.kanade.tachiyomi.animeextension.ko.daeoani24": {
+    "code": 1003,
+    "inputDigest": "07d98709c3dd923211b8e147583804fd2a99b92ae47968923639ab39ddf23837",
+    "sha256": "c21e9338c46a0acf1e14d86225dce603f6e67a48c213e9f29a38d9a4719bb0f2"
+  },
+  "eu.kanade.tachiyomi.animeextension.ko.daeoanilife": {
+    "code": 1003,
+    "inputDigest": "59c60dbe5e83eff1acfb86775a0011740e13a09c25e1864e2f43f75eb0c9addd",
+    "sha256": "5516eaf2f154d106302f0217e615cb4647bf51f26a52cb1537472a15a648b552"
+  },
+  "eu.kanade.tachiyomi.animeextension.ko.daeotvwiki": {
+    "code": 1003,
+    "inputDigest": "2c62abc9fc6d057c63360ab4056f2eef01dfacc3a2b2a05dd06e2292ea3188a3",
+    "sha256": "f7848b162f8097028f0267df57007d354977b0d57fdc2e928d414a87b72d3c5b"
+  },
+  "eu.kanade.tachiyomi.extension.ko.daeomanga": {
+    "code": 1004,
+    "inputDigest": "527222caf3ab89401ce558a081e778d87a750e7a76efa07854c0d7e747ddc3a3",
+    "sha256": "947f6234380c01dbd903f125997f04bfad8bf904fa75cff0289895a17ca58cd2"
+  },
+  "eu.kanade.tachiyomi.extension.ko.daeonaver": {
+    "code": 1002,
+    "inputDigest": "1531fb2638a93ff6d39f076bf79ccbecb0a92b2e5eda5dbf6255ecb2842482a9",
+    "sha256": "790fba1e17a2e3211b68c86424817e8ffb024f0ee7e5bb2fb1fcc9459362e88b"
+  }
+}
