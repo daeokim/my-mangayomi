@@ -25,8 +25,8 @@
     "sha256": "947f6234380c01dbd903f125997f04bfad8bf904fa75cff0289895a17ca58cd2"
   },
   "eu.kanade.tachiyomi.extension.ko.daeonaver": {
-    "code": 1002,
-    "inputDigest": "1531fb2638a93ff6d39f076bf79ccbecb0a92b2e5eda5dbf6255ecb2842482a9",
-    "sha256": "790fba1e17a2e3211b68c86424817e8ffb024f0ee7e5bb2fb1fcc9459362e88b"
+    "code": 1003,
+    "inputDigest": "87276a26cebdd9c8e4e0d41290b90c728ec7fcc3f6767ffc13936a95d1b080f2",
+    "sha256": "c6657522b01bf617a7bd88c2bcba0275ca84b95f9bc7abb6cf644839fce7b76a"
   }
 }
