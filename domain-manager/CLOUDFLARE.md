@@ -1,74 +1,120 @@
-# 외부 주소 점검 전환
+# 무료 주소 변경 대응
 
-## 선택과 관측 근거
+## 실제 헤더 비교 (2026-10-23 UTC)
 
-(a) 기존 Cloudflare Worker cron을 재사용한다. 별도 서버/항상 켜진 PC가 필요 없고,
-기존 검사·GitHub SHA 충돌 처리 코드를 그대로 유지할 수 있다. 10분마다 사이트 하나를
-선택하므로 7개가 70분마다 순환하며 하루 cron 호출은 144회다. 각 실행은 기존 36회
-사이트 요청 예산, 6초 제한, 256KiB 응답 제한을 유지한다. 요금 0원을 보장하지 않으며
-계정 사용량/현재 플랜의 한도는 배포 전 Cloudflare에서 확인한다. self-hosted PC는
-상시 가동·절전 해제·보안 업데이트와 장애 대응이 필요해 이 작업의 기본안으로 택하지 않았다.
+`header-comparison-2026-10-23.json`에 요청 헤더·주소·시각·상태·응답 해시를 보관한다.
+Actions run [39969015564](https://github.com/daeokim/my-mangayomi/actions/runs/39969015564),
+job `120466411046`, `Compare production and browser headers from the same runner (read only)`에서
+같은 Node Fetch·러너·주소로 기존 운영 헤더와 데스크톱 Chrome 형태 헤더를 비교했다.
 
-`probe-2026-10-23.json`은 2026-10-23 UTC 작업 서버의 실제 HTTP 결과다.
-minimal UA와 확장의 브라우저 UA/Accept/Referer 조합 모두 goodtoon008, tvroom40→42,
-anilife01에서 200이었다. Node의 기존 `assess`로 실제 응답의 목록 구조도 확인했다.
-Actions run 39947231640 / job 120392743914의 주소 점검은 Goodtoon/AnimeLife HTTP 403,
-TVRoom 현재 주소 연결 실패 및 tvroom42 HTTP 403을 기록했다. 이는 실행 환경 차이의
-근거지만 같은 시각에 동일 TLS/네트워크 조건을 통제한 실험은 아니므로 IP만의 차단이라고
-단정하지 않는다. UA 변경만으로 해결됐다는 근거도 없다. Cloudflare origin의 성공은 아직
-측정하지 않았으며, 전환 후 scheduled 로그로 확인해야 한다. 403/보호 화면을 healthy로
-바꾸거나 CAPTCHA를 우회하지 않는다.
+| 사이트 | Actions 기존 / 데스크톱 | 작업 서버 기존 / 데스크톱 | 관측 |
+|---|---|---|---|
+| goodtoon008 | 403 / 403 | 200 / 200, 목록 검증 | Actions 응답 `cf-mitigated: challenge` |
+| tvroom42 | 403 / 403 | 200 / 200, 목록 검증 | Actions 응답 `cf-mitigated: challenge` |
+| anilife01 | 403 / 403 | 200 / 200, 목록 검증 | 두 Actions 응답의 본문 SHA-256도 같음 |
 
-이 PR의 domains.json은 실제 외부 응답을 기존 scanState 승인 규칙에 넣어 생성한 스냅샷이다.
-세 사이트만 갱신하며 다른 사이트·운영자 pin/control revision은 보존한다. TVRoom은 42로
-이동했고 확인 시각/attempts/currentCheck/연속 실패 초기화를 기록한다. 외부 관측 시각의
-상태이며 이후 사이트 변경이나 재생/이미지 정상 동작을 보장하지 않는다.
+헤더 변경만으로 해결되지 않는다. 실행 환경에 따른 차단의 근거이며 **IP만의 차단이라고
+단정할 수는 없다**. TLS 지문·경유망·요청 시각도 달라 통제되지 않았다. Cloudflare Worker
+origin은 미측정이다. 보호 응답을 healthy로 처리하거나 CAPTCHA를 풀지 않는다.
+진단 스크립트는 registry를 쓰지 않고 토큰도 사용하지 않는다.
 
-## 최초 설정: 사용자가 직접 하는 클릭/명령
+## A. AniLife 휴대폰 자동 탐색
 
-1. Cloudflare 대시보드에서 본인 계정을 선택한다. 계정이 없으면 직접 가입/약관 확인을 한다.
-   Workers & Pages에서 계정의 플랜·사용량을 확인한다. 터미널에서 저장소의 이 PR 브랜치를
-   checkout하고 `cd domain-manager`, `npx wrangler login`으로 본인 Cloudflare 계정을 인증한다.
-   작업창에 토큰 값을 붙여 넣지 않는다.
-2. GitHub 프로필 → Settings → Developer settings → Personal access tokens → Fine-grained
-   tokens → Generate new token. Resource owner는 daeokim, Repository access는 Only select
-   repositories → my-mangayomi만 선택한다. Repository permissions → Contents: Read and write,
-   Metadata: Read를 선택하고 짧은 만료일을 설정한다. 앱 저장소/Administration/Secrets 권한은 불필요하다.
-   이 토큰은 domains.json 쓰기에 사용하며 만료 전 사용자 갱신이 필요하다.
-3. `npx wrangler secret put GITHUB_TOKEN`의 숨김 입력에 위 GitHub 토큰을 직접 넣는다.
-   Worker가 아직 없다면 생성 안내를 확인한 후 `npx wrangler deploy`로 배포한다.
-   Worker Settings → Variables and Secrets에서 Type Secret, 이름 GITHUB_TOKEN이 있는지 확인한다.
-   GITHUB_REPOSITORY=daeokim/my-mangayomi, GITHUB_BRANCH=main은 wrangler.jsonc에 있다.
-   ADMIN_TOKEN은 기존 웹 관리자 기능을 쓸 때만 별도로 24자 이상 난수를 Secret으로 등록한다.
-   cron에는 ADMIN_TOKEN이 필요 없으며 관리자 endpoint는 없으면 계속 차단된다.
-4. `npx wrangler deploy` 후 Workers & Pages → daeo-domain-manager → Settings → Triggers에서
-   `*/10 * * * *`를 확인한다. Wrangler로 관리하므로 이후 cron도 wrangler.jsonc로만 변경한다.
-   Logs/Observability의 scheduled 실행에서 checker=cloudflare, site, status, lastConfirmedAt을
-   확인한다. 세 대상의 실제 목록 확인과 domains.json 커밋을 확인한 뒤 다음 단계로 간다.
-   Worker에서도 실패하면 보호 상태를 유지하고 전환을 보류한다.
-5. GitHub my-mangayomi → Settings → Secrets and variables → Actions → Variables → New repository
-   variable → Name DOMAIN_CHECK_BACKEND, Value cloudflare. 이때부터 Actions는 주소 네트워크
-   검사/저장만 생략하고 metadata 동기화·테스트·Pages 배포는 계속한다. Worker의 PAT 커밋은
-   main push를 발생시켜 기존 Pages workflow를 실행한다. 미설정/값 actions이면 기존 Actions
-   검사를 유지하며 오타는 명확한 오류다. 두 주체가 서로의 healthy를 protected로 덮어쓰지 않게
-   실제 Worker 확인 후 전환한다. 이 PR의 머지와 이 설정은 사용자가 수행한다.
+`AniLifeDomain.kt`와 `AniLifeDomainTest.kt`에 구현한다. AniLife만 14.1004/code1004로 올리고
+패키지·소스 ID·lang·nsfw는 유지한다. 기존 main 서명 파이프라인은 변경하지 않는다.
 
-Cloudflare cron 전파에는 시간이 걸릴 수 있다. 첫 전체 순환(70분) 동안 로그와 GitHub
-커밋을 확인한다. Pages URL은 기존 https://daeokim.github.io/my-mangayomi/domains.json 이다.
-중단 시 먼저 Worker Triggers를 비활성화하고 GitHub DOMAIN_CHECK_BACKEND를 actions로 바꾼다.
-이때 GitHub 환경에서 다시 보호 응답을 받을 수 있다. 보호 상태를 수동으로 정상 처리하지 않는다.
-my-mangayomi에는 PR 강제/필수 검사 보호 규칙을 설정하지 않는다.
+- 403 또는 IOException(연결/DNS 실패) 때만 복구한다. 작품 하나의 404·401은 탐색하지 않는다.
+- 동일 HTTPS 호스트 패턴의 다음 번호 +1..+5를 순서대로 검사한다. 09→10, 99→100과
+  999999 상한을 처리하며 자격증명·외부 호스트·포트·경로를 origin으로 받아들이지 않는다.
+- `domains.json`의 healthy 주소 번호가 더 높으면 우선한다. 실패 시 재조회한 registry 후보도
+  **총 5개 후보 한도에 포함**한다. 낮은 번호와 protected registry는 휴대폰 저장값을 되돌리지 않는다.
+- 실제 AniLife 목록 JSON(items의 id/title/image와 pagination)을 확인한 후보만 채택한다.
+  후보당 요청 시간 제한과 최대 2회 동일 패턴 HTTPS redirect를 적용하고 최종 주소를 저장한다.
+- 앱의 해당 소스 SharedPreferences `source_850164079243120202`의 `auto_domain`에 보관하므로
+  앱 재시작 후에도 유지된다. 탐색이 모두 실패하면 기존 저장값을 유지하며 같은 주소의 실패
+  탐색은 1분 동안 반복하지 않는다. 서버 domains.json에는 휴대폰 결과를 쓰지 않는다.
+- 원래 GET은 새 주소에서 1회 재시도하되 Authorization/Cookie를 제거하고 Origin/Referer를
+  갱신한다. 재생 주소가 바뀌면 기존 세션 토큰을 새 도메인으로 보내지 않고 세션부터 다시 시작한다.
+- 이 변경은 휴대폰 네트워크가 사이트의 실제 목록에 접근 가능한 경우에만 도움이 된다.
 
-### Cloudflare API 토큰을 사용하는 선택적 배포
+### 바이너리 패치 확장 조사
 
-로컬 Wrangler OAuth 대신 API 배포를 택하는 경우 Cloudflare 프로필 → My Profile → API Tokens
-→ Create Token → Edit Cloudflare Workers 템플릿에서 대상 계정을 제한한다.
-`CLOUDFLARE_API_TOKEN`과 `CLOUDFLARE_ACCOUNT_ID`라는 환경 변수로 본인 터미널에 주입한다.
-GitHub Actions로 Worker 배포를 별도로 구성한다면 같은 이름을 Actions Secrets에 저장한다.
-이번 PR은 이 추가 배포 워크플로를 만들지 않으므로 GitHub에 Cloudflare 토큰을 줄 필요가 없다.
-Worker 안의 GITHUB_TOKEN(주소 저장 권한)과 배포용 Cloudflare 토큰을 혼동하지 않는다.
+| 대상 | 파일 근거 | 수정 가능 여부 / 이번 범위 |
+|---|---|---|
+| DaeoManga Goodtoon | `connect_registry.py`가 `goodtoonwebtoontest/d.smali`의 `getBaseUrl`을 재조립하며 `Registry.smali`를 삽입함. 1.4.1004 DEX에도 동일 클래스의 getBaseUrl/getClient가 있음 | 기술적으로 가능. 다만 getter 주입은 실패 응답을 관찰하지 않으므로 403 후 복구에는 요청 interceptor와 설정 저장 흐름을 새로 패치하고 실행 검증해야 한다. 이번 PR에서 APK를 임의 재조립하지 않음 |
+| Daeo TVRoom | `prepare_tvroom.py`는 DEX 기본 주소 문자열과 manifest만 바꿈. 14.1005 DEX의 `Lqb;`는 getBaseUrl에서 d 필드를 반환하고, coroutine `S` 메서드에 registry URL이 있음 | 기술적으로 가능하나 문자열 교체만으로 접속 실패 후 탐색은 구현되지 않는다. 난독화된 요청/네트워크 흐름의 별도 패치·동작 검증이 필요. 이번 PR은 조사 결과만 제공 |
 
-공식 설정 근거:
+원본 소스가 없다고 수정 불가능하다고 단정하지 않는다. 두 바이너리는 현재 방식대로 검증된
+registry 주소를 받으며 자동 탐색을 추가했다고 주장하지 않는다. 구 APK를 삭제/덮어쓰지 않는다.
+
+## C. Workers Free 전용 cron
+
+기존 Worker를 재사용한다. self-hosted PC, 유료 서비스, 카드 등록, Workers Paid 전환은 사용하지
+않는다. 무료 플랜을 확인할 수 없으면 배포하지 않는다. 계정의 기본 `standard` 실행 모델만으로는
+Free/Paid 여부를 판정할 수 없다.
+
+`wrangler.jsonc`의 cron은 `*/10 * * * *`, 10분마다 사이트 하나, 7개 사이트를 70분에 한 번씩
+순환한다. 후보는 현재 주소·가능한 업스트림 주소·회전하는 다음 번호 하나이며, 같은 번호의
+모든 미래 주소를 한 실행에서 검사하지 않는다. cron은 하루 144회다.
+
+- 무료 한도: 하루 Worker 요청 100,000회, 실행당 CPU 10ms, 외부 subrequest 50회.
+- `freeFetch`가 **GitHub 읽기/쓰기·신호 조회·후보·redirect hop을 모두 세어** 51번째 호출 전에
+  중단한다. 자동 redirect는 금지한다. config의 `limits.subrequests`도 50이다.
+- 기존 scan 요청 예산36은 유지한다. GitHub 최초 읽기1 + PUT 최대3 + 충돌 시 재읽기 최대3을
+  더해 최대43회이며, 실제 단일 사이트 cron은 후보 최대3 × hop 최대3(+Blacktoon 설정1)라
+  이보다 적다. 7개 cron slot에서 redirect·충돌을 함께 발생시키는 테스트로 검증한다.
+- CPU는 Free의 플랫폼 10ms 제한을 그대로 사용한다. I/O 대기는 CPU 시간에 포함되지 않으며,
+  실제 계정에서 `exceededCpu`가 발생하면 실패로 보존한다. 유료 플랜이나 CPU 증액으로 해결하지
+  않는다. 실제 CPU 시간과 Cloudflare origin 성공은 배포 후 로그로 확인할 미완료 검증이다.
+- 별도 KV/D1/R2/Browser Rendering/Queues 및 결제 수단은 필요 없다. 영구 상태는 기존
+  GitHub `domains.json`이다. 무료 한도에 도달하면 실패 처리하고 마지막 정상 주소를 유지한다.
+- schema(baseUrl/status/lastConfirmedAt/attempts 등), 운영자 control.revision,
+  최신 확인 시각 우선, GitHub SHA 충돌 재읽기/병합 규칙은 그대로 유지한다.
+
+## 외부 설정: 클릭 순서 (토큰 값은 작업창에 보내지 않음)
+
+1. Cloudflare 계정 인증 메일의 **Verify email address**를 눌러 본인 이메일 인증을 완료한다.
+   대시보드 → Workers & Pages → 플랜/사용량에서 **Workers Free**인지 확인한다.
+   유료 전환·카드 입력 화면이 나오면 중단한다. 이 작업에 카드 등록은 필요 없다.
+2. ChatGPT Cloudflare 연결을 다시 인증할 때 대상 계정의 Workers Editor(또는
+   Workers Scripts Write) 권한을 허용한다. 조회만 되는 권한으로는 업로드가 안 된다.
+   직접 API 토큰으로 배포할 경우 Cloudflare 프로필 → My Profile → API Tokens → Create Token
+   → Edit Cloudflare Workers에서 대상 계정만 제한한다. 토큰 값은 공유하지 않는다.
+   로컬 배포용 이름은 `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`이며 이번 PR은
+   GitHub Actions에 Cloudflare 배포 토큰을 요구하지 않는다.
+3. GitHub 프로필 → Settings → Developer settings → Personal access tokens → Fine-grained tokens
+   → Generate new token. Resource owner `daeokim` → Only select repositories → `my-mangayomi`만
+   선택 → Repository permissions → Contents: Read and write, Metadata: Read → 만료일 설정.
+   토큰은 직접 보관하고 만료 전에 갱신한다. 앱 저장소·Administration·Secrets 권한은 불필요하다.
+4. Cloudflare Workers & Pages에서 `daeo-domain-manager`를 만들고 **머지된** `worker.mjs`를
+   배포한다(또는 본인 터미널에서 domain-manager로 이동 → `npx wrangler login` →
+   `npx wrangler deploy`). 초기 빈 Worker에는 cron을 활성화하지 않는다.
+   Worker → Settings → Variables and Secrets → Add → Type **Secret**, Name **GITHUB_TOKEN**,
+   Value는 위 GitHub 토큰을 본인이 직접 입력 → Deploy. 평문 변수로 넣지 않는다.
+   `GITHUB_REPOSITORY=daeokim/my-mangayomi`, `GITHUB_BRANCH=main`은 일반 변수다.
+   `ADMIN_TOKEN`은 웹 관리자 사용 시에만 24자 이상 난수를 Secret으로 등록한다.
+5. Worker → Settings → Triggers → Cron Triggers에 `*/10 * * * *`를 설정한다(Wrangler 배포 시
+   config와 일치 확인). Logs에서 checker=cloudflare/site/status/lastConfirmedAt과 GitHub 저장,
+   CPU 제한 초과 없음, 세 사이트 실제 목록 검증을 확인한다. 이 확인이 끝난 뒤에만 GitHub
+   my-mangayomi → Settings → Secrets and variables → Actions → Variables → New repository variable
+   → Name `DOMAIN_CHECK_BACKEND`, Value `cloudflare`로 저장한다. 그전에는 미설정/actions 유지.
+
+Worker의 PAT 커밋은 main push를 발생시켜 기존 Pages를 배포한다. Actions는 전환 후 네트워크
+검사/저장만 생략하고 metadata·테스트·Pages를 유지한다. my-mangayomi에는 PR 강제 보호를
+걸지 않는다. 중단 시 Worker cron을 끄고 DOMAIN_CHECK_BACKEND를 actions로 되돌린다.
+
+## 검증 명령
+
+```sh
+node --test domain-manager/*.test.mjs
+node --test domain-manager/*.test.mjs domain-manager/test.mjs
+python -m unittest discover -s domain-manager -p 'test_sync_metadata.py'
+bash aniyomi/native/gradlew -p aniyomi/native :anilife:testReleaseUnitTest :anilife:assembleRelease
+```
+
+공식 무료 한도/설정 근거:
+- https://developers.cloudflare.com/workers/platform/limits/
+- https://developers.cloudflare.com/workers/platform/pricing/
 - https://developers.cloudflare.com/workers/configuration/cron-triggers/
 - https://developers.cloudflare.com/workers/configuration/secrets/
 - https://developers.cloudflare.com/fundamentals/api/get-started/create-token/

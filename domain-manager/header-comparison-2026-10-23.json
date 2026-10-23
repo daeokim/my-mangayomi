@@ -1,0 +1,295 @@
+{
+  "actionsRun": "https://github.com/daeokim/my-mangayomi/actions/runs/39969015564",
+  "actionsJob": 120466411046,
+  "actions": [
+    {
+      "site": "goodtoon",
+      "profile": "existing",
+      "origin": "github-actions",
+      "checkedAt": "2026-10-23T14:22:21.538Z",
+      "headers": {
+        "User-Agent": "Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 Chrome/143.0.0.0 Mobile Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml",
+        "Referer": "https://www.goodtoon008.com/"
+      },
+      "hops": [
+        {
+          "url": "https://www.goodtoon008.com/ongoing/",
+          "status": 403,
+          "server": "cloudflare",
+          "cfMitigated": "challenge",
+          "bodySha256": "bfc182b01c3a297de1222f021f9ff337fae012fd1e5b9dae98eaa8753f4416ec"
+        }
+      ],
+      "result": "HTTP 403"
+    },
+    {
+      "site": "goodtoon",
+      "profile": "desktop",
+      "origin": "github-actions",
+      "checkedAt": "2026-10-23T14:22:22.251Z",
+      "headers": {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+        "Referer": "https://www.goodtoon008.com/",
+        "Accept-Language": "ko-KR,ko;q=0.9,en;q=0.8",
+        "Sec-Fetch-Dest": "document",
+        "Sec-Fetch-Mode": "navigate",
+        "Sec-Fetch-Site": "same-origin",
+        "Upgrade-Insecure-Requests": "1"
+      },
+      "hops": [
+        {
+          "url": "https://www.goodtoon008.com/ongoing/",
+          "status": 403,
+          "server": "cloudflare",
+          "cfMitigated": "challenge",
+          "bodySha256": "dc0fc1ad71c4226304616a5f548514a0d83d5178b3d6ecce1a7945f89f2f8b85"
+        }
+      ],
+      "result": "HTTP 403"
+    },
+    {
+      "site": "tvroom",
+      "profile": "existing",
+      "origin": "github-actions",
+      "checkedAt": "2026-10-23T14:22:22.364Z",
+      "headers": {
+        "User-Agent": "Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 Chrome/143.0.0.0 Mobile Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml",
+        "Referer": "https://tvroom42.org/"
+      },
+      "hops": [
+        {
+          "url": "https://tvroom42.org/",
+          "status": 403,
+          "server": "cloudflare",
+          "cfMitigated": "challenge",
+          "bodySha256": "018f53264d12a8ce162943a0e8302e578607de7bd986105d142c3222fbc087ab"
+        }
+      ],
+      "result": "HTTP 403"
+    },
+    {
+      "site": "tvroom",
+      "profile": "desktop",
+      "origin": "github-actions",
+      "checkedAt": "2026-10-23T14:22:22.434Z",
+      "headers": {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+        "Referer": "https://tvroom42.org/",
+        "Accept-Language": "ko-KR,ko;q=0.9,en;q=0.8",
+        "Sec-Fetch-Dest": "document",
+        "Sec-Fetch-Mode": "navigate",
+        "Sec-Fetch-Site": "same-origin",
+        "Upgrade-Insecure-Requests": "1"
+      },
+      "hops": [
+        {
+          "url": "https://tvroom42.org/",
+          "status": 403,
+          "server": "cloudflare",
+          "cfMitigated": "challenge",
+          "bodySha256": "b141007ef2532646bf606d9e1ffad8c9722900508ed0101f1c4eede591b4ff2f"
+        }
+      ],
+      "result": "HTTP 403"
+    },
+    {
+      "site": "anilife",
+      "profile": "existing",
+      "origin": "github-actions",
+      "checkedAt": "2026-10-23T14:22:22.514Z",
+      "headers": {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36",
+        "Accept": "application/json, text/plain, */*",
+        "Accept-Language": "ko-KR,ko;q=0.9,en;q=0.8",
+        "Referer": "https://anilife01.tv/tags",
+        "Origin": "https://anilife01.tv"
+      },
+      "hops": [
+        {
+          "url": "https://anilife01.tv/api/anime?page=1&limit=1&sort=latest&v=catalog-media-2",
+          "status": 403,
+          "server": "cloudflare",
+          "cfMitigated": null,
+          "bodySha256": "4ab27b15586bbd642fcef76c0e51bffad314dfebc6f8765d86003c0b7bb867ba"
+        }
+      ],
+      "result": "HTTP 403"
+    },
+    {
+      "site": "anilife",
+      "profile": "desktop",
+      "origin": "github-actions",
+      "checkedAt": "2026-10-23T14:22:22.744Z",
+      "headers": {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36",
+        "Accept": "application/json, text/plain, */*",
+        "Accept-Language": "ko-KR,ko;q=0.9,en;q=0.8",
+        "Referer": "https://anilife01.tv/tags",
+        "Origin": "https://anilife01.tv",
+        "Sec-Fetch-Dest": "empty",
+        "Sec-Fetch-Mode": "cors",
+        "Sec-Fetch-Site": "same-origin"
+      },
+      "hops": [
+        {
+          "url": "https://anilife01.tv/api/anime?page=1&limit=1&sort=latest&v=catalog-media-2",
+          "status": 403,
+          "server": "cloudflare",
+          "cfMitigated": null,
+          "bodySha256": "4ab27b15586bbd642fcef76c0e51bffad314dfebc6f8765d86003c0b7bb867ba"
+        }
+      ],
+      "result": "HTTP 403"
+    }
+  ],
+  "taskHost": [
+    {
+      "site": "goodtoon",
+      "profile": "existing",
+      "origin": "task-host",
+      "checkedAt": "2026-10-23T14:21:21.350Z",
+      "headers": {
+        "User-Agent": "Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 Chrome/143.0.0.0 Mobile Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml",
+        "Referer": "https://www.goodtoon008.com/"
+      },
+      "hops": [
+        {
+          "url": "https://www.goodtoon008.com/ongoing/",
+          "status": 200,
+          "server": "envoy",
+          "cfMitigated": null,
+          "bodySha256": "cc103db81b28c585880e33b55aae049991d57e54c32a224eb837cd6b2fffe2d5"
+        }
+      ],
+      "result": "validated_catalog"
+    },
+    {
+      "site": "goodtoon",
+      "profile": "desktop",
+      "origin": "task-host",
+      "checkedAt": "2026-10-23T14:21:28.642Z",
+      "headers": {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+        "Referer": "https://www.goodtoon008.com/",
+        "Accept-Language": "ko-KR,ko;q=0.9,en;q=0.8",
+        "Sec-Fetch-Dest": "document",
+        "Sec-Fetch-Mode": "navigate",
+        "Sec-Fetch-Site": "same-origin",
+        "Upgrade-Insecure-Requests": "1"
+      },
+      "hops": [
+        {
+          "url": "https://www.goodtoon008.com/ongoing/",
+          "status": 200,
+          "server": "envoy",
+          "cfMitigated": null,
+          "bodySha256": "cc103db81b28c585880e33b55aae049991d57e54c32a224eb837cd6b2fffe2d5"
+        }
+      ],
+      "result": "validated_catalog"
+    },
+    {
+      "site": "tvroom",
+      "profile": "existing",
+      "origin": "task-host",
+      "checkedAt": "2026-10-23T14:21:28.772Z",
+      "headers": {
+        "User-Agent": "Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 Chrome/143.0.0.0 Mobile Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml",
+        "Referer": "https://tvroom42.org/"
+      },
+      "hops": [
+        {
+          "url": "https://tvroom42.org/",
+          "status": 200,
+          "server": "envoy",
+          "cfMitigated": null,
+          "bodySha256": "593e6db90d32b92059e90887a350340c34920a1288ebf52d40d89f2746fb4688"
+        }
+      ],
+      "result": "validated_catalog"
+    },
+    {
+      "site": "tvroom",
+      "profile": "desktop",
+      "origin": "task-host",
+      "checkedAt": "2026-10-23T14:21:35.172Z",
+      "headers": {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+        "Referer": "https://tvroom42.org/",
+        "Accept-Language": "ko-KR,ko;q=0.9,en;q=0.8",
+        "Sec-Fetch-Dest": "document",
+        "Sec-Fetch-Mode": "navigate",
+        "Sec-Fetch-Site": "same-origin",
+        "Upgrade-Insecure-Requests": "1"
+      },
+      "hops": [
+        {
+          "url": "https://tvroom42.org/",
+          "status": 200,
+          "server": "envoy",
+          "cfMitigated": null,
+          "bodySha256": "f38024cb0c28062bfdd2dcef5e34fe0d8fe84174d0778c05a5a44fe53f1ed5f9"
+        }
+      ],
+      "result": "validated_catalog"
+    },
+    {
+      "site": "anilife",
+      "profile": "existing",
+      "origin": "task-host",
+      "checkedAt": "2026-10-23T14:21:35.546Z",
+      "headers": {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36",
+        "Accept": "application/json, text/plain, */*",
+        "Accept-Language": "ko-KR,ko;q=0.9,en;q=0.8",
+        "Referer": "https://anilife01.tv/tags",
+        "Origin": "https://anilife01.tv"
+      },
+      "hops": [
+        {
+          "url": "https://anilife01.tv/api/anime?page=1&limit=1&sort=latest&v=catalog-media-2",
+          "status": 200,
+          "server": "envoy",
+          "cfMitigated": null,
+          "bodySha256": "c48ea0ce78f9ca124d0a26231a67b0d17cafbe40136ae4b936587e2a0acf38c8"
+        }
+      ],
+      "result": "validated_catalog"
+    },
+    {
+      "site": "anilife",
+      "profile": "desktop",
+      "origin": "task-host",
+      "checkedAt": "2026-10-23T14:21:41.870Z",
+      "headers": {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36",
+        "Accept": "application/json, text/plain, */*",
+        "Accept-Language": "ko-KR,ko;q=0.9,en;q=0.8",
+        "Referer": "https://anilife01.tv/tags",
+        "Origin": "https://anilife01.tv",
+        "Sec-Fetch-Dest": "empty",
+        "Sec-Fetch-Mode": "cors",
+        "Sec-Fetch-Site": "same-origin"
+      },
+      "hops": [
+        {
+          "url": "https://anilife01.tv/api/anime?page=1&limit=1&sort=latest&v=catalog-media-2",
+          "status": 200,
+          "server": "envoy",
+          "cfMitigated": null,
+          "bodySha256": "c48ea0ce78f9ca124d0a26231a67b0d17cafbe40136ae4b936587e2a0acf38c8"
+        }
+      ],
+      "result": "validated_catalog"
+    }
+  ],
+  "conclusion": "All three sites return 403 for both tested header profiles on the same Actions runner, while the task host validates their catalogs with both profiles. Header-only remediation is not supported; IP-only causality is not established (TLS/egress differ). No challenge solving performed."
+}

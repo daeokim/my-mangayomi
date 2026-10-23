@@ -2,7 +2,7 @@ plugins { id 'com.android.application'; id 'org.jetbrains.kotlin.android' }
 android {
  namespace 'eu.kanade.tachiyomi.animeextension.ko.daeoanilife'
  compileSdk 35
- defaultConfig { applicationId 'eu.kanade.tachiyomi.animeextension.ko.daeoanilife'; minSdk 24; targetSdk 35; versionCode 1003; versionName '14.1003' }
+ defaultConfig { applicationId 'eu.kanade.tachiyomi.animeextension.ko.daeoanilife'; minSdk 24; targetSdk 35; versionCode 1004; versionName '14.1004' }
  compileOptions { sourceCompatibility JavaVersion.VERSION_1_8; targetCompatibility JavaVersion.VERSION_1_8 }
  kotlinOptions { jvmTarget = '1.8' }
  buildTypes { release { minifyEnabled false } }

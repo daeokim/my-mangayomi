@@ -14,6 +14,18 @@ const BLOCKED = /cf-chl-|challenge-platform|just a moment|verify (?:that )?you a
 const MAX_BYTES = 256 * 1024;
 const TIMEOUT = 6000;
 const MAX_REQUESTS = 36;
+export const FREE_FETCH_LIMIT = 50;
+// One invocation includes GitHub reads/writes and all explicit redirect hops.
+// Never permit automatic redirects: Fetch otherwise hides chargeable subrequests.
+export function freeFetch(io = fetch) {
+  let used = 0;
+  return async (url,options = {}) => {
+    if (!['manual','error'].includes(options.redirect)) throw new Error('automatic_redirects_forbidden');
+    if (used >= FREE_FETCH_LIMIT) throw new Error('free_subrequest_limit');
+    used++;
+    return io(url,options);
+  };
+}
 const copy = v => JSON.parse(JSON.stringify(v));
 const isProfile = key => Object.prototype.hasOwnProperty.call(PROFILES,key);
 export function normalize(key, value, minimum = PROFILES[key]?.floor) {
@@ -230,7 +242,7 @@ export function scheduledKey(scheduledTime) {
 }
 export async function runScheduled(event, env, io = fetch) {
   const key = scheduledKey(event.scheduledTime);
-  const result = await runCheck(env, io, [key]);
+  const result = await runCheck(env, freeFetch(io), [key]);
   const domain = result.state.domains[key];
   // Public diagnostics only; never log environment, headers, or tokens.
   console.log(JSON.stringify({checker:"cloudflare",site:key,skipped:result.skipped,
@@ -243,21 +255,22 @@ export default {
     await runScheduled(event,env);
   },
   async fetch(request,env) {
+    const io = freeFetch();
     const url = new URL(request.url);
     if (url.pathname === "/" || url.pathname === "/admin") return new Response(ADMIN_PAGE,{headers:{...headers,"Content-Type":"text/html; charset=utf-8","Content-Security-Policy":"default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; img-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'"}});
     if (url.pathname === "/domains.json" && request.method === "GET") {
-      try { const {state} = await readState(env); return json({schemaVersion:state.schemaVersion,updatedAt:state.updatedAt,lastRunAt:state.lastRunAt,domains:state.domains}); } catch { return json({error:"주소 목록을 읽지 못했습니다. Cloudflare 설정을 확인하세요."},503); }
+      try { const {state} = await readState(env,io); return json({schemaVersion:state.schemaVersion,updatedAt:state.updatedAt,lastRunAt:state.lastRunAt,domains:state.domains}); } catch { return json({error:"주소 목록을 읽지 못했습니다. Cloudflare 설정을 확인하세요."},503); }
     }
     if (!url.pathname.startsWith("/api/")) return json({error:"not_found"},404);
     if (!await authorized(request,env)) return json({error:"관리 키가 없거나 일치하지 않습니다."},401);
     const origin = request.headers.get("Origin");
     if (origin && origin !== url.origin) return json({error:"origin"},403);
     try {
-      if (url.pathname === "/api/state" && request.method === "GET") return json((await readState(env)).state);
+      if (url.pathname === "/api/state" && request.method === "GET") return json((await readState(env,io)).state);
       if (url.pathname === "/api/check" && request.method === "POST") {
         const input = JSON.parse(await boundedText(request,4096));
         if (!isProfile(input.key)) return json({error:"점검할 사이트를 선택하세요."},400);
-        return json(await runCheck(env,fetch,[input.key]));
+        return json(await runCheck(env,io,[input.key]));
       }
       if (url.pathname === "/api/override" && request.method === "POST") {
         if (Number(request.headers.get("Content-Length")) > 4096) return json({error:"body_limit"},413);
@@ -265,17 +278,17 @@ export default {
         if (!isProfile(change.key) || typeof change.baseUrl !== "string" || !Number.isSafeInteger(change.revision)) return json({error:"변경 형식 오류"},400);
         const pin = change.baseUrl === "" ? "" : normalize(change.key,change.baseUrl);
         if (change.baseUrl && !pin) return json({error:"이 사이트의 HTTPS 주소와 현재 기본 번호 이상만 입력하세요."},400);
-        const loaded = await readState(env);
+        const loaded = await readState(env,io);
         if (loaded.state.control.revision !== change.revision) return json({error:"다른 변경이 적용됐습니다. 다시 불러오세요."},409);
         const next = copy(loaded.state); next.control.revision++;
         if (pin) next.control.overrides[change.key] = pin; else delete next.control.overrides[change.key];
         if (pin) {
-          const result = await probe(change.key,pin);
+          const result = await probe(change.key,pin,io);
           if (!result.ok) return json({error:"저장하지 않았습니다: "+result.reason},422);
           const now = new Date().toISOString(); next.domains[change.key] = {...next.domains[change.key],baseUrl:result.baseUrl,status:"healthy",lastConfirmedAt:now,lastCheckedAt:now,reason:"관리자가 지정한 주소의 목록 구조 확인",scanOffset:1};
         }
         next.updatedAt = new Date().toISOString();
-        if (!await commitState(env,loaded,next)) return json({error:"동시 변경 감지. 다시 불러오세요."},409);
+        if (!await commitState(env,loaded,next,io)) return json({error:"동시 변경 감지. 다시 불러오세요."},409);
         return json(next);
       }
       return json({error:"not_found"},404);

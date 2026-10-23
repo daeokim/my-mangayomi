@@ -11,10 +11,12 @@ import rx.Observable
 import java.util.Calendar
 import java.util.TimeZone
 
-private val domain = SiteDomain("anilife", "https://anilife01.tv", Regex("(?:www\\.)?anilife(\\d+)\\.tv"))
-
 class AniLife : AnimeHttpSource() {
-    override val client: OkHttpClient by lazy { CronetClient.create(super.client, "eu.kanade.tachiyomi.animeextension.ko.daeoanilife") }
+    private val domain by lazy { AniLifeDomain(LifeDomainPreferences()) }
+    private val transport: OkHttpClient by lazy { CronetClient.create(super.client, "eu.kanade.tachiyomi.animeextension.ko.daeoanilife") }
+    override val client: OkHttpClient by lazy {
+        transport.newBuilder().apply { interceptors().add(0, LifeDomainInterceptor(domain, transport)) }.build()
+    }
     override val id: Long get() = 850164079243120202L
     override val name = "애니라이프"
     override val lang = "ko"
@@ -25,7 +27,7 @@ class AniLife : AnimeHttpSource() {
     private fun get(url: String, referer: String = "$baseUrl/tags") = Request.Builder().url(url).headers(headers)
         .header("Referer", referer).header("Origin", baseUrl).build()
     private fun catalog(page: Int, sort: String = "latest", scope: String = "", query: String = "", genre: String = "", year: String = "", status: String = "", day: String = ""): Request {
-        val url = domain.resolve(client).toHttpUrl().newBuilder().addPathSegments("api/anime")
+        val url = domain.resolve(transport).toHttpUrl().newBuilder().addPathSegments("api/anime")
             .addQueryParameter("page", page.toString()).addQueryParameter("limit", "24").addQueryParameter("sort", sort)
         for ((k, v) in listOf("scope" to scope, "q" to query, "genre" to genre, "year" to year, "status" to status, "day" to day)) if (v.isNotBlank()) url.addQueryParameter(k, v)
         return get(url.addQueryParameter("v", "catalog-media-2").build().toString())
@@ -65,7 +67,7 @@ class AniLife : AnimeHttpSource() {
     override suspend fun getSearchAnime(page: Int, query: String, filters: AnimeFilterList): AnimesPage = fetchSearchAnime(page, query, filters).toBlocking().single()
     override fun animeDetailsRequest(anime: SAnime): Request {
         val id = AniLifeParsing.detailId(anime.url)
-        return get("${domain.resolve(client)}/api/anime/$id?v=playback-policy-v2", "$baseUrl/content/$id/1")
+        return get("${domain.resolve(transport)}/api/anime/$id?v=playback-policy-v2", "$baseUrl/content/$id/1")
     }
     override fun animeDetailsParse(response: Response): SAnime = mapped(AniLifeParsing.item(JSONObject(response.body!!.string()).getJSONObject("item"), baseUrl))
     override fun episodeListRequest(anime: SAnime) = animeDetailsRequest(anime)
@@ -74,15 +76,20 @@ class AniLife : AnimeHttpSource() {
     } }
     override fun videoListRequest(episode: SEpisode): Request {
         require(Regex("/api/playback/[A-Za-z0-9_-]+/[A-Za-z0-9_-]+").matches(episode.url)) { "회차 주소 오류" }
-        return get(domain.resolve(client) + episode.url)
+        return get(domain.resolve(transport) + episode.url)
     }
     private val delivery = AniLifeDelivery()
     override fun fetchVideoList(episode: SEpisode): Observable<List<Video>> = Observable.fromCallable {
-        val base = domain.resolve(client)
-        val result = delivery.resolve(client, base, episode.url, headers)
-        val videoHeaders = headers.newBuilder().set("Referer", result.referer).set("Origin", base).set("Accept", "*/*").build()
-        val tracks = result.subtitle?.let { listOf(Track(it, "사이트 자막")) } ?: emptyList()
-        result.streams.map { (url, label) -> Video(url, label, url, headers = videoHeaders, subtitleTracks = tracks) }
+        repeat(2) { attempt ->
+            val base = domain.resolve(transport)
+            try {
+                val result = delivery.resolve(client, base, episode.url, headers)
+                val videoHeaders = headers.newBuilder().set("Referer", result.referer).set("Origin", base).set("Accept", "*/*").build()
+                val tracks = result.subtitle?.let { listOf(Track(it, "사이트 자막")) } ?: emptyList()
+                return@fromCallable result.streams.map { (url, label) -> Video(url, label, url, headers = videoHeaders, subtitleTracks = tracks) }
+            } catch (moved: LifeDomainMoved) { if (attempt == 1) throw moved }
+        }
+        error("애니라이프 새 주소에서 재생을 다시 시도해 주세요.")
     }
     override suspend fun getVideoList(episode: SEpisode): List<Video> = fetchVideoList(episode).toBlocking().single()
     override fun videoListParse(response: Response): List<Video> = error("재생 세션은 fetchVideoList에서 처리합니다.")
