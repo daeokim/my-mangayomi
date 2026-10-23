@@ -80,18 +80,33 @@ Free/Paid 여부를 판정할 수 없다.
 2. ChatGPT Cloudflare 연결을 다시 인증할 때 대상 계정의 Workers Editor(또는
    Workers Scripts Write) 권한을 허용한다. 조회만 되는 권한으로는 업로드가 안 된다.
    직접 API 토큰으로 배포할 경우 Cloudflare 프로필 → My Profile → API Tokens → Create Token
-   → Edit Cloudflare Workers에서 대상 계정만 제한한다. 토큰 값은 공유하지 않는다.
+   → Create Custom Token → Permissions에서 **Account / Workers Scripts / Edit**를 선택하고,
+   Account Resources → Include → Specific account에서 본인 계정만 지정한다.
+   계정 ID는 대시보드 → Workers & Pages → Account Details → Account ID의 복사 버튼으로
+   복사한다(또는 Search → `Copy account ID`).
+   토큰 값은 공유하지 않는다.
    로컬 배포용 이름은 `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`이며 이번 PR은
    GitHub Actions에 Cloudflare 배포 토큰을 요구하지 않는다.
 3. GitHub 프로필 → Settings → Developer settings → Personal access tokens → Fine-grained tokens
    → Generate new token. Resource owner `daeokim` → Only select repositories → `my-mangayomi`만
    선택 → Repository permissions → Contents: Read and write, Metadata: Read → 만료일 설정.
    토큰은 직접 보관하고 만료 전에 갱신한다. 앱 저장소·Administration·Secrets 권한은 불필요하다.
-4. Cloudflare Workers & Pages에서 `daeo-domain-manager`를 만들고 **머지된** `worker.mjs`를
-   배포한다(또는 본인 터미널에서 domain-manager로 이동 → `npx wrangler login` →
-   `npx wrangler deploy`). 초기 빈 Worker에는 cron을 활성화하지 않는다.
-   Worker → Settings → Variables and Secrets → Add → Type **Secret**, Name **GITHUB_TOKEN**,
-   Value는 위 GitHub 토큰을 본인이 직접 입력 → Deploy. 평문 변수로 넣지 않는다.
+4. Cloudflare Workers & Pages에서 초기 빈 `daeo-domain-manager`를 만든다.
+   초기 빈 Worker에는 cron을 활성화하지 않는다. PR 머지 후 본인 터미널에서
+   저장소의 `domain-manager`로 이동하여 아래 명령을 순서대로 실행한다.
+   `secret put`의 숨김 입력에 GitHub 토큰을 본인이 직접 입력한다. 토큰을 명령 인자·
+   환경 변수 설정 예시·평문 설정 파일·대화창에 넣지 않는다.
+
+   ```sh
+   npx wrangler login
+   npx wrangler secret put GITHUB_TOKEN
+   npx wrangler deploy
+   ```
+
+   API 토큰 방식이면 본인 터미널의 안전한 입력으로 `CLOUDFLARE_API_TOKEN`과
+   `CLOUDFLARE_ACCOUNT_ID`를 설정하고 `login`만 생략한다.
+   Worker → Settings → Variables and Secrets에서 이름 **GITHUB_TOKEN**, Type **Secret**을
+   확인한다. 값은 조회하지 않는다. 배포에는 **머지된** 코드만 사용한다.
    `GITHUB_REPOSITORY=daeokim/my-mangayomi`, `GITHUB_BRANCH=main`은 일반 변수다.
    `ADMIN_TOKEN`은 웹 관리자 사용 시에만 24자 이상 난수를 Secret으로 등록한다.
 5. Worker → Settings → Triggers → Cron Triggers에 `*/10 * * * *`를 설정한다(Wrangler 배포 시
@@ -119,4 +134,5 @@ bash aniyomi/native/gradlew -p aniyomi/native :anilife:testReleaseUnitTest :anil
 - https://developers.cloudflare.com/workers/configuration/cron-triggers/
 - https://developers.cloudflare.com/workers/configuration/secrets/
 - https://developers.cloudflare.com/fundamentals/api/get-started/create-token/
+- https://developers.cloudflare.com/fundamentals/account/find-account-and-zone-ids/
 - https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens
