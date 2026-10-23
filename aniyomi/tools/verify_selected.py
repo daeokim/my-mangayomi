@@ -18,10 +18,10 @@ EXPECTED = {'manga':['11toon 만화','Blacktoon 웹툰','Goodtoon 웹툰'],
 def verify_cronet(apk, classes, source_class):
     import zipfile
     with zipfile.ZipFile(ROOT/'media/apk/daeotvroom-v14.1004.apk') as original:
-        expected = {abi: hashlib.sha256(original.read(f'lib/{abi}/libcronet.143.0.7445.0.so')).hexdigest()
-                    for abi in ['arm64-v8a','armeabi-v7a','x86','x86_64']}
-    for abi, digest in expected.items():
-        assert hashlib.sha256(apk.get_file(f'lib/{abi}/libcronet.143.0.7445.0.so')).hexdigest() == digest
+        expected = hashlib.sha256(original.read('lib/arm64-v8a/libcronet.143.0.7445.0.so')).hexdigest()
+    # Native video extensions ship the arm64-v8a library only (the app itself is arm64-v8a only).
+    assert hashlib.sha256(apk.get_file('lib/arm64-v8a/libcronet.143.0.7445.0.so')).hexdigest() == expected
+    assert [n for n in apk.get_files() if n.startswith('lib/')] == ['lib/arm64-v8a/libcronet.143.0.7445.0.so']
     assert apk.get_file('assets/cronet-LICENSE.txt') == (ROOT/'native/cronet/src/main/assets/cronet-LICENSE.txt').read_bytes()
     assert 'Ldaeo/extensions/common/CronetClient;' in classes
     assert 'Ldaeo/extensions/common/CronetClient$Transport;' in classes
