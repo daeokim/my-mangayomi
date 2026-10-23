@@ -10,9 +10,9 @@
     "sha256": "c21e9338c46a0acf1e14d86225dce603f6e67a48c213e9f29a38d9a4719bb0f2"
   },
   "eu.kanade.tachiyomi.animeextension.ko.daeoanilife": {
-    "code": 1003,
-    "inputDigest": "59c60dbe5e83eff1acfb86775a0011740e13a09c25e1864e2f43f75eb0c9addd",
-    "sha256": "5516eaf2f154d106302f0217e615cb4647bf51f26a52cb1537472a15a648b552"
+    "code": 1004,
+    "inputDigest": "b6a68c8667e68683f09f4f1535d6480fda809ff3adcee1bd2aa3ea83cddc874b",
+    "sha256": "be26648ca4bc754bfd67778ab93d05a92bb124e64f7a31c14a068930a9efe04a"
   },
   "eu.kanade.tachiyomi.animeextension.ko.daeotvwiki": {
     "code": 1003,
