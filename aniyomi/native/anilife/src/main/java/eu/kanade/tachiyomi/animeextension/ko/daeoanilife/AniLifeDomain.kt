@@ -26,7 +26,7 @@ internal class LifeDomainPreferences : LifeDomainStore {
     override fun write(origin: String) { preferences.edit().putString("auto_domain", origin).apply() }
 }
 
-/** Only forward domain numbers are automatic; a stale/protected registry cannot undo a phone discovery. */
+/** Forward registry hints are validated on the phone; stale hints cannot undo a saved discovery. */
 internal class AniLifeDomain(private val store: LifeDomainStore) {
     @Volatile var current = runCatching { normalize(store.read()) }.getOrNull() ?: SEED
         private set
@@ -42,7 +42,7 @@ internal class AniLifeDomain(private val store: LifeDomainStore) {
     }
     fun registryCandidate(json: String): String? = runCatching {
         val d = JSONObject(json).getJSONObject("domains").getJSONObject("anilife")
-        if (d.optString("status") != "healthy") return null
+        if (d.optString("status") !in listOf("healthy", "protected")) return null
         normalize(d.getString("baseUrl"))?.takeIf { number(it) > number(current) }
     }.getOrNull()
 
@@ -57,7 +57,7 @@ internal class AniLifeDomain(private val store: LifeDomainStore) {
         val now = System.nanoTime()
         if (checkedAt == 0L || now - checkedAt >= TimeUnit.MINUTES.toNanos(10)) {
             checkedAt = now
-            registry(client)?.let(::remember)
+            registry(client)?.let { probe(client, it) }
         }
         return current
     }

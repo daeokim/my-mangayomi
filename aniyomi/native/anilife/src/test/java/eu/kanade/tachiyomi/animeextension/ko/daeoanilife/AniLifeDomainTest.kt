@@ -28,9 +28,9 @@ class AniLifeDomainTest {
             assertNull(bad, AniLifeDomain.normalize(bad)); assertTrue(AniLifeDomain.nextOrigins(bad).isEmpty())
         }
     }
-    @Test fun storedPhoneDiscoverySurvivesRestartAndOlderOrProtectedRegistry() {
+    @Test fun storedPhoneDiscoverySurvivesRestartAndRejectsStaleOrForeignRegistry() {
         val store = Store("https://anilife04.tv"); val domain = AniLifeDomain(store)
-        for ((url, status) in listOf("https://anilife01.tv" to "healthy", "https://anilife05.tv" to "protected", "https://evil.test" to "healthy"))
+        for ((url, status) in listOf("https://anilife01.tv" to "healthy", "https://evil.test" to "healthy"))
             assertNull(domain.registryCandidate(registry(url, status)))
         assertEquals("https://anilife06.tv", domain.registryCandidate(registry("https://anilife06.tv")))
         domain.remember(domain.registryCandidate(registry("https://anilife06.tv"))!!)
@@ -39,7 +39,7 @@ class AniLifeDomainTest {
         assertEquals(1, store.writes)
         assertEquals(AniLifeDomain.SEED, AniLifeDomain(Store("https://evil.test")).current)
     }
-    @Test fun healthyNewerRegistryIsTriedFirstAndIncludedInTheFiveCandidateLimit() {
+    @Test fun newerRegistryIsTriedFirstAndIncludedInTheFiveCandidateLimit() {
         val store = Store(); val domain = AniLifeDomain(store); val seen = mutableListOf<String>()
         val result = domain.recover(domain.current, { "https://anilife10.tv" }) { seen += it; it.endsWith("03.tv") }
         assertEquals(listOf("https://anilife10.tv", "https://anilife02.tv", "https://anilife03.tv"), seen)
@@ -56,11 +56,21 @@ class AniLifeDomainTest {
         for (body in listOf("<html>Just a moment</html>", "{}", """{"items":[],"pagination":{"pages":1}}""", catalog.replace("/42.jpg", "javascript:x"), catalog.replace("42\",\"title", "../42\",\"title")))
             assertFalse(body, AniLifeDomain.validCatalog(body))
     }
-    @Test fun registryRefreshOnlyAdvancesToHealthyForwardNumber() {
+    @Test fun registryHintMustValidateOnPhoneEvenWhenActionsMarksItProtected() {
         val store = Store("https://anilife04.tv"); val domain = AniLifeDomain(store)
-        val transport = OkHttpClient.Builder().addInterceptor { reply(it.request(), 200, registry("https://anilife09.tv")) }.build()
+        val transport = OkHttpClient.Builder().addInterceptor {
+            reply(it.request(), 200, if (it.request().url.host == "daeokim.github.io") registry("https://anilife09.tv", "protected") else catalog)
+        }.build()
         assertEquals("https://anilife09.tv", domain.resolve(transport))
         assertEquals("https://anilife09.tv", AniLifeDomain(store).current)
+    }
+    @Test fun failedNewerRegistryHintDoesNotReplacePhoneStore() {
+        val store = Store("https://anilife04.tv"); val domain = AniLifeDomain(store)
+        val transport = OkHttpClient.Builder().addInterceptor {
+            reply(it.request(), 200, if (it.request().url.host == "daeokim.github.io") registry("https://anilife09.tv") else "<html>parking</html>")
+        }.build()
+        assertEquals("https://anilife04.tv", domain.resolve(transport))
+        assertEquals("https://anilife04.tv", store.value); assertEquals(0, store.writes)
     }
     private fun recoveringClient(domain: AniLifeDomain, seen: MutableList<Request>, missing: Boolean = false): OkHttpClient {
         val transport = OkHttpClient.Builder().addInterceptor { chain ->

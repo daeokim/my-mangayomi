@@ -26,8 +26,9 @@ origin은 미측정이다. 보호 응답을 healthy로 처리하거나 CAPTCHA�
 - 403 또는 IOException(연결/DNS 실패) 때만 복구한다. 작품 하나의 404·401은 탐색하지 않는다.
 - 동일 HTTPS 호스트 패턴의 다음 번호 +1..+5를 순서대로 검사한다. 09→10, 99→100과
   999999 상한을 처리하며 자격증명·외부 호스트·포트·경로를 origin으로 받아들이지 않는다.
-- `domains.json`의 healthy 주소 번호가 더 높으면 우선한다. 실패 시 재조회한 registry 후보도
-  **총 5개 후보 한도에 포함**한다. 낮은 번호와 protected registry는 휴대폰 저장값을 되돌리지 않는다.
+- `domains.json` 주소 번호가 더 높으면 휴대폰 목록 검증을 먼저 시도한다. Actions의 protected
+  기록도 후보로만 사용하며 휴대폰에서 정상 목록을 확인해야 저장한다. 실패 시 재조회한 registry 후보도
+  **총 5개 후보 한도에 포함**한다. 낮은 번호와 휴대폰 검증에 실패한 registry는 저장값을 되돌리지 않는다.
 - 실제 AniLife 목록 JSON(items의 id/title/image와 pagination)을 확인한 후보만 채택한다.
   후보당 요청 시간 제한과 최대 2회 동일 패턴 HTTPS redirect를 적용하고 최종 주소를 저장한다.
 - 앱의 해당 소스 SharedPreferences `source_850164079243120202`의 `auto_domain`에 보관하므로
