@@ -4,7 +4,9 @@
   "main": "worker.mjs",
   "compatibility_date": "2025-10-09",
   "workers_dev": true,
-  "triggers": { "crons": ["*/10 * * * *"] },
+  "triggers": {
+    "crons": ["*/10 * * * *"]
+  },
   "vars": { "GITHUB_REPOSITORY": "daeokim/my-mangayomi", "GITHUB_BRANCH": "main" },
   "observability": { "enabled": true }
 }
