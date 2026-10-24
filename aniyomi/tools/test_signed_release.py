@@ -25,6 +25,9 @@ class SigningSafetyTest(unittest.TestCase):
 
     def test_binary_transition_keeps_every_non_manifest_payload(self):
         for suffix, (kind, filename, old_code, old_version, code, version, digest) in BINARY.items():
+            # TVRoom is built by patch_tvroom_recovery.py, whose payload checks run in test_tvroom_recovery.py.
+            if suffix == 'daemedia':
+                continue
             source = ROOT / f'aniyomi/{kind}/apk' / filename
             with tempfile.TemporaryDirectory() as tmp:
                 output = Path(tmp)/'unsigned.apk'
