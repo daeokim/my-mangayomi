@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-24T12:10:18.299Z",
-  "lastRunAt": "2026-10-24T12:10:18.299Z",
+  "updatedAt": "2026-10-24T12:20:17.685Z",
+  "lastRunAt": "2026-10-24T12:20:17.685Z",
   "domains": {
     "11toon": {
       "baseUrl": "https://11toon.com",
@@ -129,15 +129,27 @@
       "consecutiveFailures": 12
     },
     "ani24": {
-      "baseUrl": "https://ani.ohli24.com",
+      "baseUrl": "https://www.ohli24.net",
       "status": "healthy",
-      "lastConfirmedAt": "2026-10-24T11:10:17.529Z",
-      "lastCheckedAt": "2026-10-24T11:10:17.529Z",
+      "lastConfirmedAt": "2026-10-24T12:20:17.685Z",
+      "lastCheckedAt": "2026-10-24T12:20:17.685Z",
       "lastConfirmedBy": "external-http-check",
-      "reason": "운영자 지정: 사이트가 ani.ohli24.com으로 이전",
+      "reason": "목록 구조 확인 · 재생/이미지 검증은 별도",
       "scanOffset": 1,
       "consecutiveFailures": 0,
-      "attempts": []
+      "attempts": [
+        {
+          "baseUrl": "https://www.ohli24.net",
+          "ok": true,
+          "reason": "목록 구조 확인",
+          "finalBaseUrl": "https://www.ohli24.net"
+        }
+      ],
+      "currentCheck": {
+        "baseUrl": "https://ani.ohli24.com",
+        "checked": false,
+        "reason": "다른 후보 확인으로 기존 주소는 미점검"
+      }
     },
     "anilife": {
       "baseUrl": "https://anilife01.tv",
