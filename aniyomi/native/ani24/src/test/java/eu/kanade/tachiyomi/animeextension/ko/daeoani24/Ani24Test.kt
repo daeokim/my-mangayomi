@@ -28,6 +28,9 @@ class Ani24Test {
     }
     @Test fun pathAndSearchBounds() {
         assertEquals("/42/a.html", Ani24Parsing.path("https://ohli25.net/42/a.html"))
+        assertEquals("/42/a.html", Ani24Parsing.path("https://ani.ohli24.com/42/a.html"))
+        assertEquals("/42/a.html", Ani24Parsing.path("/42/a.html"))
+        assertThrows(IllegalArgumentException::class.java) { Ani24Parsing.path("https://ani.ohli24.com.evil.test/42/a.html") }
         assertThrows(IllegalArgumentException::class.java) { Ani24Parsing.path("https://evil.test/42/a.html") }
         assertThrows(IllegalArgumentException::class.java) { Ani24Parsing.path("https://user@www.ohli24.net/42/a.html") }
         assertTrue(Ani24Parsing.searchTerms("나의히어로").size <= 10)

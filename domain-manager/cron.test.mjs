@@ -83,6 +83,7 @@ test('numbered discovery preserves padding and handles digit-width changes',()=>
     ['anilife','https://anilife09.tv','https://anilife10.tv'],
     ['tvroom','https://tvroom99.org','https://tvroom100.org'],
     ['ani24','https://www.ohli24.net','https://ohli25.net'],
+    ['ani24','https://ani.ohli24.com','https://ani.ohli25.com'],
   ]) {
     assert.equal(scanCandidate(key,base,1),expected);
     assert.equal(domainNumber(key,expected),domainNumber(key,base)+1);

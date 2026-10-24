@@ -101,14 +101,14 @@ class DefaultExtension extends AnimeProvider {
   constructor() {
     super(); this.name = "애니24"; this.site = "ani24";
     this.fallbackBaseUrl = mangayomiSources[0].baseUrl;
-    this.domainPattern = /^https:\/\/(?:www\.)?ohli\d+\.net$/i;
+    this.domainPattern = /^https:\/\/(?:www\.|ani\.)?ohli\d+\.(?:net|com)$/i;
     this.signalUrl = "https://daeokim.github.io/my-mangayomi/domains.json";
   }
   _path(value) {
     const raw = this._text(value).trim();
-    if (/^[a-z][a-z0-9+.-]*:/i.test(raw) && !/^https:\/\/(?:www\.)?ohli\d+\.net\//i.test(raw)) throw new Error("애니24 주소 오류");
+    if (/^[a-z][a-z0-9+.-]*:/i.test(raw) && !/^https:\/\/(?:www\.|ani\.)?ohli\d+\.(?:net|com)\//i.test(raw)) throw new Error("애니24 주소 오류");
     if (raw.startsWith("//")) throw new Error("애니24 주소 오류");
-    const path = raw.replace(/^https:\/\/(?:www\.)?ohli\d+\.net/i, "").split("#")[0];
+    const path = raw.replace(/^https:\/\/(?:www\.|ani\.)?ohli\d+\.(?:net|com)/i, "").split("#")[0];
     if (!/^\/\d+\/[^/\s]+$/.test(path.split("?")[0]) || /[\r\n]/.test(path)) throw new Error("애니24 작품·회차 주소 오류");
     return path;
   }

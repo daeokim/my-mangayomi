@@ -9,8 +9,8 @@ internal data class AniCard(val path: String, val title: String, val image: Stri
 internal data class AniEpisode(val path: String, val name: String, val date: String)
 internal object Ani24Parsing {
     fun path(value: String): String {
-        val url = "https://www.ohli24.net".toHttpUrl().resolve(value.trim()) ?: error("애니24 주소 오류")
-        require(url.username.isEmpty() && url.password.isEmpty() && url.port == 443 && Regex("(?:www\\.)?ohli(?:\\d+)\\.net").matches(url.host)) { "애니24 주소 오류" }
+        val url = "https://ani.ohli24.com".toHttpUrl().resolve(value.trim()) ?: error("애니24 주소 오류")
+        require(url.username.isEmpty() && url.password.isEmpty() && url.port == 443 && Regex("(?:www\\.|ani\\.)?ohli(?:\\d+)\\.(?:net|com)").matches(url.host)) { "애니24 주소 오류" }
         return url.encodedPath + (url.encodedQuery?.let { "?$it" } ?: "")
     }
     fun slug(path: String) = URLDecoder.decode(path.substringAfterLast('/').removeSuffix(".html").replace("+", "%2B"), "UTF-8").replace('-', ' ').trim()

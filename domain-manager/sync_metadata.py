@@ -23,7 +23,7 @@ PROFILES = {
 }
 
 ANIME_PROFILES = {
-    'ani24': ('javascript/anime/ani24.js', 'anime_index.json', r'(?:www\.)?ohli\d+\.net'),
+    'ani24': ('javascript/anime/ani24.js', 'anime_index.json', r'(?:www\.|ani\.)?ohli\d+\.(?:net|com)'),
     'anilife': ('javascript/anime/anilife.js', 'anime_index.json', r'(?:www\.)?anilife\d+\.tv'),
 }
 
@@ -123,7 +123,7 @@ def build_changes(root):
             record = state['domains'].get(key, {})
             if not record.get('lastConfirmedAt') or key in state.get('control', {}).get('overrides', {}):
                 continue
-            pattern = r'(?:www\.)?ohli(\d+)\.net' if key == 'ani24' else r'(?:www\.)?anilife(\d+)\.tv'
+            pattern = r'(?:www\.|ani\.)?ohli(\d+)\.(?:net|com)' if key == 'ani24' else r'(?:www\.)?anilife(\d+)\.tv'
             u = urlsplit(record.get('baseUrl', ''))
             match = re.fullmatch(pattern, u.hostname or '')
             if (u.scheme != 'https' or u.username or u.password or u.port or u.path not in ('', '/')
