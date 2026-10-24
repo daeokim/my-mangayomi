@@ -25,9 +25,6 @@ class SigningSafetyTest(unittest.TestCase):
 
     def test_binary_transition_keeps_every_non_manifest_payload(self):
         for suffix, (kind, filename, old_code, old_version, code, version, digest) in BINARY.items():
-            # TVRoom is built by patch_tvroom_recovery.py, whose payload checks run in test_tvroom_recovery.py.
-            if suffix == 'daemedia':
-                continue
             source = ROOT / f'aniyomi/{kind}/apk' / filename
             with tempfile.TemporaryDirectory() as tmp:
                 output = Path(tmp)/'unsigned.apk'
@@ -46,7 +43,7 @@ class SigningSafetyTest(unittest.TestCase):
                     # The only byte changes are version strings and the integer.
                     changes = sum(a != b for a, b in zip(manifest, patched))
                     self.assertLessEqual(changes, 8)
-                    self.assertEqual(patch_version(patched, code, version, code+1, version[:-1]+str(int(version[-1])+1))[:8], manifest[:8])
+                    self.assertEqual(patch_version(patched, code, version, code+1, version[:-len(str(code))]+str(code+1))[:8], manifest[:8])
                     with self.assertRaises(ValueError): patch_version(manifest, old_code+9, old_version, code, version)
                     for name in after.namelist():
                         if name != 'AndroidManifest.xml': self.assertEqual(before.read(name), after.read(name), name)
