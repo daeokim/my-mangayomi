@@ -18,12 +18,14 @@ APKTOOL_SHA = 'dbf930b076c6b9be08d57c449cacefc3bdd6b71ebd59b3066fc0e1f5b14f9423'
 SOURCE = ROOT/'aniyomi/media/apk/daeotvroom-v14.1005.apk'
 OUTPUT = ROOT/'aniyomi/native/tvroom-recovery/build/outputs/apk/tvroom-recovery-unsigned.apk'
 HELPER = ROOT/'aniyomi/native/tvroom-recovery/build/libs/tvroom-recovery.jar'
-CODE, VERSION = 1007, '14.1007'
+CODE, VERSION = 1008, '14.1008'
 
 def bump_manifest(data):
-    # 14.1006 crashed on cancelled requests; 14.1007 is rebuilt from the same pinned 14.1005 input.
-    # patch_version only allows +1 steps, so step through 1006.
-    return patch_version(patch_version(data,1005,'14.1005',1006,'14.1006'),1006,'14.1006',CODE,VERSION)
+    # Every release is rebuilt from the same pinned 14.1005 input (14.1006 crashed, 14.1007 started at the
+    # dead tvroom40). patch_version only allows +1 steps, so step through the withdrawn codes.
+    for code in range(1005, CODE):
+        data=patch_version(data,code,f'14.{code}',code+1,f'14.{code+1}')
+    return data
 
 def method(text, signature, body):
     pattern=r'(?m)^\.method '+re.escape(signature)+r'\n.*?^\.end method$'

@@ -23,7 +23,9 @@ public final class TvRoomDomain {
         void complete(String body, Throwable error);
         void raw(String url, Map<String,String> headers, int timeoutMillis, Callback callback);
     }
-    public static final String SEED = "https://tvroom40.org";
+    // The address 14.1005 used (registry value; tvroom40 is gone). Starting below it left lists empty
+    // whenever the phone could not re-validate the registry hint.
+    public static final String SEED = "https://tvroom42.org";
     public static final String REGISTRY = "https://daeokim.github.io/my-mangayomi/domains.json";
     public static final int MAX_BYTES = 1024 * 1024;
     private static final Pattern HOST = Pattern.compile("(?:www\\.)?tvroom([1-9][0-9]{0,5})\\.org");

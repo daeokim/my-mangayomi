@@ -68,8 +68,8 @@ public class TvRoomDomainTest {
     @Test public void protectedPageAndDnsFailuresRecover() throws Throwable {
         for(Object fail:Arrays.asList("<title>Just a moment</title>challenge-platform",new UnknownHostException("DNS"),new IllegalStateException("연결 실패: ERR_NAME_NOT_RESOLVED"))){
             TvRoomDomain d=new TvRoomDomain();Fake h=new Fake();h.replies.put(TvRoomDomain.SEED+"/video/a",fail);
-            h.replies.put("https://tvroom41.org/",HTML);h.replies.put("https://tvroom41.org/video/a","ok");
-            assertEquals("ok",d.fetch(h,TvRoomDomain.SEED+"/video/a",empty()));assertEquals("https://tvroom41.org",h.saved);
+            h.replies.put("https://tvroom43.org/",HTML);h.replies.put("https://tvroom43.org/video/a","ok");
+            assertEquals("ok",d.fetch(h,TvRoomDomain.SEED+"/video/a",empty()));assertEquals("https://tvroom43.org",h.saved);
         }
     }
     @Test public void allFailuresKeepSavedAndCooldown() throws Throwable {
@@ -91,7 +91,7 @@ public class TvRoomDomainTest {
         assertFalse(h.headers.get(1).containsKey("Cookie"));assertFalse(h.headers.get(1).containsKey("Authorization"));assertEquals(h.saved,h.headers.get(1).get("Origin"));assertEquals(0,h.writes);
     }
     @Test public void asynchronousCompletionResumesExactlyOnce() throws Throwable {
-        TvRoomDomain d=new TvRoomDomain();Fake h=new Fake();h.async=true;h.replies.put(TvRoomDomain.SEED+"/video/a",new IOException());h.replies.put("https://tvroom41.org/",HTML);h.replies.put("https://tvroom41.org/video/a","async result");
+        TvRoomDomain d=new TvRoomDomain();Fake h=new Fake();h.async=true;h.replies.put(TvRoomDomain.SEED+"/video/a",new IOException());h.replies.put("https://tvroom43.org/",HTML);h.replies.put("https://tvroom43.org/video/a","async result");
         assertSame(h.suspended,d.fetch(h,TvRoomDomain.SEED+"/video/a",empty()));assertEquals(0,h.completions);h.drain();assertEquals(1,h.completions);assertEquals("async result",h.result);assertNull(h.failure);
     }
     @Test public void cancellationStopsProbesAndWrites() throws Throwable {
@@ -99,8 +99,12 @@ public class TvRoomDomainTest {
         assertSame(h.suspended,d.fetch(h,TvRoomDomain.SEED+"/video/a",empty()));h.active=false;h.drain();assertEquals(1,h.urls.size());assertEquals(0,h.writes);assertTrue(h.failure instanceof CancellationException);
     }
     @Test public void retryOnlyOnce() throws Throwable {
-        TvRoomDomain d=new TvRoomDomain();Fake h=new Fake();h.replies.put("https://tvroom41.org/",HTML);
+        TvRoomDomain d=new TvRoomDomain();Fake h=new Fake();h.replies.put("https://tvroom43.org/",HTML);
         try{d.fetch(h,TvRoomDomain.SEED+"/video/a",empty());fail();}catch(IOException expected){}
-        assertEquals(1,h.writes);assertFalse(h.urls.contains("https://tvroom42.org/"));
+        assertEquals(1,h.writes);assertFalse(h.urls.contains("https://tvroom44.org/"));
+    }
+    @Test public void startsAtTheLastWorkingAddress() {
+        Fake h=new Fake();assertEquals("https://tvroom42.org",new TvRoomDomain().current(h));
+        h.saved="https://tvroom40.org";assertEquals("https://tvroom42.org",new TvRoomDomain().current(h));
     }
 }
