@@ -1,32 +1,32 @@
 {
   "eu.kanade.tachiyomi.animeextension.ko.daemedia": {
-    "code": 1009,
-    "inputDigest": "1b18360d186558c4f4c8f137fb0cd595fede5e8086a31e41f3ba2a6e9ac8bcc8",
-    "sha256": "27cd4d9bbc880ecce87606b5362b5c2c49195d8fee519f0af23bcba0c361f4d1"
+    "code": 1010,
+    "inputDigest": "8c5a03a011f02c67c37b300a2062824f7d986601af12bf140a9d3738fb41ecdd",
+    "sha256": "130a96e067dea4e11e2310e3fa775a7022c2e9151949c723bd081087ed12760e"
   },
   "eu.kanade.tachiyomi.animeextension.ko.daeoani24": {
-    "code": 1005,
-    "inputDigest": "d2f27259e453dcaa7ea166ca2b81c14e5a3ee549882f91c5ecca894f8a515f4c",
-    "sha256": "059bc6a31e941a41c51c145d4f88471220967795f6281d6abe04f1acb1199a97"
+    "code": 1006,
+    "inputDigest": "8a6268c3afb49624180f02bde0c3d1e9276fb1ad148d23d7761bcd7e55d2a39e",
+    "sha256": "89bbcadce1876e21f917d1837ba8778d1c335378a7ecec53e79a72c315b1d8fa"
   },
   "eu.kanade.tachiyomi.animeextension.ko.daeoanilife": {
-    "code": 1005,
-    "inputDigest": "ea606c5976917c7020f49ce461178348ecf76650ad1e7f9355d750896a8928ef",
-    "sha256": "dc5e47468383cca9802ad88d8885be07f6c99ce61d3bd452be1f2533ff72b9d3"
+    "code": 1006,
+    "inputDigest": "a8e46c31e9ead940f0fc27d61c31c6bc908cf2bccd8c1a13c52ec95af33896ca",
+    "sha256": "981641988f8e88931defe48e3db51299c6902eae386c9e584c7a0b74a9045e85"
   },
   "eu.kanade.tachiyomi.animeextension.ko.daeotvwiki": {
-    "code": 1004,
-    "inputDigest": "3c229f2452267f581f91296aae317efa2fdedd6f6d4e2b04ccfde0a98298b060",
-    "sha256": "c4129304db3c4f8c6229e3fb354ddbe648e9e573dee8c96d99a388747ebc8772"
+    "code": 1005,
+    "inputDigest": "453705d3189bacac7f278d111cf0966e0dcdeb4daead5dab320e0c688975a4b0",
+    "sha256": "b3098c4d99d516c1ee3d111d752e5b0cbc605bbf0f92e82cfb7bcdc1f8ced9b6"
   },
   "eu.kanade.tachiyomi.extension.ko.daeomanga": {
-    "code": 1004,
-    "inputDigest": "527222caf3ab89401ce558a081e778d87a750e7a76efa07854c0d7e747ddc3a3",
-    "sha256": "947f6234380c01dbd903f125997f04bfad8bf904fa75cff0289895a17ca58cd2"
+    "code": 1005,
+    "inputDigest": "6a08de9f3f94ba442a9dfb79da78ed0ade2625099868fb71bafa23e0e9364e59",
+    "sha256": "890872f85ad9b37ad1a11043043a5b6527d15acc5e7c9d00eed6f238019fdfb5"
   },
   "eu.kanade.tachiyomi.extension.ko.daeonaver": {
-    "code": 1003,
-    "inputDigest": "87276a26cebdd9c8e4e0d41290b90c728ec7fcc3f6767ffc13936a95d1b080f2",
-    "sha256": "c6657522b01bf617a7bd88c2bcba0275ca84b95f9bc7abb6cf644839fce7b76a"
+    "code": 1004,
+    "inputDigest": "526a2b18cf029fe6af2929732837c0d53b6f310a1560750e89232ad76514899d",
+    "sha256": "d99d21a10828f5494b9b1220bd8aa283a3f7f9e578c0ab5eb0e35c9d2872e7bd"
   }
 }
