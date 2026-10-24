@@ -222,7 +222,7 @@
   {
     "name": "애니24",
     "id": 780920261018101,
-    "baseUrl": "https://ohli24.net",
+    "baseUrl": "https://ani.ohli24.com",
     "lang": "ko",
     "typeSource": "single",
     "iconUrl": "https://www.ohli24.net/favicon.ico",
@@ -231,7 +231,7 @@
     "isNsfw": false,
     "hasCloudflare": false,
     "apiUrl": "",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "isManga": false,
     "itemType": 1,
     "isFullData": false,
