@@ -175,7 +175,10 @@ export async function scanState(initial, io = fetch, now = new Date().toISOStrin
   for (const key of keys) {
     const previous = initial.domains[key], pin = initial.control.overrides[key];
     const minimum = Math.max(PROFILES[key].floor,domainNumber(key,previous.baseUrl));
-    const upstream = normalize(key,signal[key]?.baseUrl,minimum);
+    // The external signal may only move a site forward. At the same number it can still name an old host
+    // (Ani24 www.ohli24.net after the move to ani.ohli24.com), so a tie never replaces our address.
+    const hinted = normalize(key,signal[key]?.baseUrl,minimum);
+    const upstream = hinted && (hinted === previous.baseUrl || domainNumber(key,hinted) > domainNumber(key,previous.baseUrl)) ? hinted : "";
     const offset = Number.isInteger(previous.scanOffset) && previous.scanOffset >= 1 && previous.scanOffset <= 10 ? previous.scanOffset : 1;
     const future = Array.from({length:lookahead},(_,i) => scanCandidate(key,previous.baseUrl,(offset+i-1)%10+1));
     const candidates = pin ? [pin] : [...new Set([upstream,previous.baseUrl,...future].filter(Boolean))];
