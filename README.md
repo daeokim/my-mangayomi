@@ -11,24 +11,29 @@
 | Aniyomi | 만화 확장 앱 저장소 | https://daeokim.github.io/my-mangayomi/aniyomi/manga/index.min.json |
 | Aniyomi | 애니메이션 확장 앱 저장소 | https://daeokim.github.io/my-mangayomi/aniyomi/media/index.min.json |
 
-Aniyomi는 **Daeo Manga 1.4.1003**, **Daeo TVRoom 14.1004**, **Daeo TVWiki 14.1002**을 설치합니다.
-만화는 11툰·블랙툰·굿툰, 영상은 티비룸 기반 DC 영화·드라마·예능·애니입니다.
-티비위키는 별도 APK로 영화·드라마·예능·애니 소스를 제공합니다. 앱의 성인 콘텐츠 소스 설정을 켜야 확장이 표시될 수 있습니다.
-Daeo TVRoom은 기존 Daeo Media와 패키지·서명·소스 ID가 같으므로 **기존 앱 위에 업데이트**합니다.
-Daeo TVWiki는 다른 패키지와 고유 소스 ID를 사용하므로 티비룸과 동시에 설치할 수 있습니다.
+Aniyomi 확장 6개는 Dtoon 앱의 검정 바탕·그라데이션 DC 아이콘을 공통으로 사용합니다.
+확장 표시 이름에서 `Daeo`만 제거하며 패키지명·서명·소스 ID·소스 이름은 유지합니다. 기존 앱을 삭제하지 않고 업데이트하세요.
+만화는 11툰·블랙툰·굿툰, TVRoom은 DC 영화·드라마·예능·애니이며, TVWiki는 별도 APK로 네 분류를 제공합니다.
+앱의 성인 콘텐츠 소스 설정을 켜야 일부 확장이 표시될 수 있습니다.
 
-- [티비룸 APK 14.1004](https://daeokim.github.io/my-mangayomi/aniyomi/media/apk/daeotvroom-v14.1004.apk)
-- [티비위키 APK 14.1002](https://daeokim.github.io/my-mangayomi/aniyomi/media/apk/daeotvwiki-v14.1002.apk)
+이 변경을 main에 머지하면 기존 서명 파이프라인이 아래 새 버전의 APK를 생성·검증·배포합니다.
+기존 APK는 보존하며, 설치 가능한 최신 버전은 위의 확장 저장소 목록에서 확인하세요.
 
-추가 소스는 아래의 별도 APK를 설치합니다. 기존 Daeo Manga·TVRoom·TVWiki와 함께 사용할 수 있습니다.
+| 확장 표시 이름 | 설치할 저장소 | 아이콘·이름 변경 버전 |
+|---|---|---|
+| Manga | 만화 확장 앱 저장소 | 1.4.1005 |
+| Naver | 만화 확장 앱 저장소 | 1.4.1004 |
+| TVRoom | 애니메이션 확장 앱 저장소 | 14.1010 |
+| TVWiki | 애니메이션 확장 앱 저장소 | 14.1005 |
+| Ani24 | 애니메이션 확장 앱 저장소 | 14.1006 |
+| AniLife | 애니메이션 확장 앱 저장소 | 14.1006 |
 
-| 소스 | 설치할 저장소 | 버전 | APK |
-|---|---|---|---|
-| 애니24 | 애니메이션 확장 앱 저장소 | 14.1002 | [다운로드](https://daeokim.github.io/my-mangayomi/aniyomi/media/apk/daeoani24-v14.1002.apk) |
-| 애니라이프 | 애니메이션 확장 앱 저장소 | 14.1002 | [다운로드](https://daeokim.github.io/my-mangayomi/aniyomi/media/apk/daeoanilife-v14.1002.apk) |
-| 네이버 웹툰 | 만화 확장 앱 저장소 | 1.4.1001 | [다운로드](https://daeokim.github.io/my-mangayomi/aniyomi/manga/apk/daeonaver-v1.4.1001.apk) |
+TVRoom 14.1010은 현재 배포된 14.1009의 DEX·주소 처리·재생 동작을 유지합니다.
+변경 범위는 표시 이름·버전·아이콘이며, 철회된 14.1006~14.1008의 주소 복구 코드를 다시 넣지 않습니다.
+원본 Dtoon 벡터·출처 커밋·PNG 해시는 `aniyomi/branding`에 있고, 설치된 APK 아이콘과 저장소 목록 아이콘을 함께 검사합니다.
+아이콘을 다시 생성하려면 CairoSVG 2.9.1 환경에서 `python aniyomi/tools/branding.py --render --check-assets`를 실행합니다.
 
-티비위키·애니24·애니라이프 **14.1002**는 티비룸 14.1004와 같은 Chromium Cronet 143 엔진을 포함합니다.
+티비위키·애니24·애니라이프는 티비룸과 같은 Chromium Cronet 143 엔진을 포함합니다.
 목록·상세·회차·세션 API와 확장이 직접 읽는 HLS 목록을 Cronet으로 요청합니다. HTTP/2·QUIC·Brotli를 켜고 TLS 인증서 검증을 유지합니다.
 기존 패키지·서명·소스 ID를 유지하므로 삭제 없이 업데이트할 수 있습니다. 엔진 포함으로 APK 용량이 늘어납니다.
 Aniyomi 자체 이미지 로더와 외부 플레이어의 연결 방식은 별개이며, 앱의 OkHttp용 DNS/DoH·프록시 설정은 이 Cronet 연결에 자동 적용되지 않습니다.
@@ -74,7 +79,7 @@ Mangayomi Anime repo에는 기존 티비룸·티비위키 통합 소스와 별�
 
 - **Mangayomi:** 확장을 업데이트하고 각 소스의 **주소 직접 지정**을 비웁니다. 직접 입력한 값이 있으면 자동 주소보다 우선합니다.
 - **Aniyomi 만화:** 블랙툰의 **주소 갱신 방식 → 중앙신호등**을 선택합니다. 11툰·굿툰은 별도 모드 설정 없이 공통 목록을 조회합니다.
-- **Aniyomi 영상:** Daeo TVRoom과 Daeo TVWiki가 공통 목록의 각 사이트 주소를 읽습니다. 주소 번호 변경마다 APK를 재설치할 필요는 없습니다.
+- **Aniyomi 영상:** TVRoom과 TVWiki가 공통 목록의 각 사이트 주소를 읽습니다. 주소 번호 변경마다 APK를 재설치할 필요는 없습니다.
 - **애니24·애니라이프:** 공통 목록에서 주소를 읽고 10분간 캐시합니다. 주소 조회 실패 시 마지막 유효 주소를 유지하며, 이전 번호·다른 사이트 주소는 거부합니다. 네이버는 공식 고정 주소 `comic.naver.com`을 사용합니다.
 
 GitHub Actions는 **6시간마다 (한국 시간 03:17·09:17·15:17·21:17)**에 실행되도록 설정되어 있습니다. 예약 실행은 지연·누락될 수 있으며 실시간 감지가 아닙니다.
@@ -121,10 +126,10 @@ python -m unittest discover -s domain-manager -p 'test_sync_metadata.py'
 python aniyomi/tools/verify_selected.py
 ```
 
-APK 검사는 `androguard==4.1.4`가 필요합니다. 빌드 입력·출력 해시는 [빌드 기록](aniyomi/build-report.json)에 있습니다.
-재빌드는 `aniyomi/tools/prepare_selected.py`와 `connect_registry.py`, 서명은 `SignSelected.java`를 사용합니다.
-원본 APK·도구는 코드의 고정 SHA-256과 일치해야 하며, 기존 업데이트에는 동일한 개인 서명 키가 필요합니다.
-티비룸 14.1004는 `prepare_tvroom.py`로 기존 14.1003을 갱신합니다. 기존 보관함 연결을 위해 DC 소스 이름과 ID를 유지합니다.
+APK 검사는 `androguard==4.1.3`이 필요합니다. 기존 빌드 입력·출력 해시는 [빌드 기록](aniyomi/build-report.json)에 있습니다.
+현재 서명·배포는 `aniyomi/tools/signed_release.py`가 담당하며, main 빌드에서만 기존 개인 서명 키를 사용합니다.
+바이너리 Manga·TVRoom의 표시 변경은 `aniyomi/tools/branding.py`로 준비합니다. 입력 APK의 고정 SHA-256을 확인하고 DEX·리소스 테이블과 그 외 파일이 동일한지 검사합니다.
+기존 보관함 연결을 위해 DC 소스 이름과 ID를 유지합니다.
 티비위키 소스는 `aniyomi/native`에 있으며 JDK 17·Android SDK 35 환경에서 아래 명령으로 빌드·검사합니다.
 
 ```sh

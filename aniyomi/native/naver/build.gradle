@@ -2,7 +2,7 @@ plugins { id 'com.android.application'; id 'org.jetbrains.kotlin.android' }
 android {
  namespace 'eu.kanade.tachiyomi.extension.ko.daeonaver'
  compileSdk 35
- defaultConfig { applicationId 'eu.kanade.tachiyomi.extension.ko.daeonaver'; minSdk 24; targetSdk 35; versionCode 1003; versionName '1.4.1003' }
+ defaultConfig { applicationId 'eu.kanade.tachiyomi.extension.ko.daeonaver'; minSdk 24; targetSdk 35; versionCode 1004; versionName '1.4.1004' }
  compileOptions { sourceCompatibility JavaVersion.VERSION_1_8; targetCompatibility JavaVersion.VERSION_1_8 }
  kotlinOptions { jvmTarget = '1.8' }
  buildTypes { release { minifyEnabled false } }

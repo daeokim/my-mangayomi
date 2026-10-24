@@ -19,12 +19,11 @@ ROOT = Path(__file__).resolve().parents[2]
 FINGERPRINT = '71d5e7b6fc35c90e4dae3c98e2e0001a545376eb52565fa743b49e8017eeb8c3'
 MODULES = {'naver': 'manga', 'tvwiki': 'media', 'ani24': 'media', 'anilife': 'media'}
 BINARY = {
-    'daeomanga': ('manga', 'daeomanga-v1.4.1003.apk', 1003, '1.4.1003', 1004, '1.4.1004',
-                  '527222caf3ab89401ce558a081e778d87a750e7a76efa07854c0d7e747ddc3a3'),
-    # 14.1009 is the original 14.1005 code (manifest version only): the phone-side recovery in 14.1006-14.1008
-    # slowed playback. patch_tvroom_recovery.py stays in CI for a later, failure-only retry.
-    'daemedia': ('media', 'daeotvroom-v14.1005.apk', 1005, '14.1005', 1009, '14.1009',
-                '1b18360d186558c4f4c8f137fb0cd595fede5e8086a31e41f3ba2a6e9ac8bcc8'),
+    'daeomanga': ('manga', 'daeomanga-v1.4.1004.apk', 1004, '1.4.1004', 1005, '1.4.1005',
+                  '947f6234380c01dbd903f125997f04bfad8bf904fa75cff0289895a17ca58cd2'),
+    # Keep 14.1009's playback behavior; this release changes display resources only.
+    'daemedia': ('media', 'daeotvroom-v14.1009.apk', 1009, '14.1009', 1010, '14.1010',
+                '27cd4d9bbc880ecce87606b5362b5c2c49195d8fee519f0af23bcba0c361f4d1'),
 }
 SECRETS = ('EXT_SIGNING_KEYSTORE_BASE64', 'EXT_SIGNING_STORE_PASSWORD',
            'EXT_SIGNING_KEY_ALIAS', 'EXT_SIGNING_KEY_PASSWORD')
@@ -157,8 +156,9 @@ def native_version(module):
 
 
 def binary_digest(suffix,pinned,ref='HEAD'):
-    # Every binary is now strip_and_bump of its pinned input, so the pinned hash is the whole provenance.
-    return pinned
+    # Icons, label policy and the safe binary XML writer are release inputs too.
+    paths = ['aniyomi/branding', 'aniyomi/tools/branding.py', 'aniyomi/tools/prepare_selected.py']
+    return sha(pinned.encode()+git('ls-tree','-r',ref,'--',*paths))
 
 
 def run(*args, **kwargs):
@@ -178,6 +178,8 @@ def verify(path, entry, signer):
         raise RuntimeError('APK_package_or_version_mismatch')
     if apk.get_attribute_value('application', 'debuggable') not in (None, 'false', '0', '0x0', '0x00000000'):
         raise RuntimeError('debuggable_extension')
+    from branding import verify_apk
+    verify_apk(path)
     return sha(path.read_bytes())
 
 
@@ -241,7 +243,8 @@ def prepare(temp):
                 if sha(source_old.read_bytes()) != pinned:
                     raise RuntimeError('binary_input_hash_mismatch')
                 source = temp / (suffix + '-unsigned.apk')
-                strip_and_bump(source_old, source, old_code, old_version, code, version)
+                from branding import prepare_binary
+                prepare_binary(source_old, source, suffix, old_code, old_version, code, version)
             else:
                 raise RuntimeError('unexpected_extension_package')
             entry.update(code=code, version=version, apk=filename)

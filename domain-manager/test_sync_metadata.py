@@ -60,8 +60,13 @@ class MetadataTests(unittest.TestCase):
                 self.assertIn(entry['version'], changes[path])
         self.assertIn('https://ohli999.net', changes['javascript/anime/ani24.js'])
         self.assertIn('https://anilife999.tv', changes['javascript/anime/anilife.js'])
-        self.assertIn('| 애니24 | 애니메이션 확장 앱 저장소 | 14.1002 |', changes['README.md'])
-        self.assertIn('| 애니라이프 | 애니메이션 확장 앱 저장소 | 14.1002 |', changes['README.md'])
+        # JS address/version updates must preserve every APK release table row.
+        apk_names = {'Manga', 'Naver', 'TVRoom', 'TVWiki', 'Ani24', 'AniLife'}
+        apk_rows = [row for row in (repo/'README.md').read_text().splitlines()
+                    if row.startswith('| ') and row.split('|')[1].strip() in apk_names]
+        self.assertEqual(len(apk_rows), 6)
+        for row in apk_rows:
+            self.assertIn(row, changes['README.md'])
         for path, text in changes.items():
             (self.root / path).write_text(text)
         self.assertEqual(sync.build_changes(self.root), {})

@@ -1,7 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
  <uses-permission android:name="android.permission.INTERNET" />
  <uses-feature android:name="tachiyomi.extension" android:required="false" />
- <application android:label="Tachiyomi: Daeo Naver" android:icon="@drawable/ic_launcher" android:allowBackup="false">
+ <application android:label="Tachiyomi: Naver" android:icon="@drawable/ic_launcher" android:allowBackup="false">
   <meta-data android:name="tachiyomi.extension.class" android:value="eu.kanade.tachiyomi.extension.ko.daeonaver.Naver" />
   <meta-data android:name="tachiyomi.extension.nsfw" android:value="0" />
  </application>
