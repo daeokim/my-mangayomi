@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-24T21:30:17.833Z",
-  "lastRunAt": "2026-10-24T21:30:17.833Z",
+  "updatedAt": "2026-10-24T21:40:17.345Z",
+  "lastRunAt": "2026-10-24T21:40:17.345Z",
   "domains": {
     "11toon": {
       "baseUrl": "https://11toon.com",
@@ -132,11 +132,11 @@
       "baseUrl": "https://ani.ohli24.com",
       "status": "protected",
       "lastConfirmedAt": "2026-10-24T12:20:17.685Z",
-      "lastCheckedAt": "2026-10-24T20:47:06.058Z",
+      "lastCheckedAt": "2026-10-24T21:40:17.345Z",
       "lastConfirmedBy": "external-http-check",
       "reason": "HTTP 404",
-      "scanOffset": 10,
-      "consecutiveFailures": 9,
+      "scanOffset": 1,
+      "consecutiveFailures": 10,
       "attempts": [
         {
           "baseUrl": "https://ani.ohli24.com",
@@ -144,54 +144,9 @@
           "reason": "HTTP 404"
         },
         {
-          "baseUrl": "https://ani.ohli33.com",
-          "ok": false,
-          "reason": "연결 실패 또는 시간 초과"
-        },
-        {
           "baseUrl": "https://ani.ohli34.com",
           "ok": false,
-          "reason": "연결 실패 또는 시간 초과"
-        },
-        {
-          "baseUrl": "https://ani.ohli25.com",
-          "ok": false,
-          "reason": "연결 실패 또는 시간 초과"
-        },
-        {
-          "baseUrl": "https://ani.ohli26.com",
-          "ok": false,
-          "reason": "연결 실패 또는 시간 초과"
-        },
-        {
-          "baseUrl": "https://ani.ohli27.com",
-          "ok": false,
-          "reason": "연결 실패 또는 시간 초과"
-        },
-        {
-          "baseUrl": "https://ani.ohli28.com",
-          "ok": false,
-          "reason": "연결 실패 또는 시간 초과"
-        },
-        {
-          "baseUrl": "https://ani.ohli29.com",
-          "ok": false,
-          "reason": "연결 실패 또는 시간 초과"
-        },
-        {
-          "baseUrl": "https://ani.ohli30.com",
-          "ok": false,
-          "reason": "연결 실패 또는 시간 초과"
-        },
-        {
-          "baseUrl": "https://ani.ohli31.com",
-          "ok": false,
-          "reason": "연결 실패 또는 시간 초과"
-        },
-        {
-          "baseUrl": "https://ani.ohli32.com",
-          "ok": false,
-          "reason": "연결 실패 또는 시간 초과"
+          "reason": "HTTP 530"
         }
       ],
       "currentCheck": {
