@@ -1,0 +1,16 @@
+{
+  "sourceRepository": "daeokim/my-aniyomi",
+  "sourceCommit": "a89dcbe973d1e1c8830b490f2a015b972f3f93a3",
+  "sourcePath": "app/src/main/res/drawable/ic_personal_foreground.xml",
+  "sourceSha256": "6099a3c97953346027b04bdea9fa9d15c9bccaaa093e437906a4b6f57757a1e0",
+  "background": "#000000",
+  "description": "Dtoon launcher artwork reused without changing its path geometry or gradients.",
+  "renderer": "CairoSVG 2.9.1",
+  "pngSha256": {
+    "mdpi": "759d730038d97edeb3eeab21e4b009083619f1fb972ba95ff7e527eaa02724b9",
+    "hdpi": "634e10377d3e273592ccc8b02f1ed02b86c49213a7b4b902170f35aed39fc6e5",
+    "xhdpi": "5adf20ea93e2a4ea05c697bce5b3d8c907999b322fbbed6bce2a8c29708d708d",
+    "xxhdpi": "35562ae504b9a75611ffbc0829b5b2ce797f923a63eeeff9f28a2954131058a4",
+    "xxxhdpi": "0659f95f925512f23e08b430bc93affeaa6891865e0326c201f5c27678bb1795"
+  }
+}

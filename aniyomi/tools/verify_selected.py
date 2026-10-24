@@ -67,6 +67,9 @@ for kind,names in EXPECTED.items():
     assert apk.get_package() == entry['pkg']
     assert apk.get_androidversion_name() == entry['version']
     assert int(apk.get_androidversion_code()) == entry['code']
+    from branding import MIN_CODES, verify_apk
+    if entry['code'] >= MIN_CODES[entry['pkg'].rsplit('.', 1)[1]]:
+        verify_apk(path)
     assert apk.get_min_sdk_version() == '24'
     certs = apk.get_certificates_der_v2()
     assert len(certs) == 1
@@ -182,6 +185,9 @@ for directory, suffix, class_name, expected_name, expected_id in [
     assert apk.get_package() == entry['pkg']
     assert apk.get_androidversion_name() == entry['version']
     assert int(apk.get_androidversion_code()) == entry['code']
+    from branding import MIN_CODES, verify_apk
+    if entry['code'] >= MIN_CODES[suffix]:
+        verify_apk(ROOT/directory/'apk'/entry['apk'])
     assert apk.get_min_sdk_version() == '24'
     cert, = apk.get_certificates_der_v2()
     repo = json.loads((ROOT/directory/'repo.json').read_text())

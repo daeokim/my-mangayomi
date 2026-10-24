@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
  <uses-feature android:name="tachiyomi.animeextension" android:required="false" />
- <application android:label="Aniyomi: Daeo TVWiki" android:icon="@drawable/ic_launcher" android:allowBackup="false">
+ <application android:label="Aniyomi: TVWiki" android:icon="@drawable/ic_launcher" android:allowBackup="false">
   <meta-data android:name="tachiyomi.animeextension.class" android:value="eu.kanade.tachiyomi.animeextension.ko.daeotvwiki.TvWikiFactory" />
   <meta-data android:name="tachiyomi.animeextension.nsfw" android:value="1" />
  </application>
