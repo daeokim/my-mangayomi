@@ -21,7 +21,9 @@ MODULES = {'naver': 'manga', 'tvwiki': 'media', 'ani24': 'media', 'anilife': 'me
 BINARY = {
     'daeomanga': ('manga', 'daeomanga-v1.4.1003.apk', 1003, '1.4.1003', 1004, '1.4.1004',
                   '527222caf3ab89401ce558a081e778d87a750e7a76efa07854c0d7e747ddc3a3'),
-    'daemedia': ('media', 'daeotvroom-v14.1005.apk', 1005, '14.1005', 1008, '14.1008',
+    # 14.1009 is the original 14.1005 code (manifest version only): the phone-side recovery in 14.1006-14.1008
+    # slowed playback. patch_tvroom_recovery.py stays in CI for a later, failure-only retry.
+    'daemedia': ('media', 'daeotvroom-v14.1005.apk', 1005, '14.1005', 1009, '14.1009',
                 '1b18360d186558c4f4c8f137fb0cd595fede5e8086a31e41f3ba2a6e9ac8bcc8'),
 }
 SECRETS = ('EXT_SIGNING_KEYSTORE_BASE64', 'EXT_SIGNING_STORE_PASSWORD',
@@ -125,7 +127,12 @@ def strip_and_bump(source, target, old_code, old_version, code, version):
                 continue
             data = src.read(info.filename)
             if info.filename == 'AndroidManifest.xml':
-                data = patch_version(data, old_code, old_version, code, version)
+                # patch_version only allows +1, so step over withdrawn codes (TVRoom 1006-1008).
+                prefix = old_version[:-len(str(old_code))]
+                if old_version != prefix + str(old_code) or version != prefix + str(code):
+                    raise ValueError('unexpected_binary_version_name')
+                for step in range(old_code, code):
+                    data = patch_version(data, step, prefix + str(step), step + 1, prefix + str(step + 1))
             info.extra = b''
             dst.writestr(info, data)
 
@@ -150,9 +157,8 @@ def native_version(module):
 
 
 def binary_digest(suffix,pinned,ref='HEAD'):
-    if suffix!='daemedia':return pinned
-    paths=['aniyomi/native/tvroom-recovery','aniyomi/tools/patch_tvroom_recovery.py','aniyomi/tools/tvroom']
-    return sha(pinned.encode()+git('ls-tree','-r',ref,'--',*paths))
+    # Every binary is now strip_and_bump of its pinned input, so the pinned hash is the whole provenance.
+    return pinned
 
 
 def run(*args, **kwargs):
@@ -234,13 +240,8 @@ def prepare(temp):
                 source_old = ROOT / f'aniyomi/{folder}/apk' / filename_old
                 if sha(source_old.read_bytes()) != pinned:
                     raise RuntimeError('binary_input_hash_mismatch')
-                if suffix=='daemedia':
-                    from patch_tvroom_recovery import OUTPUT,verify_recovery_apk
-                    source=OUTPUT
-                    verify_recovery_apk(source,source_old)
-                else:
-                    source = temp / (suffix + '-unsigned.apk')
-                    strip_and_bump(source_old, source, old_code, old_version, code, version)
+                source = temp / (suffix + '-unsigned.apk')
+                strip_and_bump(source_old, source, old_code, old_version, code, version)
             else:
                 raise RuntimeError('unexpected_extension_package')
             entry.update(code=code, version=version, apk=filename)

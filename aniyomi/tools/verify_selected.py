@@ -101,7 +101,7 @@ for kind,names in EXPECTED.items():
     source = next(c for c in dex.get_classes() if c.get_name() == owner)
     method = next(m for m in source.get_methods() if m.get_name() == caller)
     used = [i.get_operands()[1][2] for i in method.get_instructions() if i.get_name() == 'const-string']
-    if kind == 'media' and entry['code'] >= 1006:
+    if kind == 'media' and 1006 <= entry['code'] <= 1008:  # withdrawn recovery builds
         from patch_tvroom_recovery import verify_recovery_apk
         verify_recovery_apk(path)
         assert not used and any('currentNative' in i.get_output() for i in method.get_instructions())
