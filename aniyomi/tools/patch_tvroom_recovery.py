@@ -49,15 +49,21 @@ def patch_smali(smali):
     text=method(text,'public getBaseUrl()Ljava/lang/String;',current)
     text+='''
 .method private final daeoDomainFetch(Ljava/lang/String;Ljava/util/Map;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-    .locals 2
+    .locals 3
     invoke-static {p1}, Ldaeo/tvroom/TvRoomDomain;->isSiteRequest(Ljava/lang/String;)Z
     move-result v0
     if-eqz v0, :original
     new-instance v0, Ldtoon_TvRoomHost;
     invoke-direct {v0, p0, p3}, Ldtoon_TvRoomHost;-><init>(Lqb;Lkotlin/coroutines/Continuation;)V
     invoke-static {v0, p1, p2}, Ldaeo/tvroom/TvRoomDomain;->fetchNative(Ldaeo/tvroom/TvRoomDomain$Host;Ljava/lang/String;Ljava/util/Map;)Ljava/lang/Object;
-    move-result-object v0
-    return-object v0
+    move-result-object v1
+    invoke-static {}, Lkotlin/coroutines/intrinsics/IntrinsicsKt;->getCOROUTINE_SUSPENDED()Ljava/lang/Object;
+    move-result-object v2
+    if-ne v1, v2, :result
+    invoke-virtual {v0}, Ldtoon_TvRoomHost;->awaitResult()Ljava/lang/Object;
+    move-result-object v1
+    :result
+    return-object v1
     :original
     invoke-direct {p0, p1, p2, p3}, Lqb;->E(Ljava/lang/String;Ljava/util/Map;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
     move-result-object v0
@@ -200,6 +206,8 @@ def verify_recovery_apk(output,source=SOURCE):
     assert any('isSiteRequest' in s for s in instructions('Lqb;','daeoDomainFetch'))
     assert any('Lqb;->E(' in s for s in instructions('Lqb;','daeoDomainFetch'))
     assert any('TimeoutKt;->withTimeout' in s for s in instructions('Ldtoon_TvRoomHost;','raw'))
+    assert any('awaitResult' in s for s in instructions('Lqb;','daeoDomainFetch'))
+    assert any('SafeContinuation;->getOrThrow' in s for s in instructions('Ldtoon_TvRoomHost;','awaitResult'))
     assert any('allowRedirect' in s for s in instructions('Ldtoon_TvRoomCallback;','d'))
     assert any('ByteArrayOutputStream;->size' in s for s in instructions('Ldtoon_TvRoomCallback;','c'))
     # Registration, name/ID inputs, existing client, session and HLS code must be

@@ -5,11 +5,25 @@
 .field private final parent:Lkotlin/coroutines/Continuation;
 
 .method public constructor <init>(Lqb;Lkotlin/coroutines/Continuation;)V
-    .locals 0
+    .locals 1
     invoke-direct {p0}, Ljava/lang/Object;-><init>()V
     iput-object p1, p0, Ldtoon_TvRoomHost;->source:Lqb;
+    if-eqz p2, :store
+    new-instance v0, Lkotlin/coroutines/SafeContinuation;
+    invoke-direct {v0, p2}, Lkotlin/coroutines/SafeContinuation;-><init>(Lkotlin/coroutines/Continuation;)V
+    move-object p2, v0
+    :store
     iput-object p2, p0, Ldtoon_TvRoomHost;->parent:Lkotlin/coroutines/Continuation;
     return-void
+.end method
+
+.method public awaitResult()Ljava/lang/Object;
+    .locals 1
+    iget-object v0, p0, Ldtoon_TvRoomHost;->parent:Lkotlin/coroutines/Continuation;
+    check-cast v0, Lkotlin/coroutines/SafeContinuation;
+    invoke-virtual {v0}, Lkotlin/coroutines/SafeContinuation;->getOrThrow()Ljava/lang/Object;
+    move-result-object v0
+    return-object v0
 .end method
 
 .method public read()Ljava/lang/String;
