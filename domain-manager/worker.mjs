@@ -7,7 +7,7 @@ export const PROFILES = {
   goodtoon: { label: "굿툰", pattern: /^(?:www\.)?goodtoon(\d+)\.com$/, floor: 7, seed: "https://goodtoon007.com", path: "/ongoing/", identity: /goodtoon|굿툰/i, cards: /href\s*=\s*["'][^"']*\/manga\/[^/"']+\/?["']/i },
   tvwiki: { label: "티비위키", pattern: /^(?:www\.)?tvwiki(\d+)\.net$/, floor: 53, seed: "https://tvwiki53.net", path: "/drama", identity: /tvwiki|티비위키/i, cards: /href\s*=\s*["'][^"']*\/(?:drama|movie|ent|ani|animation|entertainment)\/\d+\/?["']/i },
   tvroom: { label: "티비룸", pattern: /^(?:www\.)?tvroom(\d+)\.org$/, floor: 38, seed: "https://tvroom38.org", path: "/", identity: /tvroom|티비룸/i },
-  ani24: { label: "애니24", pattern: /^(?:www\.)?ohli(\d+)\.net$/, floor: 24, seed: "https://www.ohli24.net", path: "/ing", identity: /ohli24|애니24/i, cards: /class\s*=\s*["'][^"']*\bshow-item\b/i },
+  ani24: { label: "애니24", pattern: /^(?:www\.|ani\.)?ohli(\d+)\.(?:net|com)$/, floor: 24, seed: "https://ani.ohli24.com", path: "/ing", identity: /ohli24|애니24/i, cards: /class\s*=\s*["'][^"']*\bshow-item\b/i },
   anilife: { label: "애니라이프", pattern: /^(?:www\.)?anilife(\d+)\.tv$/, floor: 1, seed: "https://anilife01.tv", path: "/api/anime?page=1&limit=1&sort=latest&v=catalog-media-2" },
 };
 const BLOCKED = /cf-chl-|challenge-platform|just a moment|verify (?:that )?you are human|checking your browser|captcha|access denied|domain (?:is )?for sale|parkingcrew|sedoparking/i;
@@ -165,7 +165,7 @@ export async function probe(key, base, io = fetch, budget = {used:0}) {
 }
 export function scanCandidate(key, base, offset) {
   const p = PROFILES[key], n = domainNumber(key,base) + offset;
-  const host = key === "11toon" ? "11toon"+n+".com" : key === "goodtoon" ? "goodtoon"+String(n).padStart(3,"0")+".com" : key === "ani24" ? "ohli"+n+".net" : key === "anilife" ? "anilife"+String(n).padStart(2,"0")+".tv" : key+n+(key === "tvwiki" ? ".net" : key === "tvroom" ? ".org" : ".com");
+  const host = key === "11toon" ? "11toon"+n+".com" : key === "goodtoon" ? "goodtoon"+String(n).padStart(3,"0")+".com" : key === "ani24" ? (/^ani\.ohli\d+\.com$/.test(new URL(base).hostname) ? "ani.ohli"+n+".com" : "ohli"+n+".net") : key === "anilife" ? "anilife"+String(n).padStart(2,"0")+".tv" : key+n+(key === "tvwiki" ? ".net" : key === "tvroom" ? ".org" : ".com");
   return "https://"+host;
 }
 export async function scanState(initial, io = fetch, now = new Date().toISOString(), keys = Object.keys(PROFILES), lookahead = 1) {

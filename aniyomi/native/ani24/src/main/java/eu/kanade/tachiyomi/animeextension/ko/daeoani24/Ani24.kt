@@ -15,7 +15,8 @@ import java.util.Calendar
 import java.util.Locale
 import java.util.TimeZone
 
-private val domain = SiteDomain("ani24", "https://www.ohli24.net", Regex("(?:www\\.)?ohli(\\d+)\\.net"))
+// The site moved from www.ohli24.net to ani.ohli24.com (2026-10-24); both forms stay valid for registry hints.
+private val domain = SiteDomain("ani24", "https://ani.ohli24.com", Regex("(?:www\\.|ani\\.)?ohli(\\d+)\\.(?:net|com)"))
 
 class Ani24 : AnimeHttpSource() {
     override val client: OkHttpClient by lazy { CronetClient.create(super.client, "eu.kanade.tachiyomi.animeextension.ko.daeoani24") }

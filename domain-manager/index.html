@@ -17,7 +17,7 @@
 </main><script type="module">
 import {checkNotice,siteDetails} from './status.mjs';
 'use strict';
-const profiles=[['11toon','11툰',/^(?:www\.)?11toon\d*\.com$/],['blacktoon','블랙툰',/^(?:www\.)?blacktoon\d+\.com$/],['goodtoon','굿툰',/^(?:www\.)?goodtoon\d+\.com$/],['tvwiki','티비위키',/^(?:www\.)?tvwiki\d+\.net$/],['tvroom','티비룸',/^(?:www\.)?tvroom\d+\.org$/],['ani24','애니24',/^(?:www\.)?ohli\d+\.net$/],['anilife','애니라이프',/^(?:www\.)?anilife\d+\.tv$/]];
+const profiles=[['11toon','11툰',/^(?:www\.)?11toon\d*\.com$/],['blacktoon','블랙툰',/^(?:www\.)?blacktoon\d+\.com$/],['goodtoon','굿툰',/^(?:www\.)?goodtoon\d+\.com$/],['tvwiki','티비위키',/^(?:www\.)?tvwiki\d+\.net$/],['tvroom','티비룸',/^(?:www\.)?tvroom\d+\.org$/],['ani24','애니24',/^(?:www\.|ani\.)?ohli\d+\.(?:net|com)$/],['anilife','애니라이프',/^(?:www\.)?anilife\d+\.tv$/]];
 function el(tag,text,className){const node=document.createElement(tag);node.textContent=text;if(className)node.className=className;return node;}
 async function refresh(){
  const button=document.getElementById('refresh'),last=document.getElementById('last');button.disabled=true;
