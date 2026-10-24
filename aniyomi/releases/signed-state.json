@@ -5,9 +5,9 @@
     "sha256": "27cd4d9bbc880ecce87606b5362b5c2c49195d8fee519f0af23bcba0c361f4d1"
   },
   "eu.kanade.tachiyomi.animeextension.ko.daeoani24": {
-    "code": 1004,
-    "inputDigest": "83831559d23f6a00db027e24d9a1a1cc5de0d9983687cae1c1a28588d5a3b390",
-    "sha256": "aa0f38c4e3c7da94da3a6bcdaa7485ce2369ffed85cb421f5fe8486c40d03f71"
+    "code": 1005,
+    "inputDigest": "d2f27259e453dcaa7ea166ca2b81c14e5a3ee549882f91c5ecca894f8a515f4c",
+    "sha256": "059bc6a31e941a41c51c145d4f88471220967795f6281d6abe04f1acb1199a97"
   },
   "eu.kanade.tachiyomi.animeextension.ko.daeoanilife": {
     "code": 1005,
