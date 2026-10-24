@@ -57,7 +57,7 @@ Aniyomi 자체 이미지 로더와 외부 플레이어의 연결 방식은 별�
 | 티비위키 · 영화 | 0.1.18 | https://tvwiki55.net | 0.9.9 |
 | 티비위키 · 드라마 | 0.1.18 | https://tvwiki55.net | 0.9.9 |
 | 티비위키 · 애니 | 0.1.18 | https://tvwiki55.net | 0.9.9 |
-| 애니24 | 0.1.2 | https://ohli24.net | 0.9.9 |
+| 애니24 | 0.1.3 | https://ani.ohli24.com | 0.9.9 |
 | 애니라이프 | 0.1.0 | https://anilife01.tv | 0.9.9 |
 
 이 표는 자동 갱신됩니다. 실제 자동 조회 주소와 상태는 [공통 주소 목록](https://daeokim.github.io/my-mangayomi/domains.json)을 확인하세요.
