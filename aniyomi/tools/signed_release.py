@@ -21,7 +21,7 @@ MODULES = {'naver': 'manga', 'tvwiki': 'media', 'ani24': 'media', 'anilife': 'me
 BINARY = {
     'daeomanga': ('manga', 'daeomanga-v1.4.1003.apk', 1003, '1.4.1003', 1004, '1.4.1004',
                   '527222caf3ab89401ce558a081e778d87a750e7a76efa07854c0d7e747ddc3a3'),
-    'daemedia': ('media', 'daeotvroom-v14.1005.apk', 1005, '14.1005', 1006, '14.1006',
+    'daemedia': ('media', 'daeotvroom-v14.1005.apk', 1005, '14.1005', 1007, '14.1007',
                 '1b18360d186558c4f4c8f137fb0cd595fede5e8086a31e41f3ba2a6e9ac8bcc8'),
 }
 SECRETS = ('EXT_SIGNING_KEYSTORE_BASE64', 'EXT_SIGNING_STORE_PASSWORD',
@@ -227,7 +227,9 @@ def prepare(temp):
                         raise RuntimeError('binary_release_state_mismatch')
                     state[entry['pkg']] = old
                     continue
-                if entry['code'] != old_code or entry['version'] != old_version:
+                # The catalog may still list a withdrawn build between the pinned input and the target
+                # (TVRoom 14.1006); the new build is always made from the pinned input, never from it.
+                if not old_code <= entry['code'] < code or (entry['code'] == old_code and entry['version'] != old_version):
                     raise RuntimeError('unexpected_binary_catalog_version')
                 source_old = ROOT / f'aniyomi/{folder}/apk' / filename_old
                 if sha(source_old.read_bytes()) != pinned:

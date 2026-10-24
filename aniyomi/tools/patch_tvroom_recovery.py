@@ -18,6 +18,12 @@ APKTOOL_SHA = 'dbf930b076c6b9be08d57c449cacefc3bdd6b71ebd59b3066fc0e1f5b14f9423'
 SOURCE = ROOT/'aniyomi/media/apk/daeotvroom-v14.1005.apk'
 OUTPUT = ROOT/'aniyomi/native/tvroom-recovery/build/outputs/apk/tvroom-recovery-unsigned.apk'
 HELPER = ROOT/'aniyomi/native/tvroom-recovery/build/libs/tvroom-recovery.jar'
+CODE, VERSION = 1007, '14.1007'
+
+def bump_manifest(data):
+    # 14.1006 crashed on cancelled requests; 14.1007 is rebuilt from the same pinned 14.1005 input.
+    # patch_version only allows +1 steps, so step through 1006.
+    return patch_version(patch_version(data,1005,'14.1005',1006,'14.1006'),1006,'14.1006',CODE,VERSION)
 
 def method(text, signature, body):
     pattern=r'(?m)^\.method '+re.escape(signature)+r'\n.*?^\.end method$'
@@ -167,11 +173,11 @@ def build(apktool, d8, helper=HELPER, source=SOURCE, output=OUTPUT):
                 if info.filename.upper().startswith('META-INF/') and info.filename.upper().endswith(('.SF','.RSA','.DSA','.EC','MANIFEST.MF')):continue
                 data=src.read(info.filename)
                 if info.filename=='classes.dex':data=dex
-                elif info.filename=='AndroidManifest.xml':data=patch_version(data,1005,'14.1005',1006,'14.1006')
+                elif info.filename=='AndroidManifest.xml':data=bump_manifest(data)
                 info.extra=b'';dst.writestr(info,data)
     verify_payload(source,output)
     verify_recovery_apk(output,source)
-    print('TVRoom recovery unsigned 14.1006 prepared; original APK retained')
+    print(f'TVRoom recovery unsigned {VERSION} prepared; original APK retained')
 
 def verify_payload(source,output):
     with zipfile.ZipFile(source) as before,zipfile.ZipFile(output) as after:
@@ -181,7 +187,7 @@ def verify_payload(source,output):
         if set(after.namelist())!=expected:raise ValueError('unexpected_tvroom_payload_entries')
         for name in expected-{'classes.dex','AndroidManifest.xml'}:
             if before.read(name)!=after.read(name):raise ValueError('tvroom_original_payload_changed: '+name)
-        if after.read('AndroidManifest.xml')!=patch_version(before.read('AndroidManifest.xml'),1005,'14.1005',1006,'14.1006'):
+        if after.read('AndroidManifest.xml')!=bump_manifest(before.read('AndroidManifest.xml')):
             raise ValueError('tvroom_manifest_changed')
 
 def verify_recovery_apk(output,source=SOURCE):
@@ -190,7 +196,7 @@ def verify_recovery_apk(output,source=SOURCE):
     from androguard.core.apk import APK
     from androguard.core.dex import DEX
     apk=APK(str(output));original=APK(str(source))
-    assert (apk.get_package(),int(apk.get_androidversion_code()),apk.get_androidversion_name())==('eu.kanade.tachiyomi.animeextension.ko.daemedia',1006,'14.1006')
+    assert (apk.get_package(),int(apk.get_androidversion_code()),apk.get_androidversion_name())==('eu.kanade.tachiyomi.animeextension.ko.daemedia',CODE,VERSION)
     verify_payload(source,output)
     old=DEX(original.get_dex());dex=DEX(apk.get_dex())
     before={c.get_name():c for c in old.get_classes()};after={c.get_name():c for c in dex.get_classes()}
@@ -208,6 +214,8 @@ def verify_recovery_apk(output,source=SOURCE):
     assert any('TimeoutKt;->withTimeout' in s for s in instructions('Ldtoon_TvRoomHost;','raw'))
     assert any('awaitResult' in s for s in instructions('Lqb;','daeoDomainFetch'))
     assert any('SafeContinuation;->getOrThrow' in s for s in instructions('Ldtoon_TvRoomHost;','awaitResult'))
+    resume=instructions('Ldtoon_TvRoomContinuation;','resumeWith')
+    assert any('Lkotlin/Result$Failure;->exception' in s for s in resume) and not any('Lfm;->d' in s for s in resume)
     assert any('allowRedirect' in s for s in instructions('Ldtoon_TvRoomCallback;','d'))
     assert any('ByteArrayOutputStream;->size' in s for s in instructions('Ldtoon_TvRoomCallback;','c'))
     # Registration, name/ID inputs, existing client, session and HLS code must be
