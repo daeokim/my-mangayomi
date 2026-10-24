@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-24T15:55:37.147Z",
-  "lastRunAt": "2026-10-24T15:55:37.147Z",
+  "updatedAt": "2026-10-24T16:00:17.534Z",
+  "lastRunAt": "2026-10-24T16:00:17.534Z",
   "domains": {
     "11toon": {
       "baseUrl": "https://11toon.com",
@@ -250,11 +250,11 @@
       "baseUrl": "https://anilife01.tv",
       "status": "protected",
       "lastConfirmedAt": "2026-10-23T12:34:54.134558+00:00",
-      "lastCheckedAt": "2026-10-24T15:55:37.147Z",
+      "lastCheckedAt": "2026-10-24T16:00:17.534Z",
       "lastConfirmedBy": "external-http-check",
       "reason": "HTTP 403",
-      "scanOffset": 6,
-      "consecutiveFailures": 15,
+      "scanOffset": 7,
+      "consecutiveFailures": 16,
       "attempts": [
         {
           "baseUrl": "https://anilife01.tv",
@@ -262,54 +262,9 @@
           "reason": "HTTP 403"
         },
         {
-          "baseUrl": "https://anilife06.tv",
-          "ok": false,
-          "reason": "연결 실패 또는 시간 초과"
-        },
-        {
           "baseUrl": "https://anilife07.tv",
           "ok": false,
-          "reason": "연결 실패 또는 시간 초과"
-        },
-        {
-          "baseUrl": "https://anilife08.tv",
-          "ok": false,
-          "reason": "연결 실패 또는 시간 초과"
-        },
-        {
-          "baseUrl": "https://anilife09.tv",
-          "ok": false,
-          "reason": "연결 실패 또는 시간 초과"
-        },
-        {
-          "baseUrl": "https://anilife10.tv",
-          "ok": false,
-          "reason": "연결 실패 또는 시간 초과"
-        },
-        {
-          "baseUrl": "https://anilife11.tv",
-          "ok": false,
-          "reason": "연결 실패 또는 시간 초과"
-        },
-        {
-          "baseUrl": "https://anilife02.tv",
-          "ok": false,
-          "reason": "HTTP 404"
-        },
-        {
-          "baseUrl": "https://anilife03.tv",
-          "ok": false,
-          "reason": "연결 실패 또는 시간 초과"
-        },
-        {
-          "baseUrl": "https://anilife04.tv",
-          "ok": false,
-          "reason": "연결 실패 또는 시간 초과"
-        },
-        {
-          "baseUrl": "https://anilife05.tv",
-          "ok": false,
-          "reason": "연결 실패 또는 시간 초과"
+          "reason": "HTTP 530"
         }
       ],
       "currentCheck": {
