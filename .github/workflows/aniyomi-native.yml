@@ -37,6 +37,13 @@ jobs:
           :ani24:assembleRelease :ani24:testReleaseUnitTest
           :anilife:assembleRelease :anilife:testReleaseUnitTest
           :naver:assembleRelease :naver:testReleaseUnitTest
+      - name: Build and test TVRoom phone recovery policy
+        run: bash aniyomi/native/gradlew -p aniyomi/native/tvroom-recovery --no-daemon test jar
+      - name: Assemble and verify TVRoom 14.1006 binary patch without signing
+        run: |
+          curl --fail --location --retry 2 -o "$RUNNER_TEMP/apktool.jar" https://github.com/iBotPeaches/Apktool/releases/download/v3.0.3/apktool_3.0.3.jar
+          python aniyomi/tools/patch_tvroom_recovery.py --apktool "$RUNNER_TEMP/apktool.jar" --d8 "$ANDROID_HOME/build-tools/35.0.0/d8"
+          python -m unittest discover -s aniyomi/tools -p 'test_tvroom_recovery.py' -v
       # These unsigned inputs are private CI artifacts, never Pages contents.
       - uses: actions/upload-artifact@v4
         with:
@@ -44,6 +51,8 @@ jobs:
           path: |
             aniyomi/native/*/build/outputs/apk/release/*-unsigned.apk
             aniyomi/native/*/build/reports/tests/testReleaseUnitTest/
+            aniyomi/native/tvroom-recovery/build/outputs/apk/*-unsigned.apk
+            aniyomi/native/tvroom-recovery/build/reports/tests/test/
   publish:
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     needs: build
