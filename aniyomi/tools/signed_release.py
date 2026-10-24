@@ -21,8 +21,8 @@ MODULES = {'naver': 'manga', 'tvwiki': 'media', 'ani24': 'media', 'anilife': 'me
 BINARY = {
     'daeomanga': ('manga', 'daeomanga-v1.4.1003.apk', 1003, '1.4.1003', 1004, '1.4.1004',
                   '527222caf3ab89401ce558a081e778d87a750e7a76efa07854c0d7e747ddc3a3'),
-    'daemedia': ('media', 'daeotvroom-v14.1004.apk', 1004, '14.1004', 1005, '14.1005',
-                '9077e3a952dde34d8766481e732b7a599102014d9c08b8b4bd750d45f2d6c7c3'),
+    'daemedia': ('media', 'daeotvroom-v14.1005.apk', 1005, '14.1005', 1006, '14.1006',
+                '1b18360d186558c4f4c8f137fb0cd595fede5e8086a31e41f3ba2a6e9ac8bcc8'),
 }
 SECRETS = ('EXT_SIGNING_KEYSTORE_BASE64', 'EXT_SIGNING_STORE_PASSWORD',
            'EXT_SIGNING_KEY_ALIAS', 'EXT_SIGNING_KEY_PASSWORD')
@@ -149,6 +149,12 @@ def native_version(module):
     return int(re.search(r'versionCode (\d+)', text)[1]), re.search(r"versionName '([^']+)'", text)[1]
 
 
+def binary_digest(suffix,pinned,ref='HEAD'):
+    if suffix!='daemedia':return pinned
+    paths=['aniyomi/native/tvroom-recovery','aniyomi/tools/patch_tvroom_recovery.py','aniyomi/tools/tvroom']
+    return sha(pinned.encode()+git('ls-tree','-r',ref,'--',*paths))
+
+
 def run(*args, **kwargs):
     return subprocess.check_output(list(map(str, args)), text=True, stderr=subprocess.STDOUT, **kwargs)
 
@@ -214,10 +220,10 @@ def prepare(temp):
             elif suffix in BINARY:
                 folder, filename_old, old_code, old_version, code, version, pinned = BINARY[suffix]
                 filename = ('daeotvroom' if suffix == 'daemedia' else suffix) + f'-v{version}.apk'
-                provenance = pinned
+                provenance = binary_digest(suffix,pinned)
                 if entry['code'] == code:
                     old = previous.get(entry['pkg'])
-                    if not old or old['sha256'] != verify(ROOT / f'aniyomi/{kind}/apk' / entry['apk'], entry, signer):
+                    if not old or old['inputDigest'] != provenance or old['sha256'] != verify(ROOT / f'aniyomi/{kind}/apk' / entry['apk'], entry, signer):
                         raise RuntimeError('binary_release_state_mismatch')
                     state[entry['pkg']] = old
                     continue
@@ -226,8 +232,13 @@ def prepare(temp):
                 source_old = ROOT / f'aniyomi/{folder}/apk' / filename_old
                 if sha(source_old.read_bytes()) != pinned:
                     raise RuntimeError('binary_input_hash_mismatch')
-                source = temp / (suffix + '-unsigned.apk')
-                strip_and_bump(source_old, source, old_code, old_version, code, version)
+                if suffix=='daemedia':
+                    from patch_tvroom_recovery import OUTPUT,verify_recovery_apk
+                    source=OUTPUT
+                    verify_recovery_apk(source,source_old)
+                else:
+                    source = temp / (suffix + '-unsigned.apk')
+                    strip_and_bump(source_old, source, old_code, old_version, code, version)
             else:
                 raise RuntimeError('unexpected_extension_package')
             entry.update(code=code, version=version, apk=filename)
@@ -283,6 +294,9 @@ def publish(catalogs, changes, state):
         for module in MODULES:
             if input_digest(module, built) != input_digest(module, parent):
                 raise RuntimeError('main_native_source_changed_retry_latest_workflow')
+        for suffix,values in BINARY.items():
+            if binary_digest(suffix,values[-1],built)!=binary_digest(suffix,values[-1],parent):
+                raise RuntimeError('main_binary_source_changed_retry_latest_workflow')
         # Signing/publisher inputs must also be current.
         for path in ('aniyomi/tools', '.github/workflows/aniyomi-native.yml'):
             if git('ls-tree', '-r', built, '--', path) != git('ls-tree', '-r', parent, '--', path):

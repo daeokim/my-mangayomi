@@ -101,7 +101,12 @@ for kind,names in EXPECTED.items():
     source = next(c for c in dex.get_classes() if c.get_name() == owner)
     method = next(m for m in source.get_methods() if m.get_name() == caller)
     used = [i.get_operands()[1][2] for i in method.get_instructions() if i.get_name() == 'const-string']
-    assert used.count(registry) == 1 and obsolete not in used
+    if kind == 'media' and entry['code'] >= 1006:
+        from patch_tvroom_recovery import verify_recovery_apk
+        verify_recovery_apk(path)
+        assert not used and any('currentNative' in i.get_output() for i in method.get_instructions())
+    else:
+        assert used.count(registry) == 1 and obsolete not in used
     if kind == 'media':
         # The existing media signal reader extracts this URL directly from JSON.
         for number in [38,39,400]:
