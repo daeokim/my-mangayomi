@@ -2,9 +2,9 @@ name: Aniyomi extensions build and tests
 on:
   push:
     branches: [main]
-    paths: ['aniyomi/native/**', 'aniyomi/tools/**', 'aniyomi/branding/**', '.github/workflows/aniyomi-native.yml']
+    paths: ['aniyomi/native/**', 'aniyomi/tools/**', 'aniyomi/branding/**', 'README.md', 'domain-manager/test_sync_metadata.py', '.github/workflows/aniyomi-native.yml']
   pull_request:
-    paths: ['aniyomi/native/**', 'aniyomi/tools/**', 'aniyomi/branding/**', '.github/workflows/aniyomi-native.yml']
+    paths: ['aniyomi/native/**', 'aniyomi/tools/**', 'aniyomi/branding/**', 'README.md', 'domain-manager/test_sync_metadata.py', '.github/workflows/aniyomi-native.yml']
   workflow_dispatch:
 permissions:
   contents: read
@@ -33,6 +33,7 @@ jobs:
         run: |
           python aniyomi/tools/branding.py --check-assets --prepare-binaries aniyomi/native/branding/build/outputs/apk
           python -m unittest discover -s aniyomi/tools -p 'test_branding.py' -v
+          python -m unittest discover -s domain-manager -p 'test_sync_metadata.py' -v
       - name: Build and test
         run: >-
           bash aniyomi/native/gradlew -p aniyomi/native --no-daemon
