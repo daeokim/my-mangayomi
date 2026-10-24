@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-24T20:20:17.282Z",
-  "lastRunAt": "2026-10-24T20:20:17.282Z",
+  "updatedAt": "2026-10-24T20:30:17.004Z",
+  "lastRunAt": "2026-10-24T20:30:17.004Z",
   "domains": {
     "11toon": {
       "baseUrl": "https://11toon.com",
@@ -132,11 +132,11 @@
       "baseUrl": "https://ani.ohli24.com",
       "status": "protected",
       "lastConfirmedAt": "2026-10-24T12:20:17.685Z",
-      "lastCheckedAt": "2026-10-24T19:20:18.274Z",
+      "lastCheckedAt": "2026-10-24T20:30:17.004Z",
       "lastConfirmedBy": "external-http-check",
       "reason": "HTTP 404",
-      "scanOffset": 8,
-      "consecutiveFailures": 7,
+      "scanOffset": 9,
+      "consecutiveFailures": 8,
       "attempts": [
         {
           "baseUrl": "https://ani.ohli24.com",
@@ -144,7 +144,7 @@
           "reason": "HTTP 404"
         },
         {
-          "baseUrl": "https://ani.ohli31.com",
+          "baseUrl": "https://ani.ohli32.com",
           "ok": false,
           "reason": "HTTP 530"
         }
