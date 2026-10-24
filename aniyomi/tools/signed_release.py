@@ -21,7 +21,7 @@ MODULES = {'naver': 'manga', 'tvwiki': 'media', 'ani24': 'media', 'anilife': 'me
 BINARY = {
     'daeomanga': ('manga', 'daeomanga-v1.4.1003.apk', 1003, '1.4.1003', 1004, '1.4.1004',
                   '527222caf3ab89401ce558a081e778d87a750e7a76efa07854c0d7e747ddc3a3'),
-    'daemedia': ('media', 'daeotvroom-v14.1005.apk', 1005, '14.1005', 1007, '14.1007',
+    'daemedia': ('media', 'daeotvroom-v14.1005.apk', 1005, '14.1005', 1008, '14.1008',
                 '1b18360d186558c4f4c8f137fb0cd595fede5e8086a31e41f3ba2a6e9ac8bcc8'),
 }
 SECRETS = ('EXT_SIGNING_KEYSTORE_BASE64', 'EXT_SIGNING_STORE_PASSWORD',
