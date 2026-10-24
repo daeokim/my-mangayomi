@@ -15,9 +15,10 @@ test('ten-minute cron covers every site in seventy minutes', async()=>{
 
 test('Free invocation refuses a hidden redirect and stops before the 51st fetch',async()=>{
   let calls=0;const io=freeFetch(async()=>{calls++;return new Response('ok');});
-  await assert.rejects(io('https://test.invalid',{redirect:'follow'}),/automatic_redirects_forbidden/);
+  // workerd rejects redirect:'error' with a TypeError, so it must never reach a Worker fetch.
+  for(const redirect of ['follow','error',undefined])await assert.rejects(io('https://test.invalid',{redirect}),/automatic_redirects_forbidden/);
   for(let i=0;i<FREE_FETCH_LIMIT;i++)await io('https://test.invalid',{redirect:'manual'});
-  await assert.rejects(io('https://test.invalid',{redirect:'error'}),/free_subrequest_limit/);
+  await assert.rejects(io('https://test.invalid',{redirect:'manual'}),/free_subrequest_limit/);
   assert.equal(calls,50);
 });
 
@@ -25,7 +26,7 @@ test('every cron slot counts redirect hops and GitHub conflict retries within Fr
   for(const [slot,key] of Object.keys(PROFILES).entries()) {
     const initial=seedState();let total=0,writes=0;const attempts=[];
     const io=async(url,options)=>{
-      total++;assert.ok(['manual','error'].includes(options.redirect));
+      total++;assert.equal(options.redirect,'manual');
       if(url.startsWith('https://api.github.com/')) {
         if(options.method==='PUT') {
           writes++;attempts.push(JSON.parse(Buffer.from(JSON.parse(options.body).content,'base64')).domains[key].attempts);
@@ -188,6 +189,22 @@ test('cron reports missing credentials, denied writes and exhausted conflicts as
     };
     await assert.rejects(runScheduled(lifeEvent,workerEnv,io),status===403?/github_write_403/:/concurrent_update_retry/);
     assert.equal(writes,status===403?1:3);
+  }
+});
+
+test('GitHub redirects are never followed and fail the run explicitly',async()=>{
+  for(const method of ['GET','PUT']) {
+    let calls=0;
+    const io=async(url,options)=>{
+      calls++;assert.equal(options.redirect,'manual');
+      if(url.startsWith('https://api.github.com/')) {
+        if((options.method||'GET')===method)return new Response('',{status:301,headers:{Location:'https://api.github.com/repositories/1/contents/domains.json'}});
+        return snapshot(seedState(),'initial-sha');
+      }
+      return new Response(url.includes('tokki-traffic-light')?'{"domains":{}}':catalog);
+    };
+    await assert.rejects(runScheduled(lifeEvent,workerEnv,io),method==='GET'?/github_read_301/:/github_write_301/);
+    assert.ok(calls<=FREE_FETCH_LIMIT);
   }
 });
 

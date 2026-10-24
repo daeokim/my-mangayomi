@@ -17,10 +17,11 @@ const MAX_REQUESTS = 36;
 export const FREE_FETCH_LIMIT = 50;
 // One invocation includes GitHub reads/writes and all explicit redirect hops.
 // Never permit automatic redirects: Fetch otherwise hides chargeable subrequests.
+// Only "manual": workerd throws a TypeError for redirect "error" (Node accepts it).
 export function freeFetch(io = fetch) {
   let used = 0;
   return async (url,options = {}) => {
-    if (!['manual','error'].includes(options.redirect)) throw new Error('automatic_redirects_forbidden');
+    if (options.redirect !== 'manual') throw new Error('automatic_redirects_forbidden');
     if (used >= FREE_FETCH_LIMIT) throw new Error('free_subrequest_limit');
     used++;
     return io(url,options);
@@ -76,14 +77,14 @@ async function timedFetch(url, options, io, budget) {
   finally { clearTimeout(timer); }
 }
 export async function readState(env, io = fetch) {
-  const {response,body} = await timedFetch(repository(env) + "?ref=" + encodeURIComponent(env.GITHUB_BRANCH || "main"), {headers:githubHeaders(env),redirect:"error"},io);
+  const {response,body} = await timedFetch(repository(env) + "?ref=" + encodeURIComponent(env.GITHUB_BRANCH || "main"), {headers:githubHeaders(env),redirect:"manual"},io);
   if (response.status === 404) throw new Error("registry_missing_upload_seed_first");
   if (!response.ok) throw new Error("github_read_" + response.status);
   const file = JSON.parse(body); return { state: checkedState(JSON.parse(decode64(file.content))), sha: file.sha };
 }
 export async function commitState(env, loaded, next, io = fetch) {
   checkedState(next);
-  const {response} = await timedFetch(repository(env), {method:"PUT",redirect:"error",headers:{...githubHeaders(env),"Content-Type":"application/json"},body:JSON.stringify({message:"Update validated domain registry",branch:env.GITHUB_BRANCH || "main",sha:loaded.sha,content:encode64(JSON.stringify(next,null,2)+"\n")})},io);
+  const {response} = await timedFetch(repository(env), {method:"PUT",redirect:"manual",headers:{...githubHeaders(env),"Content-Type":"application/json"},body:JSON.stringify({message:"Update validated domain registry",branch:env.GITHUB_BRANCH || "main",sha:loaded.sha,content:encode64(JSON.stringify(next,null,2)+"\n")})},io);
   if (response.status === 409 || response.status === 422) return false;
   if (!response.ok) throw new Error("github_write_" + response.status);
   return true;
@@ -154,7 +155,7 @@ export async function probe(key, base, io = fetch, budget = {used:0}) {
       const finalBase = new URL(url).origin;
       let reason = assess(key,body,response.status);
       if (!reason && key === "blacktoon") {
-        const config = await timedFetch(finalBase+"/data/config.js",{redirect:"error",headers:{Referer:finalBase+"/"}},io,budget);
+        const config = await timedFetch(finalBase+"/data/config.js",{redirect:"manual",headers:{Referer:finalBase+"/"}},io,budget);
         if (!config.response.ok || BLOCKED.test(config.body) || !/\binc_url\s*=\s*["'][^"']+["']/.test(config.body) || !/\bimg_domain\s*=\s*["'][^"']+["']/.test(config.body)) reason = "데이터 서버 설정 미확인";
       }
       return reason ? {ok:false,reason} : {ok:true,baseUrl:finalBase};
@@ -170,7 +171,7 @@ export function scanCandidate(key, base, offset) {
 export async function scanState(initial, io = fetch, now = new Date().toISOString(), keys = Object.keys(PROFILES), lookahead = 1) {
   if (!Number.isInteger(lookahead) || lookahead < 1 || lookahead > 10 || !keys.every(isProfile)) throw new Error("scan_options");
   const next = copy(initial), budget = {used:0}; let signal = {};
-  try { const {response,body} = await timedFetch(SIGNAL,{redirect:"error",headers:{Accept:"application/json"}},io,budget); if (response.ok) signal = JSON.parse(body).domains || {}; } catch { /* A failed upstream never replaces our registry. */ }
+  try { const {response,body} = await timedFetch(SIGNAL,{redirect:"manual",headers:{Accept:"application/json"}},io,budget); if (response.ok) signal = JSON.parse(body).domains || {}; } catch { /* A failed upstream never replaces our registry. */ }
   for (const key of keys) {
     const previous = initial.domains[key], pin = initial.control.overrides[key];
     const minimum = Math.max(PROFILES[key].floor,domainNumber(key,previous.baseUrl));
