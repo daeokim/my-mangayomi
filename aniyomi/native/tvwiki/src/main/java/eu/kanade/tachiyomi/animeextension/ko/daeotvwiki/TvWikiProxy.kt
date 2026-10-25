@@ -47,8 +47,10 @@ internal object TvWikiProxy {
                 val source = r.body!!.source()
                 require(!source.request(2L * 1024 * 1024 + 1)) { "재생목록이 너무 큽니다." }
                 session.primed = Triple(playlist, r.request.url.toString(), source.readByteArray())
+                DeviceLog.e("tvwiki open OK ${r.request.url} " + String(session.primed!!.third, Charsets.UTF_8).lineSequence().take(6).joinToString(" | "))
             }
         } catch (error: Exception) {
+            DeviceLog.e("tvwiki open FAILED $playlist ${error.javaClass.simpleName}: ${error.message}")
             synchronized(this) { sessions.remove(id) }
             throw error
         }
@@ -122,7 +124,11 @@ internal object TvWikiProxy {
             requestHeaders["range"]?.takeIf { Regex("bytes=\\d*-\\d*").matches(it) }?.let { builder.header("Range", it) }
             session.client.newCall(builder.build()).execute().use { response ->
                 val body = response.body ?: error("Empty response")
-                if (!response.isSuccessful) { reply(out, response.code, "text/plain", "영상 서버 요청 실패".toByteArray()); return }
+                if (!response.isSuccessful) {
+                    DeviceLog.e("tvwiki proxy ${if (resource.key) "key" else "media"} ${resource.url} -> HTTP ${response.code} ${response.header("Server").orEmpty()} " +
+                        DeviceLog.snippet(runCatching { val peek = body.source().peek(); peek.request(4096); peek.readUtf8(minOf(4096L, peek.buffer.size)) }.getOrNull()))
+                    reply(out, response.code, "text/plain", "영상 서버 요청 실패".toByteArray()); return
+                }
                 val source = body.source()
                 val playlist = !resource.key && source.request(7) && source.peek().readUtf8(7) == "#EXTM3U"
                 if (resource.key || playlist) {
@@ -147,7 +153,10 @@ internal object TvWikiProxy {
                     out.flush()
                 }
             }
-        } catch (_: Exception) { runCatching { reply(out, 502, "text/plain", "영상 중계 요청 실패".toByteArray()) } }
+        } catch (error: Exception) {
+            DeviceLog.e("tvwiki proxy ${resource.url} failed ${error.javaClass.simpleName}: ${error.message}")
+            runCatching { reply(out, 502, "text/plain", "영상 중계 요청 실패".toByteArray()) }
+        }
     }
     private fun header(out: OutputStream, code: Int, type: String, length: Long, range: String? = null) {
         val h = StringBuilder("HTTP/1.1 $code ${if (code < 400) "OK" else "Error"}\r\nConnection: close\r\nCache-Control: no-store\r\nContent-Type: $type\r\n")
