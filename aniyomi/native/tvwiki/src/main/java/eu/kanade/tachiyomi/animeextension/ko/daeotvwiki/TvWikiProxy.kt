@@ -21,6 +21,9 @@ internal object TvWikiProxy {
         var usedAt = System.nanoTime()
         val resources = LinkedHashMap<String, Resource>()
         val reverse = HashMap<Resource, String>()
+        // The master playlist fetched by open(): (requested URL, final URL for relative references, body).
+        // TVWiki now issues playlist URLs with a token that may be single-use, so it is never fetched twice.
+        @Volatile var primed: Triple<String, String, ByteArray>? = null
     }
     private val sessions = LinkedHashMap<String, Session>()
     private var server: ServerSocket? = null
@@ -41,6 +44,9 @@ internal object TvWikiProxy {
         try {
             session.client.newCall(Request.Builder().url(playlist).headers(headers).build()).execute().use { r ->
                 require(r.isSuccessful && r.body!!.source().peek().readUtf8(7) == "#EXTM3U") { "사이트 재생목록을 불러오지 못했습니다." }
+                val source = r.body!!.source()
+                require(!source.request(2L * 1024 * 1024 + 1)) { "재생목록이 너무 큽니다." }
+                session.primed = Triple(playlist, r.request.url.toString(), source.readByteArray())
             }
         } catch (error: Exception) {
             synchronized(this) { sessions.remove(id) }
@@ -104,6 +110,13 @@ internal object TvWikiProxy {
             Pair(s, s?.resources?.get(parts[1]))
         }
         if (session == null || resource == null) { reply(out, 404, "text/plain", byteArrayOf()); return }
+        val primed = session.primed
+        if (!resource.key && primed != null && primed.first == resource.url) {
+            val output = runCatching {
+                TvWikiParsing.rewritePlaylist(String(primed.third, Charsets.UTF_8), primed.second) { url, key -> route(parts[0], url, key) }.toByteArray()
+            }.getOrNull()
+            if (output != null) { reply(out, 200, "application/vnd.apple.mpegurl", output, words[0] == "HEAD"); return }
+        }
         try {
             val builder = Request.Builder().url(resource.url).headers(session.headers).header("Accept-Encoding", "identity")
             requestHeaders["range"]?.takeIf { Regex("bytes=\\d*-\\d*").matches(it) }?.let { builder.header("Range", it) }
