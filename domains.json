@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-25T16:00:17.157Z",
-  "lastRunAt": "2026-10-25T16:00:17.157Z",
+  "updatedAt": "2026-10-25T16:10:17.383Z",
+  "lastRunAt": "2026-10-25T16:10:17.383Z",
   "domains": {
     "11toon": {
       "baseUrl": "https://11toon.com",
@@ -104,9 +104,9 @@
       "baseUrl": "https://tvroom42.org",
       "status": "protected",
       "lastConfirmedAt": "2026-10-23T12:34:54.134558+00:00",
-      "lastCheckedAt": "2026-10-25T15:00:17.310Z",
+      "lastCheckedAt": "2026-10-25T16:10:17.383Z",
       "reason": "보호 화면 또는 차단 응답",
-      "scanOffset": 10,
+      "scanOffset": 1,
       "lastConfirmedBy": "external-http-check",
       "attempts": [
         {
@@ -115,7 +115,7 @@
           "reason": "보호 화면 또는 차단 응답"
         },
         {
-          "baseUrl": "https://tvroom51.org",
+          "baseUrl": "https://tvroom52.org",
           "ok": false,
           "reason": "HTTP 530"
         }
@@ -126,7 +126,7 @@
         "reason": "보호 화면 또는 차단 응답",
         "checked": true
       },
-      "consecutiveFailures": 39
+      "consecutiveFailures": 40
     },
     "ani24": {
       "baseUrl": "https://ani.ohli24.com",
