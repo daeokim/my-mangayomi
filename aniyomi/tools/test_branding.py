@@ -98,7 +98,10 @@ class DisplayBrandingTest(unittest.TestCase):
                 # Old published bytes stay available until main signs a new filename.
                 self.assertEqual(digest((ROOT/f'aniyomi/{folder}/apk'/entry['apk']).read_bytes()), entry['sha256'])
                 target_code = BINARY[suffix][4] if suffix in BINARY else native_version(suffix[4:])[0]
-                self.assertEqual(target_code, MIN_CODES[suffix])
+                # Binary patches are rebuilt exactly at the branding version; native modules only need to be at
+                # or above it, since later fixes (TVWiki 1006, Ani24 1007) keep the branded sources.
+                if suffix in BINARY: self.assertEqual(target_code, MIN_CODES[suffix])
+                else: self.assertGreaterEqual(target_code, MIN_CODES[suffix])
                 self.assertGreaterEqual(target_code, entry['code'])
                 seen.add(suffix)
         self.assertEqual(seen, set(expected))
