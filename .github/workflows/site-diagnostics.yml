@@ -1,0 +1,26 @@
+name: Site diagnostics (manual)
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: site-diagnostics
+  cancel-in-progress: true
+jobs:
+  snapshot:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: true
+      - name: Snapshot TVWiki playback chain and Ani24 pages (read only, values redacted)
+        run: python aniyomi/tools/diagnose_sites.py "$RUNNER_TEMP/diag"
+      # Reports go to a throwaway branch, never main, so Pages, Workers and extension builds are untouched.
+      - name: Publish the snapshot to diag/site-snapshots
+        run: |
+          cd "$RUNNER_TEMP/diag"
+          git init -q -b diag/site-snapshots
+          git -c user.name=github-actions -c user.email=github-actions@users.noreply.github.com add -A
+          git -c user.name=github-actions -c user.email=github-actions@users.noreply.github.com commit -qm "Site diagnostics $(date -u +%FT%TZ)"
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" diag/site-snapshots
