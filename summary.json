@@ -1,0 +1,42 @@
+[
+  {
+    "site": "ani24",
+    "step": "v3",
+    "url": "https://ani.ohli24.com/bbs/search.php?stx=%EC%9B%90%ED%94%BC%EC%8A%A4",
+    "status": 200,
+    "bytes": 237225,
+    "file": "ani24/00-v3.txt"
+  },
+  {
+    "site": "ani24",
+    "step": "v3",
+    "url": "https://ani.ohli24.com/series/suggest?q=%EC%9B%90%ED%94%BC%EC%8A%A4",
+    "status": 404,
+    "bytes": 65,
+    "file": "ani24/01-v3.txt"
+  },
+  {
+    "site": "ani24",
+    "step": "v3",
+    "url": "https://ani.ohli24.com/%EC%99%84%EA%B2%B0?keyword=%EC%9B%90%ED%94%BC%EC%8A%A4",
+    "status": 200,
+    "bytes": 121071,
+    "file": "ani24/02-v3.txt"
+  },
+  {
+    "site": "ani24",
+    "step": "v3",
+    "url": "https://ani.ohli24.com/%EA%B7%B9%EC%9E%A5%ED%8C%90?page=2",
+    "status": 200,
+    "bytes": 230567,
+    "file": "ani24/03-v3.txt"
+  },
+  {
+    "site": "ani24",
+    "step": "v3",
+    "url": "https://ani.ohli24.com/c/%EC%9B%90%ED%94%BC%EC%8A%A4?page=2",
+    "status": 200,
+    "bytes": 228648,
+    "file": "ani24/04-v3.txt"
+  }
+]
