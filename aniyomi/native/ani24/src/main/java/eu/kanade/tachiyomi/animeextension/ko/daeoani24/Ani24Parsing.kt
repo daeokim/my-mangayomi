@@ -41,6 +41,45 @@ internal object Ani24Parsing {
         val date = a.selectFirst(".eps-date")?.text().orEmpty()
         AniEpisode(p, a.text().replace(date, "").trim(), Regex("\\d{4}-\\d{2}-\\d{2}").find(date)?.value.orEmpty())
     }.distinctBy { it.path }
+    // ani.ohli24.com (2026-10) is a Laravel/Inertia site: each page embeds its props as JSON in <script data-page>.
+    private val pageData = Regex("<script data-page=\"app\" type=\"application/json\">(.*?)</script>", RegexOption.DOT_MATCHES_ALL)
+    fun props(html: String): JSONObject = JSONObject(pageData.find(html)?.groupValues?.get(1) ?: error("애니24 페이지 데이터를 찾지 못했습니다.")).getJSONObject("props")
+    /** Same form as the site's own links: UTF-8 percent-encoding, spaces as %20, '/' kept, '?', '#' and '%' escaped. */
+    fun seriesPath(slug: String): String {
+        val safe = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_.!~*'()/:,;@&=+$"
+        return "/c/" + slug.toByteArray(Charsets.UTF_8).joinToString("") { b ->
+            val c = (b.toInt() and 0xff).toChar()
+            if (b >= 0 && c in safe) c.toString() else "%" + "%02X".format(b.toInt() and 0xff)
+        }
+    }
+    fun image(base: String, value: String?): String = when {
+        value.isNullOrBlank() -> ""
+        value.startsWith("https://") -> value
+        else -> base.trimEnd('/') + "/storage/" + value.trimStart('/')
+    }
+    private fun card(base: String, o: JSONObject): AniCard? {
+        val slug = o.optString("slug").ifBlank { return null }
+        return AniCard(seriesPath(slug), o.optString("title").ifBlank { slug }, image(base, o.optString("thumbnail")), o.optString("tags_string"))
+    }
+    /** Weekday board (`items`, newest first) or a paginated list (`comics`). */
+    fun list(html: String, base: String): Pair<List<AniCard>, Boolean> {
+        val p = props(html)
+        p.optJSONArray("items")?.let { items -> return (0 until items.length()).mapNotNull { card(base, items.getJSONObject(it)) }.distinctBy { it.path } to false }
+        val comics = p.optJSONObject("comics") ?: return emptyList<AniCard>() to false
+        val data = comics.optJSONArray("data") ?: return emptyList<AniCard>() to false
+        return (0 until data.length()).mapNotNull { card(base, data.getJSONObject(it)) }.distinctBy { it.path } to
+            (!comics.isNull("next_page_url") && comics.optString("next_page_url").isNotBlank())
+    }
+    data class SeriesPage(val comic: JSONObject, val episodes: List<JSONObject>, val lastPage: Int)
+    fun series(html: String): SeriesPage {
+        val p = props(html)
+        val episodes = p.optJSONObject("episodes")
+        val data = episodes?.optJSONArray("data")
+        return SeriesPage(p.getJSONObject("comic"), if (data == null) emptyList() else (0 until data.length()).map { data.getJSONObject(it) },
+            episodes?.optInt("last_page", 1)?.coerceIn(1, 50) ?: 1)
+    }
+    fun plain(html: String) = Jsoup.parse(html.replace(Regex("<br\\s*/?>", RegexOption.IGNORE_CASE), "\n")).wholeText().trim()
+
     fun searchTerms(query: String): List<String> {
         val q = query.trim().replace(Regex("\\s+"), " ")
         if (q.contains(' ') || q.length < 2) return listOf(q)

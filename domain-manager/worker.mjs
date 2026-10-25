@@ -7,7 +7,7 @@ export const PROFILES = {
   goodtoon: { label: "굿툰", pattern: /^(?:www\.)?goodtoon(\d+)\.com$/, floor: 7, seed: "https://goodtoon007.com", path: "/ongoing/", identity: /goodtoon|굿툰/i, cards: /href\s*=\s*["'][^"']*\/manga\/[^/"']+\/?["']/i },
   tvwiki: { label: "티비위키", pattern: /^(?:www\.)?tvwiki(\d+)\.net$/, floor: 53, seed: "https://tvwiki53.net", path: "/drama", identity: /tvwiki|티비위키/i, cards: /href\s*=\s*["'][^"']*\/(?:drama|movie|ent|ani|animation|entertainment)\/\d+\/?["']/i },
   tvroom: { label: "티비룸", pattern: /^(?:www\.)?tvroom(\d+)\.org$/, floor: 38, seed: "https://tvroom38.org", path: "/", identity: /tvroom|티비룸/i },
-  ani24: { label: "애니24", pattern: /^(?:www\.|ani\.)?ohli(\d+)\.(?:net|com)$/, floor: 24, seed: "https://ani.ohli24.com", path: "/ing", identity: /ohli24|애니24/i, cards: /class\s*=\s*["'][^"']*\bshow-item\b/i },
+  ani24: { label: "애니24", pattern: /^(?:www\.|ani\.)?ohli(\d+)\.(?:net|com)$/, floor: 24, seed: "https://ani.ohli24.com", path: "/%EB%B0%A9%EC%98%81%EC%A4%91", identity: /ohli24|애니24/i, cards: /data-page="app"[^>]*>[\s\S]*?"slug"\s*:\s*"[^"]+"|class\s*=\s*["'][^"']*\bshow-item\b/i },
   anilife: { label: "애니라이프", pattern: /^(?:www\.)?anilife(\d+)\.tv$/, floor: 1, seed: "https://anilife01.tv", path: "/api/anime?page=1&limit=1&sort=latest&v=catalog-media-2" },
 };
 const BLOCKED = /cf-chl-|challenge-platform|just a moment|verify (?:that )?you are human|checking your browser|captcha|access denied|domain (?:is )?for sale|parkingcrew|sedoparking/i;

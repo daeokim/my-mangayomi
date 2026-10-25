@@ -10,7 +10,7 @@ const fixtures={
  goodtoon:'<title>Goodtoon 굿툰</title><a class="card" href="/manga/a/">작품</a>',
  tvwiki:'<title>TVWiki 티비위키</title><a href="/drama/123">작품</a>',
  tvroom:'<title>TVRoom 티비룸</title><div class="v-item"><a class="v-item-hitarea" href="/video/abc" aria-label="작품"></a><div><img data-src="/cover.jpg"></div></div>',
- ani24:'<title>애니24 ohli24</title><div class="show-item"><a href="/123/test.html">작품</a></div>',
+ ani24:'<title>애니24</title><script data-page="app" type="application/json">{"props":{"items":[{"slug":"푸른 상자 2기","title":"푸른 상자 2기"}]}}</script>',
  anilife:JSON.stringify({items:[{id:'42',title:'작품',image:'/anime_uploads/42.jpg'}],pagination:{pages:1}})
 };
 const now='2026-10-13T12:00:00.000Z';
