@@ -101,6 +101,10 @@ def tvwiki(base):
 
 def ani24(base):
     h = {'User-Agent': DESKTOP, 'Referer': base + '/'}
+    for path in ('/bbs/search.php?stx=%EC%9B%90%ED%94%BC%EC%8A%A4', '/series/suggest?q=%EC%9B%90%ED%94%BC%EC%8A%A4',
+                 '/%EC%99%84%EA%B2%B0?keyword=%EC%9B%90%ED%94%BC%EC%8A%A4', '/%EA%B7%B9%EC%9E%A5%ED%8C%90?page=2', '/c/%EC%9B%90%ED%94%BC%EC%8A%A4?page=2'):
+        fetch('ani24', 'v3', base + path, {**h, 'Accept': 'application/json, text/html'})
+    return
     for path in ('/%EB%B0%A9%EC%98%81%EC%A4%91', '/%EB%B0%A9%EC%98%81%EC%A4%91?page=2', '/%EC%99%84%EA%B2%B0', '/%EA%B7%B9%EC%9E%A5%ED%8C%90',
                  '/search?q=%EC%9B%90%ED%94%BC%EC%8A%A4', '/search?keyword=%EC%9B%90%ED%94%BC%EC%8A%A4', '/api/search?q=%EC%9B%90%ED%94%BC%EC%8A%A4'):
         fetch('ani24', 'v2-page', base + path, h)
@@ -136,7 +140,7 @@ import urllib.parse  # noqa: E402
 
 registry = json.load(urllib.request.urlopen('https://raw.githubusercontent.com/daeokim/my-mangayomi/main/domains.json', timeout=20))
 OUT.mkdir(parents=True, exist_ok=True)
-for name, run in (('tvwiki', tvwiki), ('ani24', ani24)):
+for name, run in (("ani24", ani24),):
     try:
         run(registry['domains'][name]['baseUrl'].rstrip('/'))
     except Exception as error:  # noqa: BLE001
