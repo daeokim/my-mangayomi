@@ -34,10 +34,26 @@ class Ani24 : AnimeHttpSource() {
         return board(filters.filterIsInstance<Category>().firstOrNull()?.value() ?: "방영중", page)
     }
     private fun parse(response: Response): AnimesPage {
+        val body = response.body?.string().orEmpty()
+        if (!response.isSuccessful) DeviceLog.e("ani24 list ${response.request.url} -> HTTP ${response.code} ${response.header("Server").orEmpty()} " + DeviceLog.snippet(body))
         require(response.isSuccessful) { "애니24 HTTP ${response.code}. WebView 접속을 확인해 주세요." }
-        val (cards, next) = Ani24Parsing.list(response.body!!.string(), baseUrl)
+        val (cards, next) = try { Ani24Parsing.list(body, baseUrl) } catch (error: Exception) {
+            DeviceLog.e("ani24 list ${response.request.url} parse ${error.javaClass.simpleName}: ${error.message} " + DeviceLog.snippet(body)); throw error
+        }
+        DeviceLog.e("ani24 list OK ${response.request.url} cards=${cards.size} next=$next")
         return AnimesPage(cards.map { c -> SAnime.create().apply { url = c.path; title = c.title; thumbnail_url = c.image; genre = c.genres } }, next)
     }
+    private fun logged(request: Request): Observable<AnimesPage> = Observable.fromCallable {
+        try { client.newCall(request).execute().use(::parse) } catch (error: Exception) {
+            DeviceLog.e("ani24 request ${request.url} failed ${error.javaClass.simpleName}: ${error.message}"); throw error
+        }
+    }
+    override fun fetchPopularAnime(page: Int) = logged(popularAnimeRequest(page))
+    override fun fetchLatestUpdates(page: Int) = logged(latestUpdatesRequest(page))
+    override fun fetchSearchAnime(page: Int, query: String, filters: AnimeFilterList) = logged(searchAnimeRequest(page, query, filters))
+    override suspend fun getPopularAnime(page: Int) = fetchPopularAnime(page).toBlocking().single()
+    override suspend fun getLatestUpdates(page: Int) = fetchLatestUpdates(page).toBlocking().single()
+    override suspend fun getSearchAnime(page: Int, query: String, filters: AnimeFilterList) = fetchSearchAnime(page, query, filters).toBlocking().single()
     override fun popularAnimeParse(response: Response) = parse(response)
     override fun latestUpdatesParse(response: Response) = parse(response)
     override fun searchAnimeParse(response: Response) = parse(response)
