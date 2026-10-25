@@ -49,4 +49,30 @@ class Ani24Test {
         val episodes = Ani24Parsing.episodes(File(dir, "ani24-detail.txt").readText(), base)
         assertTrue(episodes.size >= 20); assertEquals("26화", episodes.first().name)
     }
+    private fun page(props: String) = """<html><script data-page="app" type="application/json">{"component":"x","props":$props}</script></html>"""
+    @Test fun weekdayBoardItemsBecomeSeriesCards() {
+        val (cards, next) = Ani24Parsing.list(page("""{"items":[{"id":1,"slug":"푸른 상자 2기","title":"푸른 상자 2기","thumbnail":"series/anime/thumbnails/a.jpg"},{"id":1,"slug":"푸른 상자 2기","title":"중복"}]}"""), "https://ani.ohli24.com")
+        assertFalse(next); assertEquals(1, cards.size)
+        assertEquals("/c/%ED%91%B8%EB%A5%B8%20%EC%83%81%EC%9E%90%202%EA%B8%B0", cards.single().path)
+        assertEquals("https://ani.ohli24.com/storage/series/anime/thumbnails/a.jpg", cards.single().image)
+    }
+    @Test fun paginatedListsReportTheNextPage() {
+        val (cards, next) = Ani24Parsing.list(page("""{"comics":{"data":[{"slug":"원피스","title":"원피스","tags_string":"액션"}],"next_page_url":"https://ani.ohli24.com/%EC%99%84%EA%B2%B0?page=2"}}"""), "https://ani.ohli24.com")
+        assertTrue(next); assertEquals("액션", cards.single().genres)
+        assertFalse(Ani24Parsing.list(page("""{"comics":{"data":[],"next_page_url":null}}"""), "https://ani.ohli24.com").second)
+    }
+    @Test fun seriesPathMatchesTheSiteLinks() {
+        assertEquals("/c/%EB%9E%80%EB%A7%88%201/2%20(2026)", Ani24Parsing.seriesPath("란마 1/2 (2026)"))
+        assertEquals("/c/a%3Fb%23c%25", Ani24Parsing.seriesPath("a?b#c%"))
+        assertEquals("/c/%EA%B1%B8%EC%A6%88%20&%20x!", Ani24Parsing.seriesPath("걸즈 & x!"))
+    }
+    @Test fun seriesPageCarriesEpisodesPlayerAndPages() {
+        val s = Ani24Parsing.series(page("""{"comic":{"slug":"원피스","title":"원피스","category":"방영중"},"episodes":{"data":[{"id":7,"title":"1203화","published_at":"2026-10-25T09:23:27.000000Z","body":{"url":"https://michealcdn.com/video/757f9aa438b24844d7c7c216c8c4db9d"}}],"last_page":13}}"""))
+        assertEquals("원피스", s.comic.getString("title")); assertEquals(13, s.lastPage)
+        assertEquals("https://michealcdn.com/video/757f9aa438b24844d7c7c216c8c4db9d", s.episodes.single().getJSONObject("body").getString("url"))
+        assertEquals("1줄\n2줄", Ani24Parsing.plain("1줄<br>2줄"))
+    }
+    @Test fun pagesWithoutInertiaDataAreRejected() {
+        assertThrows(IllegalStateException::class.java) { Ani24Parsing.props("<html>old site</html>") }
+    }
 }

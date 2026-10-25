@@ -7,13 +7,9 @@ import eu.kanade.tachiyomi.animesource.model.*
 import eu.kanade.tachiyomi.animesource.online.AnimeHttpSource
 import okhttp3.*
 import okhttp3.HttpUrl.Companion.toHttpUrl
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import org.json.JSONObject
-import org.jsoup.Jsoup
 import rx.Observable
-import java.text.SimpleDateFormat
-import java.util.Calendar
-import java.util.Locale
-import java.util.TimeZone
 
 // The site moved from www.ohli24.net to ani.ohli24.com (2026-10-24); both forms stay valid for registry hints.
 private val domain = SiteDomain("ani24", "https://ani.ohli24.com", Regex("(?:www\\.|ani\\.)?ohli(\\d+)\\.(?:net|com)"))
@@ -27,72 +23,84 @@ class Ani24 : AnimeHttpSource() {
     override val baseUrl get() = domain.current
     override fun headersBuilder() = super.headersBuilder().set("User-Agent", SiteDomain.USER_AGENT)
     private fun request(url: String, referer: String = "$baseUrl/") = Request.Builder().url(url).headers(headers).header("Referer", referer).header("Origin", referer.toHttpUrl().let { "${it.scheme}://${it.host}" }).build()
-    private fun api(page: Int, category: String = "ong", sort: String = "updatetime", genre: String = "", day: String = ""): Request {
-        val url = domain.resolve(client).toHttpUrl().newBuilder().addPathSegment("index.php")
-        for ((k, v) in listOf("s" to "api", "c" to "api", "m" to "template", "format" to "jsonp", "name" to "$category.html",
-            "catid" to when (category) { "movie" -> "2"; "list" -> "1"; else -> "3" }, "order" to sort, "page" to page.toString(), "keyword" to genre, "weeks" to day)) if (v.isNotBlank()) url.addQueryParameter(k, v)
-        return request(url.build().toString())
-    }
-    override fun popularAnimeRequest(page: Int) = api(page, day = Calendar.getInstance(TimeZone.getTimeZone("Asia/Seoul")).get(Calendar.DAY_OF_WEEK).toString())
-    override fun latestUpdatesRequest(page: Int) = api(page)
+    // ani.ohli24.com boards: 방영중 (weekday board, one page), 완결 and 극장판 (24 per page), and search.
+    private fun board(name: String, page: Int) = request(domain.resolve(client).toHttpUrl().newBuilder().addPathSegment(name)
+        .apply { if (page > 1) addQueryParameter("page", page.toString()) }.build().toString())
+    override fun popularAnimeRequest(page: Int) = board("방영중", page)
+    override fun latestUpdatesRequest(page: Int) = board("방영중", page)
     override fun searchAnimeRequest(page: Int, query: String, filters: AnimeFilterList): Request {
-        if (query.isNotBlank()) {
-            val path = if (page <= 1) "keyword-$query.html" else "keyword-$query-parent_id-0-page-$page.html"
-            return request(domain.resolve(client).toHttpUrl().newBuilder().addPathSegment("search").addPathSegment(path).build().toString())
-        }
-        return api(page, filters.filterIsInstance<Category>().firstOrNull()?.value() ?: "ong", filters.filterIsInstance<Sort>().firstOrNull()?.value() ?: "updatetime",
-            filters.filterIsInstance<Genre>().firstOrNull()?.value().orEmpty(), filters.filterIsInstance<Day>().firstOrNull()?.value().orEmpty())
+        if (query.isNotBlank()) return request(domain.resolve(client).toHttpUrl().newBuilder().addPathSegments("bbs/search.php")
+            .addQueryParameter("stx", query.trim()).apply { if (page > 1) addQueryParameter("page", page.toString()) }.build().toString())
+        return board(filters.filterIsInstance<Category>().firstOrNull()?.value() ?: "방영중", page)
     }
     private fun parse(response: Response): AnimesPage {
         require(response.isSuccessful) { "애니24 HTTP ${response.code}. WebView 접속을 확인해 주세요." }
-        val isApi = response.request.url.queryParameter("format") == "jsonp"
-        val text = response.body!!.string(); val html = if (isApi) Ani24Parsing.jsonp(text) else text
-        val items = Ani24Parsing.cards(html, response.request.url.toString()).map { c -> SAnime.create().apply { url = c.path; title = c.title; thumbnail_url = c.image; genre = c.genres } }
-        return AnimesPage(items, Ani24Parsing.hasNext(html, items.size, isApi))
+        val (cards, next) = Ani24Parsing.list(response.body!!.string(), baseUrl)
+        return AnimesPage(cards.map { c -> SAnime.create().apply { url = c.path; title = c.title; thumbnail_url = c.image; genre = c.genres } }, next)
     }
     override fun popularAnimeParse(response: Response) = parse(response)
     override fun latestUpdatesParse(response: Response) = parse(response)
     override fun searchAnimeParse(response: Response) = parse(response)
-    override fun fetchSearchAnime(page: Int, query: String, filters: AnimeFilterList): Observable<AnimesPage> = Observable.fromCallable {
-        if (query.isBlank()) return@fromCallable client.newCall(searchAnimeRequest(page, query, filters)).execute().use(::parse)
-        val target = Ani24Parsing.normalized(query)
-        for (term in Ani24Parsing.searchTerms(query).take(if (page == 1) 10 else 1)) {
-            val parsed = client.newCall(searchAnimeRequest(page, term, filters)).execute().use(::parse)
-            val matched = parsed.animes.filter { Ani24Parsing.normalized(it.title).contains(target) }
-            if (matched.isNotEmpty()) return@fromCallable AnimesPage(matched, parsed.hasNextPage)
-        }
-        AnimesPage(emptyList(), false)
-    }
-    override suspend fun getSearchAnime(page: Int, query: String, filters: AnimeFilterList): AnimesPage = fetchSearchAnime(page, query, filters).toBlocking().single()
-    override fun animeDetailsRequest(anime: SAnime) = request(domain.resolve(client) + Ani24Parsing.path(anime.url))
+    private fun seriesRequest(path: String, page: Int = 1) = request(domain.resolve(client) + Ani24Parsing.path(path).substringBefore('?') + if (page > 1) "?page=$page" else "")
+    override fun animeDetailsRequest(anime: SAnime) = seriesRequest(anime.url)
     override fun animeDetailsParse(response: Response): SAnime {
         require(response.isSuccessful) { "애니24 HTTP ${response.code}" }
-        val doc = Jsoup.parse(response.body!!.string(), response.request.url.toString())
-        val meta = doc.select(".article-box-meta li").mapNotNull { e -> e.select("span").takeIf { it.isNotEmpty() }?.let { it.first()!!.text().removeSuffix(":") to it.drop(1).joinToString(" ") { it.text() } } }.toMap()
+        val comic = Ani24Parsing.series(response.body!!.string()).comic
         return SAnime.create().apply {
-            url = Ani24Parsing.path(response.request.url.toString())
-            title = doc.selectFirst(".list-content .top-movies-list-title h2")?.text().orEmpty().ifBlank { doc.selectFirst("meta[property=og:title]")?.attr("content").orEmpty().substringBefore(" 자막").trim() }
+            url = Ani24Parsing.seriesPath(comic.getString("slug"))
+            title = comic.optString("title")
             require(title.isNotBlank()) { "애니24 작품 정보를 찾지 못했습니다." }
-            thumbnail_url = doc.selectFirst(".article-box-img img")?.absUrl("src")?.ifBlank { null } ?: doc.selectFirst("meta[property=og:image]")?.absUrl("content")
-            author = meta["원작"]; artist = meta["제작사"]; genre = meta["장르"] ?: doc.selectFirst("meta[name=keywords]")?.attr("content")
-            description = doc.selectFirst(".movie-coment")?.text()
-            val paths = doc.select(".page-breadcrumb a[href]").map { it.absUrl("href").trimEnd('/') }
-            status = when { paths.any { it.endsWith("/ing") } -> SAnime.ONGOING; paths.any { it.endsWith("/finished") || it.endsWith("/movie") } -> SAnime.COMPLETED; else -> SAnime.UNKNOWN }
+            thumbnail_url = Ani24Parsing.image(baseUrl, comic.optString("thumbnail"))
+            author = comic.optString("author").takeIf { it.isNotBlank() && it != "null" }
+            artist = comic.optString("director").takeIf { it.isNotBlank() && it != "null" }
+            genre = comic.optString("tags_string").takeIf { it.isNotBlank() }
+            description = listOf(Ani24Parsing.plain(comic.optString("description")), comic.optJSONObject("metadata")?.optString("info").orEmpty())
+                .filter { it.isNotBlank() && it != "null" }.joinToString("\n\n")
+            status = when (comic.optString("category")) { "방영중" -> SAnime.ONGOING; "종영", "완결", "극장판" -> SAnime.COMPLETED; else -> SAnime.UNKNOWN }
         }
     }
-    override fun episodeListRequest(anime: SAnime) = animeDetailsRequest(anime)
-    override fun episodeListParse(response: Response) = Ani24Parsing.episodes(response.body!!.string(), response.request.url.toString()).map { e -> SEpisode.create().apply {
-        url = e.path; name = e.name
+    override fun episodeListRequest(anime: SAnime) = seriesRequest(anime.url)
+    private fun episodeOf(seriesPath: String, page: Int, e: org.json.JSONObject) = SEpisode.create().apply {
+        // The id after '#' finds the episode again; the page is only a hint, since new episodes shift pages.
+        url = "$seriesPath?page=$page#${e.getLong("id")}"
+        name = e.optString("title").ifBlank { e.optString("slug") }
         episode_number = Regex("(\\d+(?:\\.\\d+)?)\\s*(?:화|회)").find(name)?.groupValues?.get(1)?.toFloatOrNull() ?: -1f
-        date_upload = runCatching { SimpleDateFormat("yyyy-MM-dd", Locale.KOREA).apply { timeZone = TimeZone.getTimeZone("Asia/Seoul") }.parse(e.date)?.time }.getOrNull() ?: 0L
-    } }
-    override fun videoListRequest(episode: SEpisode) = request(domain.resolve(client) + Ani24Parsing.path(episode.url))
-    override fun videoListParse(response: Response): List<Video> {
+        date_upload = runCatching { java.time.Instant.parse(e.getString("published_at")).toEpochMilli() }.getOrDefault(0L)
+    }
+    override fun episodeListParse(response: Response): List<SEpisode> {
         require(response.isSuccessful) { "애니24 HTTP ${response.code}" }
-        val doc = Jsoup.parse(response.body!!.string(), response.request.url.toString())
-        val frames = doc.select("iframe[src]")
-        val frame = doc.selectFirst("iframe#video[src]") ?: frames.firstOrNull { it.attr("src").contains("/video/") } ?: frames.firstOrNull() ?: error("애니24 플레이어를 찾지 못했습니다.")
-        val player = frame.absUrl("src").toHttpUrl()
+        val first = Ani24Parsing.series(response.body!!.string())
+        val path = Ani24Parsing.seriesPath(first.comic.getString("slug"))
+        val episodes = first.episodes.map { episodeOf(path, 1, it) }.toMutableList()
+        for (page in 2..first.lastPage) {
+            val next = client.newCall(seriesRequest(path, page)).execute().use { r ->
+                require(r.isSuccessful) { "애니24 회차 HTTP ${r.code}" }; Ani24Parsing.series(r.body!!.string())
+            }
+            episodes += next.episodes.map { episodeOf(path, page, it) }
+        }
+        return episodes.distinctBy { it.url.substringAfter('#') }
+    }
+    private fun playerUrl(episode: SEpisode): HttpUrl {
+        val path = episode.url.substringBefore('#')
+        val id = episode.url.substringAfter('#', "").toLongOrNull() ?: error("애니24 회차 주소가 예전 형식입니다. 작품을 새로고침해 주세요.")
+        val hint = path.substringAfter("page=", "1").toIntOrNull() ?: 1
+        var last = hint
+        val pages = sequence { yield(hint); for (p in 1..50) if (p != hint) yield(p) }
+        for (page in pages) {
+            if (page > last && page != hint) break
+            val series = client.newCall(seriesRequest(path, page)).execute().use { r -> require(r.isSuccessful) { "애니24 회차 HTTP ${r.code}" }; Ani24Parsing.series(r.body!!.string()) }
+            last = series.lastPage
+            series.episodes.firstOrNull { it.optLong("id") == id }?.let { e ->
+                return e.optJSONObject("body")?.optString("url")?.toHttpUrlOrNull() ?: error("애니24 플레이어 주소가 없습니다.")
+            }
+        }
+        error("애니24 회차를 찾지 못했습니다. 작품을 새로고침해 주세요.")
+    }
+    override fun fetchVideoList(episode: SEpisode): Observable<List<Video>> = Observable.fromCallable { playerVideos(playerUrl(episode)) }
+    override suspend fun getVideoList(episode: SEpisode): List<Video> = fetchVideoList(episode).toBlocking().single()
+    override fun videoListRequest(episode: SEpisode) = seriesRequest(episode.url)
+    override fun videoListParse(response: Response): List<Video> = error("재생 주소는 fetchVideoList에서 처리합니다.")
+    private fun playerVideos(player: HttpUrl): List<Video> {
         require(player.isHttps && player.username.isEmpty() && player.password.isEmpty()) { "플레이어 주소 오류" }
         val origin = "${player.scheme}://${player.host}"
         val playerHeaders = headers.newBuilder().set("Referer", player.toString()).set("Origin", origin).set("X-Requested-With", "XMLHttpRequest").build()
@@ -114,9 +122,6 @@ class Ani24 : AnimeHttpSource() {
         return playlist.variants.map { v -> Video(v.url, "애니24 · ${v.label}", v.url, headers = videoHeaders,
             subtitleTracks = playlist.subtitles.map { Track(it.url, it.label) }, audioTracks = playlist.audio.map { Track(it.url, it.label) }) }
     }
-    override fun getFilterList() = AnimeFilterList(Category(), Genre(), Day(), Sort())
-    private class Category : AnimeFilter.Select<String>("분류", arrayOf("방영중", "완결", "극장판")) { fun value() = arrayOf("ong", "list", "movie")[state] }
-    private class Sort : AnimeFilter.Select<String>("정렬", arrayOf("업데이트", "인기순", "방영일")) { fun value() = arrayOf("updatetime", "air_date", "hits")[state] }
-    private class Day : AnimeFilter.Select<String>("요일 (방영중)", arrayOf("전체", "일", "월", "화", "수", "목", "금", "토", "기타")) { fun value() = if (state == 0) "" else state.toString() }
-    private class Genre : AnimeFilter.Select<String>("장르", arrayOf("전체", "미스테리", "추리", "거대로봇", "SF", "모험", "백합", "판타지", "이세계", "코미디", "하렘", "학원", "로맨스", "액션", "닌자", "아이돌", "게임", "스포츠", "청춘", "능력", "드라마", "성장", "일상", "연애", "배틀")) { fun value() = if (state == 0) "" else values[state] }
+    override fun getFilterList() = AnimeFilterList(Category())
+    private class Category : AnimeFilter.Select<String>("분류", arrayOf("방영중", "완결", "극장판")) { fun value() = arrayOf("방영중", "완결", "극장판")[state] }
 }
