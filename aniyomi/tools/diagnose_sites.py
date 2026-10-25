@@ -46,7 +46,7 @@ def fetch(site, step, url, headers=None, data=None, limit=300_000):
 def tvwiki(base):
     h = {'User-Agent': IPHONE, 'Referer': base + '/'}
     _, html, _ = fetch('tvwiki', 'list', f'{base}/drama?page=1', h)
-    work = next(iter(re.findall(r'href="(?:https?://[^"/]+)?(/drama/\d+)"', html)), None)
+    work = next(iter(re.findall(r'href="(?:https?://[^"/]+)?(/drama/\d+)(?:/\d+)?"', html)), None)
     if not work:
         return
     _, detail, _ = fetch('tvwiki', 'detail', base + work, h)
@@ -101,6 +101,21 @@ def tvwiki(base):
 
 def ani24(base):
     h = {'User-Agent': DESKTOP, 'Referer': base + '/'}
+    for path in ('/%EB%B0%A9%EC%98%81%EC%A4%91', '/%EB%B0%A9%EC%98%81%EC%A4%91?page=2', '/%EC%99%84%EA%B2%B0', '/%EA%B7%B9%EC%9E%A5%ED%8C%90',
+                 '/search?q=%EC%9B%90%ED%94%BC%EC%8A%A4', '/search?keyword=%EC%9B%90%ED%94%BC%EC%8A%A4', '/api/search?q=%EC%9B%90%ED%94%BC%EC%8A%A4'):
+        fetch('ani24', 'v2-page', base + path, h)
+    _, home, _ = fetch('ani24', 'v2-home', base + '/', h)
+    for asset in dict.fromkeys(re.findall(r'(/build/assets/app-[^"]+\.js)', home)):
+        _, js, _ = fetch('ani24', 'v2-app-js', base + asset, h, limit=3_000_000)
+        hits = sorted(set(re.findall(r'["\'`](/(?:api|search|ajax)[^"\'`]{0,80})["\'`]', js)))
+        (OUT / 'ani24' / 'js-routes.txt').write_text('\n'.join(hits))
+    detail = re.search(r'<script data-page="app" type="application/json">(.*?)</script>', fetch('ani24', 'v2-detail', base + '/c/%EC%9B%90%ED%94%BC%EC%8A%A4', h)[1], re.S)
+    if detail:
+        episodes = (json.loads(detail.group(1)).get('props', {}).get('episodes') or {}).get('data') or []
+        player = next((e['body']['url'] for e in episodes if (e.get('body') or {}).get('url')), None)
+        if player:
+            fetch('ani24', 'v2-player', player, {'User-Agent': DESKTOP, 'Referer': base + '/'})
+    return
     _, home, _ = fetch('ani24', 'home', base + '/', h)
     for path in ('/ing', '/bbs/board.php?bo_table=ing', '/index.php?s=api&c=api&m=template&format=jsonp&name=ong.html&catid=3&order=updatetime&page=1'):
         fetch('ani24', 'probe', base + path, h, limit=60_000)
