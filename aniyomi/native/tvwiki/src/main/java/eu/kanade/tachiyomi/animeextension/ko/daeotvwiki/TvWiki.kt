@@ -6,8 +6,6 @@ import eu.kanade.tachiyomi.animesource.model.*
 import eu.kanade.tachiyomi.animesource.online.AnimeHttpSource
 import okhttp3.*
 import okhttp3.HttpUrl.Companion.toHttpUrl
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
 import org.jsoup.Jsoup
 import java.text.SimpleDateFormat
@@ -113,36 +111,7 @@ class TvWiki(override val name: String, private val category: String, override v
         val data = JSONObject(raw)
         require(data.optBoolean("success")) { "사이트에서 회차 정보를 제공하지 않았습니다." }
         val episode = data.getJSONObject("episode")
-        require(episode.optString("hls_url").isNotBlank()) { "영상 주소가 없습니다." }
-        val sessionClient = client.newBuilder().callTimeout(10, TimeUnit.SECONDS).build()
-        var session: JSONObject? = null
-        val tried = mutableSetOf<String>()
-        for (field in listOf("session_data1", "session_data2")) {
-            val value = episode.opt(field)
-            if (value == null || value == JSONObject.NULL) continue
-            val payload = if (value is String) value else value.toString()
-            if (payload.isBlank() || !tried.add(payload)) continue
-            try {
-                sessionClient.newCall(Request.Builder().url("$base/api/create_session.php").headers(headers)
-                    .header("Referer", referer).header("Origin", base).header("Accept", "application/json")
-                    .post(payload.toRequestBody("application/json; charset=utf-8".toMediaType())).build()).execute().use { r ->
-                        DeviceLog.e("tvwiki create_session $field -> HTTP ${r.code}")
-                        if (r.isSuccessful) {
-                            val result = JSONObject(r.body!!.string())
-                            if (result.optBoolean("success") && listOf("player_url", "t", "sig").all { result.optString(it).isNotBlank() }) session = result
-                        }
-                    }
-            } catch (error: Exception) { DeviceLog.e("tvwiki create_session $field ${error.javaClass.simpleName}: ${error.message}") }
-            if (session != null) break
-        }
-        val result = session ?: error("티비위키 재생 세션을 만들지 못했습니다. WebView 접속 후 다시 시도해 주세요.")
-        val player = base.toHttpUrl().resolve(result.getString("player_url"))!!.newBuilder()
-            .addQueryParameter("t", result.getString("t")).addQueryParameter("sig", result.getString("sig")).build()
-        require(player.isHttps) { "안전하지 않은 플레이어 주소" }
-        val playlist = player.resolve(episode.getString("hls_url")) ?: error("영상 주소 오류")
-        val videoHeaders = headers.newBuilder().set("Referer", player.toString()).set("Origin", "${player.scheme}://${player.host}").set("Accept", "*/*").build()
-        DeviceLog.e("tvwiki player=${player.host} playlist=${playlist.host}${playlist.encodedPath}")
-        val local = TvWikiProxy.open(client, playlist.toString(), videoHeaders)
+        val local = TvWikiPlayback.open(client, base, referer, headers, episode)
         return listOf(Video(local, "자동 (휴대폰 내부 HLS)", local, headers = Headers.Builder().build()))
     }
     private class CategoryFilter(default: String) : AnimeFilter.Select<String>("분류", labels, keys.indexOf(default).coerceAtLeast(0)) {
@@ -153,3 +122,4 @@ class TvWiki(override val name: String, private val category: String, override v
         }
     }
 }
+

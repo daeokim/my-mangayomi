@@ -27,13 +27,17 @@ internal object TvWikiKey {
         require(byName.keys == names.toSet()) { "영상 키 단계 이름 오류" }
         var encrypted = bytes(data.getString("encrypted_key"))
         require(encrypted.size in 17..65536)
-        val final = byName.getValue("final_encrypt")
-        val padding = final.getInt("pad_len")
-        require(padding in 1..63 && padding < encrypted.size) { "영상 키 패딩 오류" }
-        encrypted = xor(encrypted.copyOf(encrypted.size - padding), bytes(final.getString("xor_mask")))
-
         val decoy = byName.getValue("decoy_shuffle")
         val lengths = ints(decoy, "segment_lengths")
+        require(lengths.all { it in 1..4096 }) { "영상 키 블록 길이 오류" }
+        val final = byName.getValue("final_encrypt")
+        val padding = final.getInt("pad_len")
+        // This is envelope noise, not PKCS padding: validate it against the declared
+        // payload size instead of assuming a fixed 1..63 range (including no noise).
+        require(padding >= 0 && padding < encrypted.size &&
+            encrypted.size - padding == lengths.sum()) { "영상 키 패딩 오류" }
+        encrypted = xor(encrypted.copyOf(encrypted.size - padding), bytes(final.getString("xor_mask")))
+
         require(lengths.all { it in 1..4096 } && lengths.sum() == encrypted.size) { "영상 키 블록 길이 오류" }
         val positions = ints(decoy, "real_positions")
         require(positions.size == 16 && positions.toSet().size == 16 && positions.all { it in lengths.indices }) { "영상 키 블록 위치 오류" }
@@ -71,3 +75,4 @@ internal object TvWikiKey {
         return result
     }
 }
+

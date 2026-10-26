@@ -11,12 +11,14 @@ import java.net.ServerSocket
 import java.net.Socket
 import java.util.UUID
 import java.util.concurrent.ArrayBlockingQueue
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
 
 /** Loopback-only proxy: rewrites HLS references and decodes this site's JSON key envelopes. */
 internal object TvWikiProxy {
     private data class Resource(val url: String, val key: Boolean)
+    private data class CachedBody(val bytes: ByteArray, val type: String)
     private class Session(val client: OkHttpClient, val headers: Headers) {
         var usedAt = System.nanoTime()
         val resources = LinkedHashMap<String, Resource>()
@@ -24,13 +26,14 @@ internal object TvWikiProxy {
         // The master playlist fetched by open(): (requested URL, final URL for relative references, body).
         // TVWiki now issues playlist URLs with a token that may be single-use, so it is never fetched twice.
         @Volatile var primed: Triple<String, String, ByteArray>? = null
+        val initial = ConcurrentHashMap<Resource, CachedBody>()
     }
     private val sessions = LinkedHashMap<String, Session>()
     private var server: ServerSocket? = null
     private val pool = ThreadPoolExecutor(4, 8, 30, TimeUnit.SECONDS, ArrayBlockingQueue(16), { r ->
         Thread(r, "Daeo-HLS-request").apply { isDaemon = true }
     }).apply { allowCoreThreadTimeOut(true) }
-    fun open(client: OkHttpClient, playlist: String, headers: Headers): String {
+    fun open(client: OkHttpClient, playlist: String, headers: Headers, validateMedia: Boolean = false): String {
         require(playlist.toHttpUrl().isHttps) { "HLS에는 HTTPS 주소가 필요합니다." }
         val session = Session(client.newBuilder().callTimeout(45, TimeUnit.SECONDS).build(), headers)
         val id = UUID.randomUUID().toString()
@@ -49,12 +52,63 @@ internal object TvWikiProxy {
                 session.primed = Triple(playlist, r.request.url.toString(), source.readByteArray())
                 DeviceLog.e("tvwiki open OK ${r.request.url} " + String(session.primed!!.third, Charsets.UTF_8).lineSequence().take(6).joinToString(" | "))
             }
+            if (validateMedia) validateInitialMedia(session)
         } catch (error: Exception) {
             DeviceLog.e("tvwiki open FAILED $playlist ${error.javaClass.simpleName}: ${error.message}")
             synchronized(this) { sessions.remove(id) }
             throw error
         }
         return url
+    }
+    private fun validateInitialMedia(session: Session) {
+        val primed = session.primed!!
+        val lines = String(primed.third, Charsets.UTF_8).lineSequence().map { it.trim() }.toList()
+        // A master is still handled recursively by the existing proxy. The failure
+        // captured on 2026-10-25 is a media playlist, with its key and segments inline.
+        if (lines.any { it.startsWith("#EXT-X-STREAM-INF:") }) return
+        val base = primed.second.toHttpUrl()
+        var key: Resource? = null
+        var init: Resource? = null
+        var media: Resource? = null
+        val uri = Regex("URI=\"([^\"]+)\"")
+        for (line in lines) {
+            when {
+                line.startsWith("#EXT-X-KEY:") -> key = uri.find(line)?.groupValues?.get(1)?.let {
+                    Resource((base.resolve(it) ?: error("영상 키 주소 오류")).toString(), true)
+                }
+                line.startsWith("#EXT-X-MAP:") -> init = uri.find(line)?.groupValues?.get(1)?.let {
+                    Resource((base.resolve(it) ?: error("영상 초기화 주소 오류")).toString(), false)
+                }
+                line.isNotEmpty() && !line.startsWith("#") -> {
+                    media = Resource((base.resolve(line) ?: error("영상 조각 주소 오류")).toString(), false)
+                    break
+                }
+            }
+        }
+        if (media == null) throw TvWikiPlaybackException("재생할 영상 조각이 없습니다.")
+        for (resource in listOfNotNull(key, init, media).distinct()) {
+            require(resource.url.toHttpUrl().isHttps) { "HLS에는 HTTPS 주소가 필요합니다." }
+            val stage = if (resource.key) "영상 키" else "영상 조각"
+            session.client.newCall(Request.Builder().url(resource.url).headers(session.headers)
+                .header("Accept-Encoding", "identity").build()).execute().use { response ->
+                if (!response.isSuccessful || response.code == 206) {
+                    throw TvWikiPlaybackException("$stage 요청 실패 (HTTP ${response.code})")
+                }
+                val source = response.body?.source() ?: throw TvWikiPlaybackException("$stage 응답이 없습니다.")
+                val limit = if (resource.key) 65536L else 8L * 1024 * 1024
+                if (source.request(limit + 1)) throw TvWikiPlaybackException("$stage 응답이 너무 큽니다.")
+                val bytes = source.readByteArray()
+                if (bytes.isEmpty()) throw TvWikiPlaybackException("$stage 응답이 비어 있습니다.")
+                val output = if (resource.key) try { TvWikiParsing.decodeKey(bytes) } catch (_: Exception) {
+                    throw TvWikiPlaybackException("영상 키 형식 또는 복원 규칙 오류")
+                } else bytes
+                // Preserve single-use resources: validation must never consume the
+                // first key/segment and then request it again for the player.
+                session.initial[resource] = CachedBody(output, if (resource.key) "application/octet-stream"
+                    else response.header("Content-Type") ?: "application/octet-stream")
+                DeviceLog.e("tvwiki validated ${if (resource.key) "key" else "media"} ${resource.url}")
+            }
+        }
     }
     private fun start() {
         if (server != null) return
@@ -119,6 +173,28 @@ internal object TvWikiProxy {
             }.getOrNull()
             if (output != null) { reply(out, 200, "application/vnd.apple.mpegurl", output, words[0] == "HEAD"); return }
         }
+        session.initial[resource]?.let { cached ->
+            val range = requestHeaders["range"]
+            if (range == null) {
+                reply(out, 200, cached.type, cached.bytes, words[0] == "HEAD")
+            } else {
+                val match = Regex("bytes=(\\d*)-(\\d*)").matchEntire(range)
+                val size = cached.bytes.size.toLong()
+                val start = match?.groupValues?.get(1).orEmpty()
+                val end = match?.groupValues?.get(2).orEmpty()
+                val from = if (start.isEmpty()) end.toLongOrNull()?.takeIf { it > 0 }?.let { maxOf(0, size - it) }
+                    else start.toLongOrNull()
+                val to = if (start.isEmpty() || end.isEmpty()) size - 1 else end.toLongOrNull()?.coerceAtMost(size - 1)
+                if (match == null || from == null || to == null || from !in 0 until size || to < from) {
+                    header(out, 416, "text/plain", 0, "bytes */$size"); out.flush()
+                } else {
+                    header(out, 206, cached.type, to - from + 1, "bytes $from-$to/$size")
+                    if (words[0] != "HEAD") out.write(cached.bytes, from.toInt(), (to - from + 1).toInt())
+                    out.flush()
+                }
+            }
+            return
+        }
         try {
             val builder = Request.Builder().url(resource.url).headers(session.headers).header("Accept-Encoding", "identity")
             requestHeaders["range"]?.takeIf { Regex("bytes=\\d*-\\d*").matches(it) }?.let { builder.header("Range", it) }
@@ -171,3 +247,4 @@ internal object TvWikiProxy {
         out.flush()
     }
 }
+
