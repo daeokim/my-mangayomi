@@ -2,14 +2,14 @@
 const mangayomiSources = [{
   name: "티비위키 · 영화",
   lang: "ko",
-  baseUrl: "https://tvwiki55.net",
+  baseUrl: "https://tvwiki56.net",
   apiUrl: "",
   iconUrl: "https://dc-toki-mangayomi-media.pages.dev/icon/ko.tvwiki.png",
   typeSource: "single",
   itemType: 1,
   isNsfw: false,
   hasCloudflare: false,
-  version: "0.1.18",
+  version: "0.1.19",
   dateFormat: "",
   dateFormatLocale: "",
   pkgPath: "anime/src/ko/tvwiki-movie.js",
@@ -208,13 +208,13 @@ class TvCategoryEngine extends MProvider {
   constructor() {
     super();
     dcHlsSingleFlight(this);
-    this.fallbackBaseUrl = "https://tvwiki55.net";
+    this.fallbackBaseUrl = "https://tvwiki56.net";
     this.bridgeBaseUrl = "https://dc-toki-mangayomi-media.pages.dev";
     this.cardBaseUrl = this.bridgeBaseUrl + "/card/tvwiki-section";
     this.cardRevision = "20260915-2";
     this.signalUrl = "https://daeokim.github.io/my-mangayomi/domains.json";
-    this.cachedBaseKey = "tvwiki_last_base_url_domain55";
-    this.cachedBaseTimeKey = "tvwiki_last_base_time_domain55";
+    this.cachedBaseKey = "tvwiki_last_base_url_domain56";
+    this.cachedBaseTimeKey = "tvwiki_last_base_time_domain56";
     this.posterCachePrefix = "tvwiki_series_poster_v1_";
     this.titleCachePrefix = "tvwiki_series_title_v1_";
     this.descriptionCachePrefix = "tvwiki_series_description_v1_";
@@ -355,7 +355,7 @@ class TvCategoryEngine extends MProvider {
     return seriesPath ? this._safeSeriesDescription(this._preference(this._descriptionKey(seriesPath), "")) : "";
   }
   _manualBaseUrl() { const manual = this._trimSlash(this._preference("tvwiki_domain_url", "")); return this._isAllowedBase(manual) ? manual : ""; }
-  _isCurrentAutomaticBase(value) { const match = this._trimSlash(value).match(/^https:\/\/tvwiki(\d+)\.net$/i); return !!match && Number(match[1]) >= 55; }
+  _isCurrentAutomaticBase(value) { const match = this._trimSlash(value).match(/^https:\/\/tvwiki(\d+)\.net$/i); return !!match && Number(match[1]) >= 56; }
   _cachedBaseUrl() { const cached = this._trimSlash(this._preference(this.cachedBaseKey, "")); return this._isCurrentAutomaticBase(cached) ? cached : ""; }
   _headers(referer, accept) { const base = this._origin(referer) || this._manualBaseUrl() || this._cachedBaseUrl() || this.fallbackBaseUrl; return { "User-Agent": this.userAgent, "Accept": accept || "text/html,application/xhtml+xml,application/json;q=0.9,*/*;q=0.8", "Accept-Language": "ko-KR,ko;q=0.9,en;q=0.8", "Referer": referer || base + "/" }; }
   _client(kind, timeout) {
@@ -962,7 +962,7 @@ class TvCategoryEngine extends MProvider {
   getSourcePreferences() {
     return [
       { key: "tvwiki_playback_route_v2", listPreference: { title: "영상 재생 경로", summary: "휴대폰 중계에서 로딩이 계속되면 기존 외부 재생을 선택하세요. 기존 외부 재생은 사용자 기기에서 재생이 확인된 외부 호환 재생을 먼저 제공합니다. 일부 영상 키는 외부 변환이 필요합니다.", valueIndex: 0, entries: ["휴대폰 중계 (0.9.9 기본)", "자동 (복구 허용)", "기존 외부 재생"], entryValues: ["device", "auto", "external"] } },
-      { key: "tvwiki_domain_url", editTextPreference: { title: "티비위키 주소 직접 지정 (선택)", summary: "빈 값이면 공통 주소 목록의 최신 주소를 사용하고, 실패하면 마지막 정상 주소로 복구합니다.", value: "", dialogTitle: "https://tvwiki55.net", dialogMessage: "tvwiki숫자.net 형식의 HTTPS 주소만 허용됩니다." } },
+      { key: "tvwiki_domain_url", editTextPreference: { title: "티비위키 주소 직접 지정 (선택)", summary: "빈 값이면 공통 주소 목록의 최신 주소를 사용하고, 실패하면 마지막 정상 주소로 복구합니다.", value: "", dialogTitle: "https://tvwiki56.net", dialogMessage: "tvwiki숫자.net 형식의 HTTPS 주소만 허용됩니다." } },
       { key: "tvwiki_custom_card_json_url", editTextPreference: { title: "커스텀 목록 카드 (선택)", summary: "공개 JSON 주소 1개로 요일별 카드 7장을 설정합니다. 360×540 GIF·WebP를 권장하며 용량·프레임 제한은 없습니다.", value: "", dialogTitle: "커스텀 목록 카드 JSON 주소", dialogMessage: "Google Drive 공개 공유 링크 또는 직접 JSON 주소를 넣으세요. 개인 카드를 설정하면 공용 이벤트 카드는 표시되지 않습니다. 빈 값이면 공용 이벤트 또는 기본 원격 카드를 사용합니다." } }
     ];
   }
