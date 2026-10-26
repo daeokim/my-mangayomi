@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-26T18:50:17.483Z",
-  "lastRunAt": "2026-10-26T18:50:17.483Z",
+  "updatedAt": "2026-10-26T19:00:17.768Z",
+  "lastRunAt": "2026-10-26T19:00:17.768Z",
   "domains": {
     "11toon": {
       "baseUrl": "https://11toon.com",
@@ -101,32 +101,29 @@
       "consecutiveFailures": 0
     },
     "tvroom": {
-      "baseUrl": "https://tvroom42.org",
-      "status": "protected",
-      "lastConfirmedAt": "2026-10-23T12:34:54.134558+00:00",
-      "lastCheckedAt": "2026-10-26T17:50:17.672Z",
-      "reason": "보호 화면 또는 차단 응답",
-      "scanOffset": 6,
+      "baseUrl": "https://tvroom43.org",
+      "status": "healthy",
+      "lastConfirmedAt": "2026-10-26T19:00:17.768Z",
+      "lastCheckedAt": "2026-10-26T19:00:17.768Z",
+      "reason": "목록 구조 확인 · 재생/이미지 검증은 별도",
+      "scanOffset": 1,
       "lastConfirmedBy": "external-http-check",
       "attempts": [
         {
           "baseUrl": "https://tvroom42.org",
-          "ok": false,
-          "reason": "보호 화면 또는 차단 응답"
-        },
-        {
-          "baseUrl": "https://tvroom47.org",
-          "ok": false,
-          "reason": "HTTP 530"
+          "ok": true,
+          "reason": "목록 구조 확인",
+          "finalBaseUrl": "https://tvroom43.org"
         }
       ],
       "currentCheck": {
         "baseUrl": "https://tvroom42.org",
-        "ok": false,
-        "reason": "보호 화면 또는 차단 응답",
+        "ok": true,
+        "reason": "목록 구조 확인",
+        "finalBaseUrl": "https://tvroom43.org",
         "checked": true
       },
-      "consecutiveFailures": 65
+      "consecutiveFailures": 0
     },
     "ani24": {
       "baseUrl": "https://ani.ohli24.com",
