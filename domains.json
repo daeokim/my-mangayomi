@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-26T09:20:17.943Z",
-  "lastRunAt": "2026-10-26T09:20:17.943Z",
+  "updatedAt": "2026-10-26T09:30:17.103Z",
+  "lastRunAt": "2026-10-26T09:30:17.103Z",
   "domains": {
     "11toon": {
       "baseUrl": "https://11toon.com",
@@ -79,8 +79,8 @@
     "tvwiki": {
       "baseUrl": "https://tvwiki55.net",
       "status": "healthy",
-      "lastConfirmedAt": "2026-10-26T08:20:17.281Z",
-      "lastCheckedAt": "2026-10-26T08:20:17.281Z",
+      "lastConfirmedAt": "2026-10-26T09:30:17.103Z",
+      "lastCheckedAt": "2026-10-26T09:30:17.103Z",
       "reason": "목록 구조 확인 · 재생/이미지 검증은 별도",
       "scanOffset": 1,
       "attempts": [
