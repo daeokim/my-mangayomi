@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-27T18:10:17.627Z",
-  "lastRunAt": "2026-10-27T18:10:17.627Z",
+  "updatedAt": "2026-10-27T18:20:17.481Z",
+  "lastRunAt": "2026-10-27T18:20:17.481Z",
   "domains": {
     "11toon": {
       "baseUrl": "https://11toon.com",
@@ -102,76 +102,28 @@
     },
     "tvroom": {
       "baseUrl": "https://tvroom43.org",
-      "status": "protected",
-      "lastConfirmedAt": "2026-10-27T17:10:17.219Z",
-      "lastCheckedAt": "2026-10-27T17:59:29.593Z",
-      "reason": "HTTP 403",
-      "scanOffset": 2,
+      "status": "healthy",
+      "lastConfirmedAt": "2026-10-27T18:20:17.481Z",
+      "lastCheckedAt": "2026-10-27T18:20:17.481Z",
+      "reason": "목록 구조 확인 · 재생/이미지 검증은 별도",
+      "scanOffset": 1,
       "lastConfirmedBy": "external-http-check",
       "attempts": [
         {
           "baseUrl": "https://tvroom43.org",
-          "ok": false,
-          "reason": "HTTP 403"
-        },
-        {
-          "baseUrl": "https://tvroom44.org",
-          "ok": false,
-          "reason": "목록 구조 미확인"
-        },
-        {
-          "baseUrl": "https://tvroom45.org",
-          "ok": false,
-          "reason": "연결 실패 또는 시간 초과"
-        },
-        {
-          "baseUrl": "https://tvroom46.org",
-          "ok": false,
-          "reason": "연결 실패 또는 시간 초과"
-        },
-        {
-          "baseUrl": "https://tvroom47.org",
-          "ok": false,
-          "reason": "연결 실패 또는 시간 초과"
-        },
-        {
-          "baseUrl": "https://tvroom48.org",
-          "ok": false,
-          "reason": "연결 실패 또는 시간 초과"
-        },
-        {
-          "baseUrl": "https://tvroom49.org",
-          "ok": false,
-          "reason": "연결 실패 또는 시간 초과"
-        },
-        {
-          "baseUrl": "https://tvroom50.org",
-          "ok": false,
-          "reason": "연결 실패 또는 시간 초과"
-        },
-        {
-          "baseUrl": "https://tvroom51.org",
-          "ok": false,
-          "reason": "연결 실패 또는 시간 초과"
-        },
-        {
-          "baseUrl": "https://tvroom52.org",
-          "ok": false,
-          "reason": "연결 실패 또는 시간 초과"
-        },
-        {
-          "baseUrl": "https://tvroom53.org",
-          "ok": false,
-          "reason": "연결 실패 또는 시간 초과"
+          "ok": true,
+          "reason": "목록 구조 확인",
+          "finalBaseUrl": "https://tvroom43.org"
         }
       ],
       "currentCheck": {
         "baseUrl": "https://tvroom43.org",
-        "ok": false,
-        "reason": "HTTP 403",
+        "ok": true,
+        "reason": "목록 구조 확인",
+        "finalBaseUrl": "https://tvroom43.org",
         "checked": true
       },
-      "consecutiveFailures": 1
+      "consecutiveFailures": 0
     },
     "ani24": {
       "baseUrl": "https://ani.ohli24.com",
