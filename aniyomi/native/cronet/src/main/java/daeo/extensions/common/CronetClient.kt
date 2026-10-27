@@ -27,6 +27,7 @@ object CronetClient {
     private val watchdog = Executors.newSingleThreadScheduledExecutor { task -> Thread(task, "daeo-cronet-cancel").apply { isDaemon = true } }
 
     fun create(upstream: OkHttpClient, extensionPackage: String): OkHttpClient = upstream.newBuilder()
+        .apply { interceptors().add(0, CronetFallback(upstream, watchdog)) }
         .addInterceptor(Transport(upstream.cookieJar, upstream.followRedirects, upstream.followSslRedirects) { url ->
             try {
                 engine(extensionPackage).openConnection(url) as HttpURLConnection
@@ -43,6 +44,7 @@ object CronetClient {
         for (index in builder.interceptors().indices) {
             val interceptor = builder.interceptors()[index]
             if (interceptor is Transport) builder.interceptors()[index] = interceptor.withoutRedirects()
+            if (interceptor is CronetFallback) builder.interceptors()[index] = interceptor.withoutRedirects()
         }
         return builder.build()
     }

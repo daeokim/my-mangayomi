@@ -138,6 +138,9 @@ class Ani24 : AnimeHttpSource() {
         return playlist.variants.map { v -> Video(v.url, "애니24 · ${v.label}", v.url, headers = videoHeaders,
             subtitleTracks = playlist.subtitles.map { Track(it.url, it.label) }, audioTracks = playlist.audio.map { Track(it.url, it.label) }) }
     }
-    override fun getFilterList() = AnimeFilterList(Category())
+    override fun getFilterList() = AnimeFilterList(
+        Category(),
+        AnimeFilter.Header("목록 안내: 인기·최신은 사이트의 같은 방영중 목록입니다. 완결·극장판은 필터에서 선택하세요."),
+    )
     private class Category : AnimeFilter.Select<String>("분류", arrayOf("방영중", "완결", "극장판")) { fun value() = arrayOf("방영중", "완결", "극장판")[state] }
 }
