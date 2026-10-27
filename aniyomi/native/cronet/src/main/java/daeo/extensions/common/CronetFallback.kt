@@ -35,7 +35,17 @@ internal class CronetFallback(
             if (original.timeoutNanos() > 0) budget = minOf(budget, original.timeoutNanos() - (now - started))
             if (original.hasDeadline()) budget = minOf(budget, original.deadlineNanoTime() - now)
             if (budget <= 0) throw primary
-            val fallback = upstream.newCall(chain.request())
+            val originalRequest = chain.request()
+            val fallbackClient = upstream.newBuilder().addNetworkInterceptor { redirected ->
+                val target = redirected.request()
+                val sameOrigin = target.url.scheme == originalRequest.url.scheme && target.url.host == originalRequest.url.host &&
+                    target.url.port == originalRequest.url.port
+                val safe = if (sameOrigin) target else target.newBuilder().apply {
+                    for (name in PRIVATE_HEADERS) removeHeader(name)
+                }.build()
+                redirected.proceed(safe)
+            }.build()
+            val fallback = fallbackClient.newCall(originalRequest)
             fallback.timeout().timeout(budget, TimeUnit.NANOSECONDS)
             val cancel = watchdog.scheduleAtFixedRate({ if (chain.call().isCanceled()) fallback.cancel() }, 0, 100, TimeUnit.MILLISECONDS)
             try {
@@ -63,6 +73,8 @@ internal class CronetFallback(
     }
 
     companion object {
+        private val PRIVATE_HEADERS = setOf("Authorization", "Proxy-Authorization", "Cookie", "Origin", "Referer",
+            "X-Anilife-Playback", "X-Anilife-Player", "X-Anilife-Delivery")
         internal fun eligible(request: Request, error: IOException): Boolean {
             if (request.method !in setOf("GET", "HEAD") || request.body != null) return false
             val causes = generateSequence<Throwable>(error) { it.cause }.take(12).toList()

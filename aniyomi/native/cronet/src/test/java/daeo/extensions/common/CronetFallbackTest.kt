@@ -91,4 +91,22 @@ class CronetFallbackTest {
             } finally { scheduler.shutdownNow() }
         }
     }
+    @Test fun fallbackRedirectDoesNotForwardSourceCredentialsToAnotherOrigin() {
+        MockWebServer().use { first -> MockWebServer().use { second ->
+            first.enqueue(MockResponse().setResponseCode(302).addHeader("Location", second.url("/video")))
+            second.enqueue(MockResponse().setBody("ok"))
+            val scheduler = Executors.newSingleThreadScheduledExecutor()
+            try {
+                val client = OkHttpClient.Builder().addInterceptor(CronetFallback(OkHttpClient(), scheduler))
+                    .addInterceptor { throw IOException("net::ERR_CONNECTION_RESET") }.build()
+                val request = Request.Builder().url(first.url("/source")).header("Cookie", "session=secret")
+                    .header("Authorization", "Bearer secret").header("Origin", "https://source.example")
+                    .header("Referer", "https://source.example/?token=secret").header("X-Anilife-Playback", "secret").build()
+                client.newCall(request).execute().use { assertEquals("ok", it.body!!.string()) }
+                assertEquals("session=secret", first.takeRequest().getHeader("Cookie"))
+                val redirected = second.takeRequest()
+                for (name in listOf("Cookie", "Authorization", "Origin", "Referer", "X-Anilife-Playback")) assertNull(name, redirected.getHeader(name))
+            } finally { scheduler.shutdownNow() }
+        } }
+    }
 }
