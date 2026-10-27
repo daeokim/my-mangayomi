@@ -2,7 +2,7 @@ plugins { id 'com.android.application'; id 'org.jetbrains.kotlin.android' }
 android {
  namespace 'eu.kanade.tachiyomi.animeextension.ko.daeoani24'
  compileSdk 35
- defaultConfig { applicationId 'eu.kanade.tachiyomi.animeextension.ko.daeoani24'; minSdk 24; targetSdk 35; versionCode 1008; versionName '14.1008'
+ defaultConfig { applicationId 'eu.kanade.tachiyomi.animeextension.ko.daeoani24'; minSdk 24; targetSdk 35; versionCode 1009; versionName '14.1009'
   // Dtoon is arm64-v8a only; the other three Cronet ABIs were ~19 MB of every APK.
   ndk { abiFilters 'arm64-v8a' } }
  compileOptions { sourceCompatibility JavaVersion.VERSION_1_8; targetCompatibility JavaVersion.VERSION_1_8 }

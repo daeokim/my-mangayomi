@@ -8,8 +8,6 @@ import okhttp3.*
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.json.JSONObject
 import rx.Observable
-import java.util.Calendar
-import java.util.TimeZone
 
 class AniLife : AnimeHttpSource() {
     private val domain by lazy { AniLifeDomain(LifeDomainPreferences()) }
@@ -27,16 +25,10 @@ class AniLife : AnimeHttpSource() {
     private fun get(url: String, referer: String = "$baseUrl/tags") = Request.Builder().url(url).headers(headers)
         .header("Referer", referer).header("Origin", baseUrl).build()
     private fun catalog(page: Int, sort: String = "latest", scope: String = "", query: String = "", genre: String = "", year: String = "", status: String = "", day: String = ""): Request {
-        val url = domain.resolve(transport).toHttpUrl().newBuilder().addPathSegments("api/anime")
-            .addQueryParameter("page", page.toString()).addQueryParameter("limit", "24").addQueryParameter("sort", sort)
-        for ((k, v) in listOf("scope" to scope, "q" to query, "genre" to genre, "year" to year, "status" to status, "day" to day)) if (v.isNotBlank()) url.addQueryParameter(k, v)
-        return get(url.addQueryParameter("v", "catalog-media-2").build().toString())
+        return get(AniLifeCatalog.url(domain.resolve(transport), page, sort, scope, query, genre, year, status, day).toString())
     }
-    override fun popularAnimeRequest(page: Int): Request {
-        val index = (Calendar.getInstance(TimeZone.getTimeZone("Asia/Seoul")).get(Calendar.DAY_OF_WEEK) + 5) % 7
-        return catalog(page, status = "방영중", day = days[index])
-    }
-    override fun latestUpdatesRequest(page: Int) = catalog(page, scope = "updates")
+    override fun popularAnimeRequest(page: Int) = get(AniLifeCatalog.popular(domain.resolve(transport), page).toString())
+    override fun latestUpdatesRequest(page: Int) = get(AniLifeCatalog.latest(domain.resolve(transport), page).toString())
     override fun searchAnimeRequest(page: Int, query: String, filters: AnimeFilterList): Request = catalog(page,
         sort = filters.filterIsInstance<Sort>().firstOrNull()?.value() ?: "latest", query = query,
         genre = filters.filterIsInstance<Genre>().firstOrNull()?.value().orEmpty(), year = filters.filterIsInstance<Year>().firstOrNull()?.value().orEmpty(),
