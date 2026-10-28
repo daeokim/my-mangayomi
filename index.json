@@ -46,7 +46,7 @@
   {
     "name": "블랙툰",
     "id": 780920260910501,
-    "baseUrl": "https://blacktoon425.com",
+    "baseUrl": "https://blacktoon426.com",
     "lang": "ko",
     "typeSource": "single",
     "iconUrl": "https://dc-toki-mangayomi-manga.pages.dev/icon/ko.blacktoon.png",
@@ -55,7 +55,7 @@
     "isNsfw": true,
     "hasCloudflare": false,
     "apiUrl": "",
-    "version": "0.1.19",
+    "version": "0.1.20",
     "isManga": true,
     "itemType": 0,
     "isFullData": false,
