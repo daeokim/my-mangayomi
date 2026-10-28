@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-28T22:50:17.745Z",
-  "lastRunAt": "2026-10-28T22:50:17.745Z",
+  "updatedAt": "2026-10-28T23:00:17.953Z",
+  "lastRunAt": "2026-10-28T23:00:17.953Z",
   "domains": {
     "11toon": {
       "baseUrl": "https://11toon.com",
@@ -29,75 +29,27 @@
     },
     "blacktoon": {
       "baseUrl": "https://blacktoon426.com",
-      "status": "protected",
-      "lastConfirmedAt": "2026-10-28T21:50:17.770Z",
-      "lastCheckedAt": "2026-10-28T22:33:29.900Z",
-      "reason": "연결 실패 또는 시간 초과",
-      "scanOffset": 2,
+      "status": "healthy",
+      "lastConfirmedAt": "2026-10-28T23:00:17.953Z",
+      "lastCheckedAt": "2026-10-28T23:00:17.953Z",
+      "reason": "목록 구조 확인 · 재생/이미지 검증은 별도",
+      "scanOffset": 1,
       "attempts": [
         {
           "baseUrl": "https://blacktoon426.com",
-          "ok": false,
-          "reason": "연결 실패 또는 시간 초과"
-        },
-        {
-          "baseUrl": "https://blacktoon427.com",
-          "ok": false,
-          "reason": "연결 실패 또는 시간 초과"
-        },
-        {
-          "baseUrl": "https://blacktoon428.com",
-          "ok": false,
-          "reason": "연결 실패 또는 시간 초과"
-        },
-        {
-          "baseUrl": "https://blacktoon429.com",
-          "ok": false,
-          "reason": "연결 실패 또는 시간 초과"
-        },
-        {
-          "baseUrl": "https://blacktoon430.com",
-          "ok": false,
-          "reason": "연결 실패 또는 시간 초과"
-        },
-        {
-          "baseUrl": "https://blacktoon431.com",
-          "ok": false,
-          "reason": "목록 구조 미확인"
-        },
-        {
-          "baseUrl": "https://blacktoon432.com",
-          "ok": false,
-          "reason": "연결 실패 또는 시간 초과"
-        },
-        {
-          "baseUrl": "https://blacktoon433.com",
-          "ok": false,
-          "reason": "연결 실패 또는 시간 초과"
-        },
-        {
-          "baseUrl": "https://blacktoon434.com",
-          "ok": false,
-          "reason": "연결 실패 또는 시간 초과"
-        },
-        {
-          "baseUrl": "https://blacktoon435.com",
-          "ok": false,
-          "reason": "연결 실패 또는 시간 초과"
-        },
-        {
-          "baseUrl": "https://blacktoon436.com",
-          "ok": false,
-          "reason": "연결 실패 또는 시간 초과"
+          "ok": true,
+          "reason": "목록 구조 확인",
+          "finalBaseUrl": "https://blacktoon426.com"
         }
       ],
       "currentCheck": {
         "baseUrl": "https://blacktoon426.com",
-        "ok": false,
-        "reason": "연결 실패 또는 시간 초과",
+        "ok": true,
+        "reason": "목록 구조 확인",
+        "finalBaseUrl": "https://blacktoon426.com",
         "checked": true
       },
-      "consecutiveFailures": 1
+      "consecutiveFailures": 0
     },
     "goodtoon": {
       "baseUrl": "https://goodtoon009.com",
