@@ -1,13 +1,13 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-29T16:10:17.875Z",
-  "lastRunAt": "2026-10-29T16:10:17.875Z",
+  "updatedAt": "2026-10-29T16:20:17.729Z",
+  "lastRunAt": "2026-10-29T16:20:17.729Z",
   "domains": {
     "11toon": {
       "baseUrl": "https://11toon.com",
       "status": "healthy",
-      "lastConfirmedAt": "2026-10-29T15:10:17.746Z",
-      "lastCheckedAt": "2026-10-29T15:10:17.746Z",
+      "lastConfirmedAt": "2026-10-29T16:20:17.729Z",
+      "lastCheckedAt": "2026-10-29T16:20:17.729Z",
       "reason": "목록 구조 확인 · 재생/이미지 검증은 별도",
       "scanOffset": 1,
       "attempts": [
