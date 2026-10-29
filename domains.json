@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-29T08:10:17.211Z",
-  "lastRunAt": "2026-10-29T08:10:17.211Z",
+  "updatedAt": "2026-10-29T08:20:17.524Z",
+  "lastRunAt": "2026-10-29T08:20:17.524Z",
   "domains": {
     "11toon": {
       "baseUrl": "https://11toon.com",
@@ -29,27 +29,30 @@
     },
     "blacktoon": {
       "baseUrl": "https://blacktoon426.com",
-      "status": "healthy",
+      "status": "protected",
       "lastConfirmedAt": "2026-10-29T07:10:28.962Z",
-      "lastCheckedAt": "2026-10-29T07:10:28.962Z",
-      "reason": "목록 구조 확인 · 재생/이미지 검증은 별도",
-      "scanOffset": 1,
+      "lastCheckedAt": "2026-10-29T08:20:17.524Z",
+      "reason": "연결 실패 또는 시간 초과",
+      "scanOffset": 2,
       "attempts": [
         {
           "baseUrl": "https://blacktoon426.com",
-          "ok": true,
-          "reason": "목록 구조 확인",
-          "finalBaseUrl": "https://blacktoon426.com"
+          "ok": false,
+          "reason": "연결 실패 또는 시간 초과"
+        },
+        {
+          "baseUrl": "https://blacktoon427.com",
+          "ok": false,
+          "reason": "연결 실패 또는 시간 초과"
         }
       ],
       "currentCheck": {
         "baseUrl": "https://blacktoon426.com",
-        "ok": true,
-        "reason": "목록 구조 확인",
-        "finalBaseUrl": "https://blacktoon426.com",
+        "ok": false,
+        "reason": "연결 실패 또는 시간 초과",
         "checked": true
       },
-      "consecutiveFailures": 0
+      "consecutiveFailures": 1
     },
     "goodtoon": {
       "baseUrl": "https://goodtoon009.com",
