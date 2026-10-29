@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-29T04:50:17.787Z",
-  "lastRunAt": "2026-10-29T04:50:17.787Z",
+  "updatedAt": "2026-10-29T05:00:17.818Z",
+  "lastRunAt": "2026-10-29T05:00:17.818Z",
   "domains": {
     "11toon": {
       "baseUrl": "https://11toon.com",
@@ -54,8 +54,8 @@
     "goodtoon": {
       "baseUrl": "https://goodtoon009.com",
       "status": "healthy",
-      "lastConfirmedAt": "2026-10-29T03:50:17.961Z",
-      "lastCheckedAt": "2026-10-29T03:50:17.961Z",
+      "lastConfirmedAt": "2026-10-29T05:00:17.818Z",
+      "lastCheckedAt": "2026-10-29T05:00:17.818Z",
       "reason": "목록 구조 확인 · 재생/이미지 검증은 별도",
       "scanOffset": 1,
       "attempts": [
