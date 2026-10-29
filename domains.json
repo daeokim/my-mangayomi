@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-29T15:50:17.668Z",
-  "lastRunAt": "2026-10-29T15:50:17.668Z",
+  "updatedAt": "2026-10-29T16:00:17.368Z",
+  "lastRunAt": "2026-10-29T16:00:17.368Z",
   "domains": {
     "11toon": {
       "baseUrl": "https://11toon.com",
@@ -127,29 +127,26 @@
     },
     "ani24": {
       "baseUrl": "https://ani.ohli24.com",
-      "status": "protected",
-      "lastConfirmedAt": "2026-10-29T13:40:17.556Z",
-      "lastCheckedAt": "2026-10-29T14:50:18.498Z",
+      "status": "healthy",
+      "lastConfirmedAt": "2026-10-29T16:00:17.368Z",
+      "lastCheckedAt": "2026-10-29T16:00:17.368Z",
       "lastConfirmedBy": "external-http-check",
-      "reason": "연결 실패 또는 시간 초과",
-      "scanOffset": 2,
-      "consecutiveFailures": 1,
+      "reason": "목록 구조 확인 · 재생/이미지 검증은 별도",
+      "scanOffset": 1,
+      "consecutiveFailures": 0,
       "attempts": [
         {
           "baseUrl": "https://ani.ohli24.com",
-          "ok": false,
-          "reason": "연결 실패 또는 시간 초과"
-        },
-        {
-          "baseUrl": "https://ani.ohli25.com",
-          "ok": false,
-          "reason": "HTTP 530"
+          "ok": true,
+          "reason": "목록 구조 확인",
+          "finalBaseUrl": "https://ani.ohli24.com"
         }
       ],
       "currentCheck": {
         "baseUrl": "https://ani.ohli24.com",
-        "ok": false,
-        "reason": "연결 실패 또는 시간 초과",
+        "ok": true,
+        "reason": "목록 구조 확인",
+        "finalBaseUrl": "https://ani.ohli24.com",
         "checked": true
       }
     },
