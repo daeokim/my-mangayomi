@@ -15,9 +15,9 @@
     "sha256": "c033a9d0a262afdcfbba5f31ddec2a85197a13af024e0d8cb3be3a2576e32c5d"
   },
   "eu.kanade.tachiyomi.animeextension.ko.daeotvwiki": {
-    "code": 1009,
-    "inputDigest": "41590efc8aec908ee78822c620bab68b2c42919ed20bb14a2571fb0b9ae6d07b",
-    "sha256": "7f68861859c44453508a59dea162a943f187010e7cddae2bddeb85e406fca9e1"
+    "code": 1010,
+    "inputDigest": "12de20dd0518cf8dd6370930bc294763af719afa67769307fc4de6af30395a1a",
+    "sha256": "c0be29e0d996d914cb004f8a2d9ed758d73c24ce6c353244125c974ffd77f953"
   },
   "eu.kanade.tachiyomi.extension.ko.daeomanga": {
     "code": 1005,
