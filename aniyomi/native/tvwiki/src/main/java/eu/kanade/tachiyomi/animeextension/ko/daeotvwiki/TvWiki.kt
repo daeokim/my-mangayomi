@@ -113,7 +113,7 @@ class TvWiki(override val name: String, private val category: String, override v
         val data = JSONObject(raw)
         require(data.optBoolean("success")) { "사이트에서 회차 정보를 제공하지 않았습니다." }
         val episode = data.getJSONObject("episode")
-        require(episode.optString("hls_url").isNotBlank()) { "영상 주소가 없습니다." }
+        val episodeId = response.request.url.queryParameter("ep_idx") ?: error("회차 번호가 없습니다.")
         val sessionClient = client.newBuilder().callTimeout(10, TimeUnit.SECONDS).build()
         return TvWikiPlayback.resolve(episode, createSession = { field, payload ->
                 sessionClient.newCall(Request.Builder().url("$base/api/create_session.php").headers(headers)
@@ -123,13 +123,10 @@ class TvWiki(override val name: String, private val category: String, override v
                         if (r.isSuccessful) JSONObject(r.body!!.string()) else null
                     }
         }, open = { result ->
-            val player = base.toHttpUrl().resolve(result.getString("player_url"))!!.newBuilder()
-                .addQueryParameter("t", result.getString("t")).addQueryParameter("sig", result.getString("sig")).build()
-            require(player.isHttps) { "안전하지 않은 플레이어 주소" }
-            val playlist = player.resolve(episode.getString("hls_url")) ?: error("영상 주소 오류")
-            val videoHeaders = headers.newBuilder().set("Referer", player.toString()).set("Origin", "${player.scheme}://${player.host}").set("Accept", "*/*").build()
-            DeviceLog.e("tvwiki player=${player.host} playlist=${playlist.host}${playlist.encodedPath}")
-            val local = TvWikiProxy.open(client, playlist.toString(), videoHeaders)
+            val media = TvWikiPlayer.open(sessionClient, base, result, episodeId, headers, referer)
+            val playlist = media.url.toHttpUrl()
+            DeviceLog.e("tvwiki player config -> playlist=${playlist.host}${playlist.encodedPath}")
+            val local = TvWikiProxy.open(client, media.url, media.headers)
             listOf(Video(local, "자동 (휴대폰 내부 HLS)", local, headers = Headers.Builder().build()))
         }, onFailure = { field, stage, error ->
             DeviceLog.e("tvwiki playback $field $stage failed: ${error.javaClass.simpleName}")
