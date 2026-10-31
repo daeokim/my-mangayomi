@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-31T02:10:17.246Z",
-  "lastRunAt": "2026-10-31T02:10:17.246Z",
+  "updatedAt": "2026-10-31T02:20:17.467Z",
+  "lastRunAt": "2026-10-31T02:20:17.467Z",
   "domains": {
     "11toon": {
       "baseUrl": "https://11toon.com",
@@ -30,8 +30,8 @@
     "blacktoon": {
       "baseUrl": "https://blacktoon426.com",
       "status": "healthy",
-      "lastConfirmedAt": "2026-10-31T01:10:17.317Z",
-      "lastCheckedAt": "2026-10-31T01:10:17.317Z",
+      "lastConfirmedAt": "2026-10-31T02:20:17.467Z",
+      "lastCheckedAt": "2026-10-31T02:20:17.467Z",
       "reason": "목록 구조 확인 · 재생/이미지 검증은 별도",
       "scanOffset": 1,
       "attempts": [
