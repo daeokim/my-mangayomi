@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-01T01:00:17.617Z",
-  "lastRunAt": "2026-11-01T01:00:17.617Z",
+  "updatedAt": "2026-11-01T01:10:18.118Z",
+  "lastRunAt": "2026-11-01T01:10:18.118Z",
   "domains": {
     "11toon": {
       "baseUrl": "https://11toon.com",
@@ -128,8 +128,8 @@
     "ani24": {
       "baseUrl": "https://ani.ohli24.com",
       "status": "healthy",
-      "lastConfirmedAt": "2026-11-01T00:00:17.312Z",
-      "lastCheckedAt": "2026-11-01T00:00:17.312Z",
+      "lastConfirmedAt": "2026-11-01T01:10:18.118Z",
+      "lastCheckedAt": "2026-11-01T01:10:18.118Z",
       "lastConfirmedBy": "external-http-check",
       "reason": "목록 구조 확인 · 재생/이미지 검증은 별도",
       "scanOffset": 1,
