@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-04T12:30:17.157Z",
-  "lastRunAt": "2026-11-04T12:30:17.157Z",
+  "updatedAt": "2026-11-04T12:40:17.182Z",
+  "lastRunAt": "2026-11-04T12:40:17.182Z",
   "domains": {
     "11toon": {
       "baseUrl": "https://11toon.com",
@@ -52,10 +52,10 @@
       "consecutiveFailures": 0
     },
     "goodtoon": {
-      "baseUrl": "https://goodtoon009.com",
+      "baseUrl": "https://www.goodtoon010.com",
       "status": "healthy",
-      "lastConfirmedAt": "2026-11-04T11:30:17.192Z",
-      "lastCheckedAt": "2026-11-04T11:30:17.192Z",
+      "lastConfirmedAt": "2026-11-04T12:40:17.182Z",
+      "lastCheckedAt": "2026-11-04T12:40:17.182Z",
       "reason": "목록 구조 확인 · 재생/이미지 검증은 별도",
       "scanOffset": 1,
       "attempts": [
@@ -63,14 +63,14 @@
           "baseUrl": "https://goodtoon009.com",
           "ok": true,
           "reason": "목록 구조 확인",
-          "finalBaseUrl": "https://goodtoon009.com"
+          "finalBaseUrl": "https://www.goodtoon010.com"
         }
       ],
       "currentCheck": {
         "baseUrl": "https://goodtoon009.com",
         "ok": true,
         "reason": "목록 구조 확인",
-        "finalBaseUrl": "https://goodtoon009.com",
+        "finalBaseUrl": "https://www.goodtoon010.com",
         "checked": true
       },
       "consecutiveFailures": 0,
