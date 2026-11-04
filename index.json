@@ -24,7 +24,7 @@
   {
     "name": "굿툰",
     "id": 6666598639145141353,
-    "baseUrl": "https://goodtoon009.com",
+    "baseUrl": "https://goodtoon010.com",
     "lang": "ko",
     "typeSource": "single",
     "iconUrl": "https://dc-toki-mangayomi-manga.pages.dev/icon/ko.goodtoon.png",
@@ -33,7 +33,7 @@
     "isNsfw": true,
     "hasCloudflare": false,
     "apiUrl": "",
-    "version": "0.1.16",
+    "version": "0.1.17",
     "isManga": true,
     "itemType": 0,
     "isFullData": false,
