@@ -1,34 +1,31 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-05T17:20:17.479Z",
-  "lastRunAt": "2026-11-05T17:20:17.479Z",
+  "updatedAt": "2026-11-05T17:30:17.232Z",
+  "lastRunAt": "2026-11-05T17:30:17.232Z",
   "domains": {
     "11toon": {
       "baseUrl": "https://11toon.com",
-      "status": "protected",
-      "lastConfirmedAt": "2026-11-05T15:10:17.433Z",
-      "lastCheckedAt": "2026-11-05T16:20:17.888Z",
-      "reason": "연결 실패 또는 시간 초과",
-      "scanOffset": 2,
+      "status": "healthy",
+      "lastConfirmedAt": "2026-11-05T17:30:17.232Z",
+      "lastCheckedAt": "2026-11-05T17:30:17.232Z",
+      "reason": "목록 구조 확인 · 재생/이미지 검증은 별도",
+      "scanOffset": 1,
       "attempts": [
         {
           "baseUrl": "https://11toon.com",
-          "ok": false,
-          "reason": "연결 실패 또는 시간 초과"
-        },
-        {
-          "baseUrl": "https://11toon1.com",
-          "ok": false,
-          "reason": "HTTP 404"
+          "ok": true,
+          "reason": "목록 구조 확인",
+          "finalBaseUrl": "https://11toon.com"
         }
       ],
       "currentCheck": {
         "baseUrl": "https://11toon.com",
-        "ok": false,
-        "reason": "연결 실패 또는 시간 초과",
+        "ok": true,
+        "reason": "목록 구조 확인",
+        "finalBaseUrl": "https://11toon.com",
         "checked": true
       },
-      "consecutiveFailures": 1
+      "consecutiveFailures": 0
     },
     "blacktoon": {
       "baseUrl": "https://blacktoon426.com",
