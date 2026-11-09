@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-09T20:20:17.366Z",
-  "lastRunAt": "2026-11-09T20:20:17.366Z",
+  "updatedAt": "2026-11-09T20:30:17.280Z",
+  "lastRunAt": "2026-11-09T20:30:17.280Z",
   "domains": {
     "11toon": {
       "baseUrl": "https://11toon.com",
@@ -154,11 +154,11 @@
       "baseUrl": "https://anilife01.tv",
       "status": "protected",
       "lastConfirmedAt": "2026-10-23T12:34:54.134558+00:00",
-      "lastCheckedAt": "2026-11-09T19:20:17.654Z",
+      "lastCheckedAt": "2026-11-09T20:30:17.280Z",
       "lastConfirmedBy": "external-http-check",
       "reason": "HTTP 403",
-      "scanOffset": 1,
-      "consecutiveFailures": 390,
+      "scanOffset": 2,
+      "consecutiveFailures": 391,
       "attempts": [
         {
           "baseUrl": "https://anilife01.tv",
@@ -166,9 +166,9 @@
           "reason": "HTTP 403"
         },
         {
-          "baseUrl": "https://anilife11.tv",
+          "baseUrl": "https://anilife02.tv",
           "ok": false,
-          "reason": "HTTP 530"
+          "reason": "HTTP 404"
         }
       ],
       "currentCheck": {
