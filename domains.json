@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-10T11:10:17.836Z",
-  "lastRunAt": "2026-11-10T11:10:17.836Z",
+  "updatedAt": "2026-11-10T11:20:17.216Z",
+  "lastRunAt": "2026-11-10T11:20:17.216Z",
   "domains": {
     "11toon": {
       "baseUrl": "https://11toon.com",
@@ -103,8 +103,8 @@
     "tvroom": {
       "baseUrl": "https://tvroom46.org",
       "status": "healthy",
-      "lastConfirmedAt": "2026-11-10T10:10:17.332Z",
-      "lastCheckedAt": "2026-11-10T10:10:17.332Z",
+      "lastConfirmedAt": "2026-11-10T11:20:17.216Z",
+      "lastCheckedAt": "2026-11-10T11:20:17.216Z",
       "reason": "목록 구조 확인 · 재생/이미지 검증은 별도",
       "scanOffset": 1,
       "lastConfirmedBy": "external-http-check",
