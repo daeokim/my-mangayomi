@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-10T20:10:18.024Z",
-  "lastRunAt": "2026-11-10T20:10:18.024Z",
+  "updatedAt": "2026-11-10T20:20:17.541Z",
+  "lastRunAt": "2026-11-10T20:20:17.541Z",
   "domains": {
     "11toon": {
       "baseUrl": "https://11toon.com",
@@ -53,30 +53,27 @@
     },
     "goodtoon": {
       "baseUrl": "https://www.goodtoon010.com",
-      "status": "protected",
-      "lastConfirmedAt": "2026-11-10T18:00:17.392Z",
-      "lastCheckedAt": "2026-11-10T19:10:17.932Z",
-      "reason": "연결 실패 또는 시간 초과",
-      "scanOffset": 2,
+      "status": "healthy",
+      "lastConfirmedAt": "2026-11-10T20:20:17.541Z",
+      "lastCheckedAt": "2026-11-10T20:20:17.541Z",
+      "reason": "목록 구조 확인 · 재생/이미지 검증은 별도",
+      "scanOffset": 1,
       "attempts": [
         {
           "baseUrl": "https://www.goodtoon010.com",
-          "ok": false,
-          "reason": "연결 실패 또는 시간 초과"
-        },
-        {
-          "baseUrl": "https://goodtoon011.com",
-          "ok": false,
-          "reason": "HTTP 530"
+          "ok": true,
+          "reason": "목록 구조 확인",
+          "finalBaseUrl": "https://www.goodtoon010.com"
         }
       ],
       "currentCheck": {
         "baseUrl": "https://www.goodtoon010.com",
-        "ok": false,
-        "reason": "연결 실패 또는 시간 초과",
+        "ok": true,
+        "reason": "목록 구조 확인",
+        "finalBaseUrl": "https://www.goodtoon010.com",
         "checked": true
       },
-      "consecutiveFailures": 1,
+      "consecutiveFailures": 0,
       "lastConfirmedBy": "external-http-check"
     },
     "tvwiki": {
