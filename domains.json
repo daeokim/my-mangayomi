@@ -1,79 +1,31 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-12T16:10:17.966Z",
-  "lastRunAt": "2026-11-12T16:10:17.966Z",
+  "updatedAt": "2026-11-12T16:20:17.414Z",
+  "lastRunAt": "2026-11-12T16:20:17.414Z",
   "domains": {
     "11toon": {
       "baseUrl": "https://11toon.com",
-      "status": "protected",
-      "lastConfirmedAt": "2026-11-12T15:10:17.613Z",
-      "lastCheckedAt": "2026-11-12T15:11:35.963Z",
-      "reason": "연결 실패 또는 시간 초과",
-      "scanOffset": 2,
+      "status": "healthy",
+      "lastConfirmedAt": "2026-11-12T16:20:17.414Z",
+      "lastCheckedAt": "2026-11-12T16:20:17.414Z",
+      "reason": "목록 구조 확인 · 재생/이미지 검증은 별도",
+      "scanOffset": 1,
       "attempts": [
         {
           "baseUrl": "https://11toon.com",
-          "ok": false,
-          "reason": "연결 실패 또는 시간 초과"
-        },
-        {
-          "baseUrl": "https://11toon1.com",
-          "ok": false,
-          "reason": "HTTP 404"
-        },
-        {
-          "baseUrl": "https://11toon2.com",
-          "ok": false,
-          "reason": "연결 실패 또는 시간 초과"
-        },
-        {
-          "baseUrl": "https://11toon3.com",
-          "ok": false,
-          "reason": "연결 실패 또는 시간 초과"
-        },
-        {
-          "baseUrl": "https://11toon4.com",
-          "ok": false,
-          "reason": "연결 실패 또는 시간 초과"
-        },
-        {
-          "baseUrl": "https://11toon5.com",
-          "ok": false,
-          "reason": "HTTP 530"
-        },
-        {
-          "baseUrl": "https://11toon6.com",
-          "ok": false,
-          "reason": "연결 실패 또는 시간 초과"
-        },
-        {
-          "baseUrl": "https://11toon7.com",
-          "ok": false,
-          "reason": "HTTP 404"
-        },
-        {
-          "baseUrl": "https://11toon8.com",
-          "ok": false,
-          "reason": "HTTP 404"
-        },
-        {
-          "baseUrl": "https://11toon9.com",
-          "ok": false,
-          "reason": "연결 실패 또는 시간 초과"
-        },
-        {
-          "baseUrl": "https://11toon10.com",
-          "ok": false,
-          "reason": "연결 실패 또는 시간 초과"
+          "ok": true,
+          "reason": "목록 구조 확인",
+          "finalBaseUrl": "https://11toon.com"
         }
       ],
       "currentCheck": {
         "baseUrl": "https://11toon.com",
-        "ok": false,
-        "reason": "연결 실패 또는 시간 초과",
+        "ok": true,
+        "reason": "목록 구조 확인",
+        "finalBaseUrl": "https://11toon.com",
         "checked": true
       },
-      "consecutiveFailures": 1
+      "consecutiveFailures": 0
     },
     "blacktoon": {
       "baseUrl": "https://blacktoon428.com",
