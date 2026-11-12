@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-12T13:10:17.408Z",
-  "lastRunAt": "2026-11-12T13:10:17.408Z",
+  "updatedAt": "2026-11-12T13:20:17.061Z",
+  "lastRunAt": "2026-11-12T13:20:17.061Z",
   "domains": {
     "11toon": {
       "baseUrl": "https://11toon.com",
@@ -77,10 +77,10 @@
       "lastConfirmedBy": "external-http-check"
     },
     "tvwiki": {
-      "baseUrl": "https://tvwiki57.net",
+      "baseUrl": "https://tvwiki58.net",
       "status": "healthy",
-      "lastConfirmedAt": "2026-11-12T12:10:17.487Z",
-      "lastCheckedAt": "2026-11-12T12:10:17.487Z",
+      "lastConfirmedAt": "2026-11-12T13:20:17.061Z",
+      "lastCheckedAt": "2026-11-12T13:20:17.061Z",
       "reason": "목록 구조 확인 · 재생/이미지 검증은 별도",
       "scanOffset": 1,
       "attempts": [
@@ -88,14 +88,14 @@
           "baseUrl": "https://tvwiki57.net",
           "ok": true,
           "reason": "목록 구조 확인",
-          "finalBaseUrl": "https://tvwiki57.net"
+          "finalBaseUrl": "https://tvwiki58.net"
         }
       ],
       "currentCheck": {
         "baseUrl": "https://tvwiki57.net",
         "ok": true,
         "reason": "목록 구조 확인",
-        "finalBaseUrl": "https://tvwiki57.net",
+        "finalBaseUrl": "https://tvwiki58.net",
         "checked": true
       },
       "consecutiveFailures": 0
