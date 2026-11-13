@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-13T03:20:17.037Z",
-  "lastRunAt": "2026-11-13T03:20:17.037Z",
+  "updatedAt": "2026-11-13T03:30:18.198Z",
+  "lastRunAt": "2026-11-13T03:30:18.198Z",
   "domains": {
     "11toon": {
       "baseUrl": "https://11toon.com",
@@ -101,27 +101,25 @@
       "consecutiveFailures": 0
     },
     "tvroom": {
-      "baseUrl": "https://tvroom46.org",
+      "baseUrl": "https://tvroom47.org",
       "status": "healthy",
-      "lastConfirmedAt": "2026-11-13T02:20:17.187Z",
-      "lastCheckedAt": "2026-11-13T02:20:17.187Z",
+      "lastConfirmedAt": "2026-11-13T03:30:18.198Z",
+      "lastCheckedAt": "2026-11-13T03:30:18.198Z",
       "reason": "목록 구조 확인 · 재생/이미지 검증은 별도",
       "scanOffset": 1,
       "lastConfirmedBy": "external-http-check",
       "attempts": [
         {
-          "baseUrl": "https://tvroom46.org",
+          "baseUrl": "https://tvroom47.org",
           "ok": true,
           "reason": "목록 구조 확인",
-          "finalBaseUrl": "https://tvroom46.org"
+          "finalBaseUrl": "https://tvroom47.org"
         }
       ],
       "currentCheck": {
         "baseUrl": "https://tvroom46.org",
-        "ok": true,
-        "reason": "목록 구조 확인",
-        "finalBaseUrl": "https://tvroom46.org",
-        "checked": true
+        "checked": false,
+        "reason": "다른 후보 확인으로 기존 주소는 미점검"
       },
       "consecutiveFailures": 0
     },
