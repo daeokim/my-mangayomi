@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-16T02:10:17.120Z",
-  "lastRunAt": "2026-11-16T02:10:17.120Z",
+  "updatedAt": "2026-11-16T02:20:17.181Z",
+  "lastRunAt": "2026-11-16T02:20:17.181Z",
   "domains": {
     "11toon": {
       "baseUrl": "https://11toon.com",
@@ -55,9 +55,9 @@
       "baseUrl": "https://www.goodtoon011.com",
       "status": "protected",
       "lastConfirmedAt": "2026-11-15T18:49:26.505Z",
-      "lastCheckedAt": "2026-11-16T01:10:17.633Z",
+      "lastCheckedAt": "2026-11-16T02:20:17.181Z",
       "reason": "HTTP 403",
-      "scanOffset": 7,
+      "scanOffset": 8,
       "attempts": [
         {
           "baseUrl": "https://www.goodtoon011.com",
@@ -65,7 +65,7 @@
           "reason": "HTTP 403"
         },
         {
-          "baseUrl": "https://goodtoon017.com",
+          "baseUrl": "https://goodtoon018.com",
           "ok": false,
           "reason": "HTTP 530"
         }
@@ -76,7 +76,7 @@
         "reason": "HTTP 403",
         "checked": true
       },
-      "consecutiveFailures": 6,
+      "consecutiveFailures": 7,
       "lastConfirmedBy": "external-http-check"
     },
     "tvwiki": {
