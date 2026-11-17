@@ -1,13 +1,13 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-17T07:50:17.357Z",
-  "lastRunAt": "2026-11-17T07:50:17.357Z",
+  "updatedAt": "2026-11-17T07:52:36.978Z",
+  "lastRunAt": "2026-11-17T07:52:36.978Z",
   "domains": {
     "11toon": {
       "baseUrl": "https://11toon.com",
       "status": "healthy",
-      "lastConfirmedAt": "2026-11-17T07:10:17.629Z",
-      "lastCheckedAt": "2026-11-17T07:10:17.629Z",
+      "lastConfirmedAt": "2026-11-17T07:52:36.978Z",
+      "lastCheckedAt": "2026-11-17T07:52:36.978Z",
       "reason": "목록 구조 확인 · 재생/이미지 검증은 별도",
       "scanOffset": 1,
       "attempts": [
@@ -30,8 +30,8 @@
     "blacktoon": {
       "baseUrl": "https://blacktoon428.com",
       "status": "healthy",
-      "lastConfirmedAt": "2026-11-17T07:20:18.374Z",
-      "lastCheckedAt": "2026-11-17T07:20:18.374Z",
+      "lastConfirmedAt": "2026-11-17T07:52:36.978Z",
+      "lastCheckedAt": "2026-11-17T07:52:36.978Z",
       "reason": "목록 구조 확인 · 재생/이미지 검증은 별도",
       "scanOffset": 1,
       "attempts": [
@@ -52,43 +52,33 @@
       "consecutiveFailures": 0
     },
     "goodtoon": {
-      "baseUrl": "https://www.goodtoon011.com",
-      "status": "protected",
-      "lastConfirmedAt": "2026-11-16T21:59:44.848Z",
-      "lastCheckedAt": "2026-11-17T07:30:17.594Z",
-      "reason": "HTTP 403",
-      "scanOffset": 10,
+      "baseUrl": "https://www.goodtoon012.com",
+      "status": "healthy",
+      "lastConfirmedAt": "2026-11-17T07:52:36.978Z",
+      "lastCheckedAt": "2026-11-17T07:52:36.978Z",
+      "reason": "목록 구조 확인 · 재생/이미지 검증은 별도",
+      "scanOffset": 1,
       "attempts": [
         {
           "baseUrl": "https://www.goodtoon012.com",
-          "ok": false,
-          "reason": "HTTP 403"
-        },
-        {
-          "baseUrl": "https://www.goodtoon011.com",
-          "ok": false,
-          "reason": "HTTP 403"
-        },
-        {
-          "baseUrl": "https://goodtoon020.com",
-          "ok": false,
-          "reason": "HTTP 530"
+          "ok": true,
+          "reason": "목록 구조 확인",
+          "finalBaseUrl": "https://www.goodtoon012.com"
         }
       ],
       "currentCheck": {
         "baseUrl": "https://www.goodtoon011.com",
-        "ok": false,
-        "reason": "HTTP 403",
-        "checked": true
+        "checked": false,
+        "reason": "다른 후보 확인으로 기존 주소는 미점검"
       },
-      "consecutiveFailures": 9,
+      "consecutiveFailures": 0,
       "lastConfirmedBy": "external-http-check"
     },
     "tvwiki": {
       "baseUrl": "https://tvwiki60.net",
       "status": "healthy",
-      "lastConfirmedAt": "2026-11-17T07:40:17.611Z",
-      "lastCheckedAt": "2026-11-17T07:40:17.611Z",
+      "lastConfirmedAt": "2026-11-17T07:52:36.978Z",
+      "lastCheckedAt": "2026-11-17T07:52:36.978Z",
       "reason": "목록 구조 확인 · 재생/이미지 검증은 별도",
       "scanOffset": 1,
       "attempts": [
@@ -110,34 +100,82 @@
     },
     "tvroom": {
       "baseUrl": "https://tvroom47.org",
-      "status": "healthy",
+      "status": "protected",
       "lastConfirmedAt": "2026-11-17T07:50:17.357Z",
-      "lastCheckedAt": "2026-11-17T07:50:17.357Z",
-      "reason": "목록 구조 확인 · 재생/이미지 검증은 별도",
-      "scanOffset": 1,
+      "lastCheckedAt": "2026-11-17T07:52:36.978Z",
+      "reason": "HTTP 403",
+      "scanOffset": 2,
       "lastConfirmedBy": "external-http-check",
       "attempts": [
         {
           "baseUrl": "https://tvroom47.org",
-          "ok": true,
-          "reason": "목록 구조 확인",
-          "finalBaseUrl": "https://tvroom47.org"
+          "ok": false,
+          "reason": "HTTP 403"
+        },
+        {
+          "baseUrl": "https://tvroom48.org",
+          "ok": false,
+          "reason": "연결 실패 또는 시간 초과"
+        },
+        {
+          "baseUrl": "https://tvroom49.org",
+          "ok": false,
+          "reason": "연결 실패 또는 시간 초과"
+        },
+        {
+          "baseUrl": "https://tvroom50.org",
+          "ok": false,
+          "reason": "연결 실패 또는 시간 초과"
+        },
+        {
+          "baseUrl": "https://tvroom51.org",
+          "ok": false,
+          "reason": "연결 실패 또는 시간 초과"
+        },
+        {
+          "baseUrl": "https://tvroom52.org",
+          "ok": false,
+          "reason": "연결 실패 또는 시간 초과"
+        },
+        {
+          "baseUrl": "https://tvroom53.org",
+          "ok": false,
+          "reason": "연결 실패 또는 시간 초과"
+        },
+        {
+          "baseUrl": "https://tvroom54.org",
+          "ok": false,
+          "reason": "연결 실패 또는 시간 초과"
+        },
+        {
+          "baseUrl": "https://tvroom55.org",
+          "ok": false,
+          "reason": "연결 실패 또는 시간 초과"
+        },
+        {
+          "baseUrl": "https://tvroom56.org",
+          "ok": false,
+          "reason": "연결 실패 또는 시간 초과"
+        },
+        {
+          "baseUrl": "https://tvroom57.org",
+          "ok": false,
+          "reason": "연결 실패 또는 시간 초과"
         }
       ],
       "currentCheck": {
         "baseUrl": "https://tvroom47.org",
-        "ok": true,
-        "reason": "목록 구조 확인",
-        "finalBaseUrl": "https://tvroom47.org",
+        "ok": false,
+        "reason": "HTTP 403",
         "checked": true
       },
-      "consecutiveFailures": 0
+      "consecutiveFailures": 1
     },
     "ani24": {
       "baseUrl": "https://ani.ohli24.com",
       "status": "healthy",
-      "lastConfirmedAt": "2026-11-17T06:50:17.423Z",
-      "lastCheckedAt": "2026-11-17T06:50:17.423Z",
+      "lastConfirmedAt": "2026-11-17T07:52:36.978Z",
+      "lastCheckedAt": "2026-11-17T07:52:36.978Z",
       "lastConfirmedBy": "external-http-check",
       "reason": "목록 구조 확인 · 재생/이미지 검증은 별도",
       "scanOffset": 1,
@@ -162,11 +200,11 @@
       "baseUrl": "https://anilife01.tv",
       "status": "protected",
       "lastConfirmedAt": "2026-10-23T12:34:54.134558+00:00",
-      "lastCheckedAt": "2026-11-17T07:00:17.742Z",
+      "lastCheckedAt": "2026-11-17T07:52:36.978Z",
       "lastConfirmedBy": "external-http-check",
       "reason": "HTTP 403",
-      "scanOffset": 10,
-      "consecutiveFailures": 559,
+      "scanOffset": 1,
+      "consecutiveFailures": 560,
       "attempts": [
         {
           "baseUrl": "https://anilife01.tv",
@@ -174,9 +212,54 @@
           "reason": "HTTP 403"
         },
         {
+          "baseUrl": "https://anilife11.tv",
+          "ok": false,
+          "reason": "연결 실패 또는 시간 초과"
+        },
+        {
+          "baseUrl": "https://anilife02.tv",
+          "ok": false,
+          "reason": "HTTP 404"
+        },
+        {
+          "baseUrl": "https://anilife03.tv",
+          "ok": false,
+          "reason": "연결 실패 또는 시간 초과"
+        },
+        {
+          "baseUrl": "https://anilife04.tv",
+          "ok": false,
+          "reason": "연결 실패 또는 시간 초과"
+        },
+        {
+          "baseUrl": "https://anilife05.tv",
+          "ok": false,
+          "reason": "연결 실패 또는 시간 초과"
+        },
+        {
+          "baseUrl": "https://anilife06.tv",
+          "ok": false,
+          "reason": "연결 실패 또는 시간 초과"
+        },
+        {
+          "baseUrl": "https://anilife07.tv",
+          "ok": false,
+          "reason": "연결 실패 또는 시간 초과"
+        },
+        {
+          "baseUrl": "https://anilife08.tv",
+          "ok": false,
+          "reason": "연결 실패 또는 시간 초과"
+        },
+        {
+          "baseUrl": "https://anilife09.tv",
+          "ok": false,
+          "reason": "연결 실패 또는 시간 초과"
+        },
+        {
           "baseUrl": "https://anilife10.tv",
           "ok": false,
-          "reason": "HTTP 530"
+          "reason": "연결 실패 또는 시간 초과"
         }
       ],
       "currentCheck": {
