@@ -58,7 +58,7 @@ Aniyomi 자체 이미지 로더와 외부 플레이어의 연결 방식은 별�
 | 이름 | 버전 | 예비 주소 | 앱 최소 버전 |
 |---|---|---|---|
 | 11toon 만화 | 0.1.16 | https://11toon.com | 0.9.2 |
-| 굿툰 | 0.1.18 | https://goodtoon011.com | 0.9.2 |
+| 굿툰 | 0.1.19 | https://goodtoon012.com | 0.9.2 |
 | 블랙툰 | 0.1.22 | https://blacktoon428.com | 0.9.2 |
 | 티비룸 | 0.1.36 | https://tvroom47.org | 0.9.9 |
 | 티비위키 | 0.1.23 | https://tvwiki60.net | 0.9.9 |
