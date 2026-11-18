@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-18T21:00:17.608Z",
-  "lastRunAt": "2026-11-18T21:00:17.608Z",
+  "updatedAt": "2026-11-18T21:10:17.854Z",
+  "lastRunAt": "2026-11-18T21:10:17.854Z",
   "domains": {
     "11toon": {
       "baseUrl": "https://11toon.com",
@@ -107,9 +107,9 @@
       "baseUrl": "https://tvroom47.org",
       "status": "protected",
       "lastConfirmedAt": "2026-11-18T08:20:17.190Z",
-      "lastCheckedAt": "2026-11-18T20:28:56.629Z",
+      "lastCheckedAt": "2026-11-18T21:10:17.854Z",
       "reason": "HTTP 403",
-      "scanOffset": 2,
+      "scanOffset": 3,
       "lastConfirmedBy": "external-http-check",
       "attempts": [
         {
@@ -118,54 +118,9 @@
           "reason": "HTTP 403"
         },
         {
-          "baseUrl": "https://tvroom48.org",
-          "ok": false,
-          "reason": "연결 실패 또는 시간 초과"
-        },
-        {
           "baseUrl": "https://tvroom49.org",
           "ok": false,
-          "reason": "연결 실패 또는 시간 초과"
-        },
-        {
-          "baseUrl": "https://tvroom50.org",
-          "ok": false,
-          "reason": "연결 실패 또는 시간 초과"
-        },
-        {
-          "baseUrl": "https://tvroom51.org",
-          "ok": false,
-          "reason": "연결 실패 또는 시간 초과"
-        },
-        {
-          "baseUrl": "https://tvroom52.org",
-          "ok": false,
-          "reason": "연결 실패 또는 시간 초과"
-        },
-        {
-          "baseUrl": "https://tvroom53.org",
-          "ok": false,
-          "reason": "연결 실패 또는 시간 초과"
-        },
-        {
-          "baseUrl": "https://tvroom54.org",
-          "ok": false,
-          "reason": "연결 실패 또는 시간 초과"
-        },
-        {
-          "baseUrl": "https://tvroom55.org",
-          "ok": false,
-          "reason": "연결 실패 또는 시간 초과"
-        },
-        {
-          "baseUrl": "https://tvroom56.org",
-          "ok": false,
-          "reason": "연결 실패 또는 시간 초과"
-        },
-        {
-          "baseUrl": "https://tvroom57.org",
-          "ok": false,
-          "reason": "연결 실패 또는 시간 초과"
+          "reason": "HTTP 530"
         }
       ],
       "currentCheck": {
@@ -174,7 +129,7 @@
         "reason": "HTTP 403",
         "checked": true
       },
-      "consecutiveFailures": 11
+      "consecutiveFailures": 12
     },
     "ani24": {
       "baseUrl": "https://ani.ohli24.com",
